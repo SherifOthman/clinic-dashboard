@@ -1,9 +1,12 @@
+import { ApiException } from "@/services/apiException";
+import { isAuthenticated } from "@/services/auth";
+import { login } from "@/services/authService";
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Checkbox } from "@heroui/checkbox";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Link } from "@heroui/link";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Activity,
   Eye,
@@ -14,95 +17,50 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/contexts/AuthContext";
+import z from "zod";
+
+const formSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  if (isAuthenticated()) navigate("/");
+
   const [isVisible, setIsVisible] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(
+    null
   );
 
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login: authLogin, isAuthenticated } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isLoading },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      const from = location.state?.from?.pathname || "/";
-
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, location]);
-
-  const toggleVisibility = () => setIsVisible(!isVisible);
-
-  const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
-
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
+  const onSubmit = async (data: FormData) => {
     try {
-      const success = await authLogin(email, password);
-
-      if (success) {
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
-        // Redirect to the page they were trying to access, or dashboard
-        const from = location.state?.from?.pathname || "/";
-
-        navigate(from, { replace: true });
-      } else {
-        setErrors({
-          email: "Invalid credentials",
-          password: "Invalid credentials",
-        });
-      }
+      await login(data.email, data.password);
+      navigate("/");
     } catch (error) {
-      setErrors({
-        email: "Login failed. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
+      const apiError = error as ApiException;
+      setServerErrorMessage(apiError.message);
     }
   };
 
   const handleDemoLogin = () => {
-    setEmail("admin@clinic.com");
-    setPassword("password");
-    setErrors({});
+    setValue("email", "test@gmail.com");
+    setValue("password", "123456");
   };
 
   return (
@@ -129,24 +87,26 @@ export default function Login() {
               <p className="text-sm text-default-500 mt-1">
                 Enter your credentials to access your dashboard
               </p>
+              {serverErrorMessage && (
+                <p className="text-red-400 mt-1">{serverErrorMessage}</p>
+              )}
             </div>
           </CardHeader>
-
+          {/* Error message for the sever */}
           <CardBody className="pt-0">
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               {/* Email Input */}
               <Input
                 isRequired
                 className="w-full"
-                errorMessage={errors.email}
-                isInvalid={!!errors.email}
+                errorMessage={errors.email?.message}
+                isInvalid={!!errors.email?.message}
                 label="Email Address"
                 placeholder="Enter your email"
                 startContent={<Mail className="text-default-400" size={18} />}
                 type="email"
-                value={email}
                 variant="bordered"
-                onValueChange={setEmail}
+                {...register("email")}
               />
 
               {/* Password Input */}
@@ -157,7 +117,7 @@ export default function Login() {
                   <button
                     className="focus:outline-none"
                     type="button"
-                    onClick={toggleVisibility}
+                    onClick={() => setIsVisible((prev) => !prev)}
                   >
                     {isVisible ? (
                       <EyeOff className="text-default-400" size={18} />
@@ -166,26 +126,18 @@ export default function Login() {
                     )}
                   </button>
                 }
-                errorMessage={errors.password}
-                isInvalid={!!errors.password}
+                errorMessage={errors.password?.message}
+                isInvalid={!!errors.password?.message}
                 label="Password"
                 placeholder="Enter your password"
                 startContent={<Lock className="text-default-400" size={18} />}
                 type={isVisible ? "text" : "password"}
-                value={password}
                 variant="bordered"
-                onValueChange={setPassword}
+                {...register("password")}
               />
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex justify-between items-center">
-                <Checkbox
-                  isSelected={rememberMe}
-                  size="sm"
-                  onValueChange={setRememberMe}
-                >
-                  Remember me
-                </Checkbox>
+              {/* Forgot Password */}
+              <div className="flex justify-end items-center">
                 <Link
                   className="text-primary hover:text-primary-600"
                   href="#"
@@ -224,7 +176,7 @@ export default function Login() {
                 Use Demo Account
               </Button>
               <div className="text-xs text-center text-default-400 space-y-1">
-                <p>Email: admin@clinic.com</p>
+                <p>Email: test@gmail.com</p>
                 <p>Password: password</p>
               </div>
             </div>
@@ -250,22 +202,6 @@ export default function Login() {
               <Activity className="text-success" size={20} />
             </div>
             <p className="text-xs text-default-500">Analytics</p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-xs text-default-400">
-          <p>© 2024 ClinicMS. All rights reserved.</p>
-          <div className="flex justify-center gap-4 mt-2">
-            <Link href="#" size="sm">
-              Privacy Policy
-            </Link>
-            <Link href="#" size="sm">
-              Terms of Service
-            </Link>
-            <Link href="#" size="sm">
-              Support
-            </Link>
           </div>
         </div>
       </div>

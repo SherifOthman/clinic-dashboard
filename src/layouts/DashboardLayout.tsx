@@ -21,7 +21,8 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Sidebar, SidebarItem } from "@/components/ui/Sidebar";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { UserMenu, UserMenuItem } from "@/components/ui/UserMenu";
-import { useAuth } from "@/contexts/AuthContext";
+import { getUser } from "@/services/auth";
+import { logout } from "@/services/authService";
 
 const menuItems: SidebarItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -41,14 +42,13 @@ export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
-  const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const user = getUser();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
-
   const userMenuItems: UserMenuItem[] = [
     {
       key: "profile",

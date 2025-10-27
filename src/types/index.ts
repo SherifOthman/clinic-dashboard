@@ -1,4 +1,30 @@
 // Common types used across the application
+export interface ErrorItem {
+  field: string;
+  code: string;
+  message: string;
+}
+
+export interface ApiError {
+  type: string;
+  code?: string;
+  message: string;
+  errors?: ErrorItem[];
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  user: User;
+}
+
+export interface User {
+  FirstName: string;
+  SecondName?: string;
+  ThirdName: string;
+  Email: string;
+  Avatar?: string;
+  PhoneNumber?: string;
+}
 
 export interface BaseEntity {
   id: string;

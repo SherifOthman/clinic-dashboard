@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/AuthContext";
+import { isAuthenticated } from "@/services/auth";
 import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
@@ -6,13 +6,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated) {
-    // Redirect to login page with return url
+  if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
   return <>{children}</>;
 }
