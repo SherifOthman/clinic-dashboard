@@ -105,15 +105,11 @@ export default function ReportsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerateReport = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      console.log("Report generated");
-    }, 2000);
+    showNotImplemented("Generate report");
   };
 
   const handleDownloadReport = (reportId: string) => {
-    console.log("Downloading report:", reportId);
+    showNotImplemented("Download report");
   };
 
   const filteredReports = mockReportData.filter((report) => {

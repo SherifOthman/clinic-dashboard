@@ -30,11 +30,7 @@ export default function SettingsPage() {
   });
 
   const handleSave = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log("Settings saved");
-    }, 1000);
+    showNotImplemented("Save settings");
   };
 
   return (
@@ -69,6 +65,7 @@ export default function SettingsPage() {
                     size="sm"
                     variant="bordered"
                     startContent={<Camera size={16} />}
+                    onPress={() => showNotImplemented("Change photo")}
                   >
                     Change Photo
                   </Button>

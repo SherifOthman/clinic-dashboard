@@ -142,6 +142,10 @@ export default function Login() {
                   className="text-primary hover:text-primary-600"
                   href="#"
                   size="sm"
+                  onPress={(e) => {
+                    e.preventDefault();
+                    showNotImplemented("Forgot password");
+                  }}
                 >
                   Forgot password?
                 </Link>

@@ -147,6 +147,35 @@ npm run dev
 npm run build
 ```
 
+## 🧪 Testing Mode
+
+The application is currently configured for testing with mock authentication:
+
+### Login
+
+- **Any email and password combination will work** for testing purposes
+- The login simulates a 500ms API delay for realistic UX
+- A mock user is created with admin privileges
+
+### Demo Credentials
+
+You can use the "Use Demo Account" button or enter any credentials:
+
+- Email: Any valid email format (e.g., test@example.com)
+- Password: Any password (minimum 6 characters)
+
+### Not Implemented Features
+
+Some features display "Not implemented" messages:
+
+- Forgot password functionality
+- Generate report functionality
+- Download report functionality
+- Save settings functionality
+- Change photo functionality
+
+To restore real API authentication, uncomment the original code in `src/services/authService.ts`.
+
 ## Pages Included
 
 - **Dashboard** - Overview with stats cards and recent activity
