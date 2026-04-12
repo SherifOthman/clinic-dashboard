@@ -126,7 +126,7 @@ src/
 | -------------------------------------- | ------ | ------------------------- |
 | Onboarding wizard                      | ✅     |                           |
 | View / create / edit / toggle branches | ✅     |                           |
-| Branch phone numbers                   | ❌     | Backend entity modeled    |
+| Branch phone numbers                   | ✅     |                           |
 | Branch appointment pricing             | ❌     | Backend entity modeled    |
 | Subscription management UI             | ❌     | Backend entity modeled    |
 | Usage metrics dashboard                | ❌     | Backend aggregates hourly |
@@ -144,13 +144,13 @@ src/
 
 ### Staff
 
-| Feature                               | Status | Notes                      |
-| ------------------------------------- | ------ | -------------------------- |
-| Staff list with role / status filters | ✅     |                            |
-| Invite / resend / cancel invitations  | ✅     |                            |
-| Accept invitation                     | ✅     |                            |
-| Activate / deactivate staff           | ✅     |                            |
-| Doctor working schedule               | ❌     | API endpoint exists, no UI |
+| Feature                               | Status | Notes |
+| ------------------------------------- | ------ | ----- |
+| Staff list with role / status filters | ✅     |       |
+| Invite / resend / cancel invitations  | ✅     |       |
+| Accept invitation                     | ✅     |       |
+| Activate / deactivate staff           | ✅     |       |
+| Doctor working schedule               | ✅     |       |
 
 ### Appointments
 
