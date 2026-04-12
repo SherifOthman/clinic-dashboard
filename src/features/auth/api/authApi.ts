@@ -1,78 +1,104 @@
-import { apiClient } from "@/core/api/client";
+import { apiClient } from "@/core/api";
+import { API_ENDPOINTS } from "@/core/constants";
 import type {
-  ChangePasswordDto,
-  ConfirmEmailDto,
-  ForgotPasswordDto,
-  LoginDto,
-  RegisterDto,
-  ResendEmailVerificationDto,
-  ResetPasswordDto,
-  User,
-} from "../types/index";
-
-const BASE_URL = "/auth";
+  ChangePassword,
+  ConfirmEmail,
+  ForgotPassword,
+  Login,
+  Register,
+  ResendEmailVerification,
+  ResetPassword,
+} from "../schemas";
+import type { Availability, LoginResponse, User } from "../types";
 
 export const authApi = {
-  async register(data: RegisterDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/register`, data);
+  async register(data: Register): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/register`, data);
   },
 
-  async login(data: LoginDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/login`, data);
-  },
-
-  async logout(): Promise<void> {
-    await apiClient.post(`${BASE_URL}/logout`);
-  },
-
-  async confirmEmail(data: ConfirmEmailDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/confirm-email`, data);
-  },
-
-  async forgotPassword(data: ForgotPasswordDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/forgot-password`, data);
-  },
-
-  async resetPassword(data: ResetPasswordDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/reset-password`, data);
-  },
-
-  async changePassword(data: ChangePasswordDto): Promise<void> {
-    await apiClient.post(`${BASE_URL}/change-password`, data);
-  },
-
-  async resendEmailVerification(
-    data: ResendEmailVerificationDto,
-  ): Promise<void> {
-    await apiClient.post(`${BASE_URL}/resend-email-verification`, data);
-  },
-
-  async getMe(): Promise<User> {
-    const response = await apiClient.get<User>(`${BASE_URL}/me`);
-    return response.data;
-  },
-
-  async updateProfile(data: any): Promise<User> {
-    const response = await apiClient.put<User>(`${BASE_URL}/profile`, data);
-    return response.data;
-  },
-
-  async updateProfileImage(image: File) {
-    const formData = new FormData();
-    formData.append("file", image);
-
-    const response = await apiClient.post<User>(
-      `${BASE_URL}/profile/image/upload`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
+  async login(data: Login): Promise<LoginResponse> {
+    const response = await apiClient.post<LoginResponse>(
+      `${API_ENDPOINTS.auth}/login`,
+      data,
     );
     return response.data;
   },
 
-  async deleteProfileImage(): Promise<User> {
-    const response = await apiClient.delete<User>(`${BASE_URL}/profile/image`);
+  async logout(): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/logout`);
+  },
+
+  async confirmEmail(data: ConfirmEmail): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/confirm-email`, data);
+  },
+
+  async forgotPassword(data: ForgotPassword): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/forgot-password`, data);
+  },
+
+  async resetPassword(data: ResetPassword): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/reset-password`, data);
+  },
+
+  async changePassword(data: ChangePassword): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/change-password`, data);
+  },
+
+  async resendEmailVerification(data: ResendEmailVerification): Promise<void> {
+    await apiClient.post(
+      `${API_ENDPOINTS.auth}/resend-email-verification`,
+      data,
+    );
+  },
+
+  async getMe(): Promise<User> {
+    const response = await apiClient.get<User>(`${API_ENDPOINTS.auth}/me`);
     return response.data;
+  },
+
+  async checkEmailAvailability(email: string): Promise<Availability> {
+    const response = await apiClient.get<Availability>(
+      `${API_ENDPOINTS.auth}/check-email`,
+      { params: { email } },
+    );
+    return response.data;
+  },
+
+  async checkUsernameAvailability(username: string): Promise<Availability> {
+    const response = await apiClient.get<Availability>(
+      `${API_ENDPOINTS.auth}/check-username`,
+      { params: { username } },
+    );
+    return response.data;
+  },
+
+  // Profile management
+  async updateProfile(data: {
+    firstName: string;
+    lastName: string;
+    userName: string;
+    phoneNumber?: string;
+    gender: string;
+  }): Promise<void> {
+    await apiClient.put(`${API_ENDPOINTS.auth}/profile`, data);
+  },
+
+  async updateProfileImage(image: File): Promise<void> {
+    const formData = new FormData();
+    formData.append("file", image);
+
+    await apiClient.post(
+      `${API_ENDPOINTS.auth}/profile/image/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
+
+  async deleteProfileImage(): Promise<void> {
+    await apiClient.delete(`${API_ENDPOINTS.auth}/profile/image`);
   },
 };

@@ -1,114 +1,88 @@
-import { LocationSelector } from "@/core/components/LocationSelector";
-import { setServerErrors } from "@/core/utils/setServerErrors";
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Input } from "@heroui/input";
-import { ArrowLeft, CheckCircle, MapPin } from "lucide-react";
-import { useEffect } from "react";
+import { Button, Card } from "@heroui/react";
+import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import type { OnboardingFormData } from "../schemas";
-import { PhoneNumbersInput } from "./PhoneNumbersInput";
+
+import { FormInput } from "@/core/components/form/index";
+import { LocationSelector } from "@/core/components/form/LocationSelector";
+import type { CompleteOnboarding } from "../schemas";
 
 interface BranchDetailsStepProps {
   onBack: () => void;
-  isLoading: boolean;
-  error: any;
+  onNext: () => void;
 }
 
-export function BranchDetailsStep({
-  onBack,
-  isLoading,
-  error,
-}: BranchDetailsStepProps) {
-  const { t } = useTranslation();
+export function BranchDetailsStep({ onBack, onNext }: BranchDetailsStepProps) {
+  const { t, i18n } = useTranslation();
+  const form = useFormContext<CompleteOnboarding>();
   const {
     register,
     formState: { errors },
-    control,
-    watch,
-    setValue,
-    setError,
-  } = useFormContext<OnboardingFormData>();
+    trigger,
+  } = form;
 
-  useEffect(() => {
-    if (error) {
-      setServerErrors(error, setError, t);
-    }
-  }, [error, setError, t]);
+  const handleNext = async () => {
+    const isValid = await trigger(["branchName", "addressLine"]);
+    if (isValid) onNext();
+  };
 
   return (
-    <div className="space-y-8">
-      <Card className="shadow-lg border-0 bg-content1/80 backdrop-blur-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center space-x-3">
-            <MapPin className="w-6 h-6 text-secondary" />
+    <div className="flex flex-col gap-6">
+      <Card>
+        <Card.Header>
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary-50 flex h-10 w-10 items-center justify-center rounded-full">
+              <MapPin className="text-secondary h-5 w-5" />
+            </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                {t("onboarding.branchDetails.title")}
-              </h2>
-              <p className="text-sm text-default-600">
+              <Card.Title>{t("onboarding.branchDetails.title")}</Card.Title>
+              <Card.Description>
                 {t("onboarding.branchDetails.subtitle")}
-              </p>
+              </Card.Description>
             </div>
           </div>
-        </CardHeader>
-        <CardBody className="p-6 space-y-6">
-          <Input
+        </Card.Header>
+        <Card.Content className="space-y-4">
+          <FormInput
             {...register("branchName")}
             label={t("onboarding.clinicInfo.branchName")}
+            error={errors.branchName}
             placeholder={t("onboarding.branchNamePlaceholder")}
-            variant="bordered"
-            size="lg"
-            isInvalid={!!errors.branchName}
-            errorMessage={errors.branchName?.message}
             isRequired
           />
-
-          <Input
-            {...register("branchAddress")}
+          <FormInput
+            {...register("addressLine")}
             label={t("onboarding.clinicInfo.address")}
+            error={errors.addressLine}
             placeholder={t("onboarding.addressPlaceholder")}
-            variant="bordered"
-            size="lg"
-            isInvalid={!!errors.branchAddress}
-            errorMessage={errors.branchAddress?.message}
             isRequired
           />
-
-          <PhoneNumbersInput
-            control={control}
-            watch={watch}
-            setValue={setValue}
-          />
-
           <LocationSelector
-            onLocationChange={(location) => setValue("location", location)}
-            isRequired
+            form={form}
+            cityNameEnField="cityNameEn"
+            cityNameArField="cityNameAr"
+            stateNameEnField="stateNameEn"
+            stateNameArField="stateNameAr"
           />
-        </CardBody>
+        </Card.Content>
       </Card>
 
-      <div className="flex justify-between items-center pt-6">
-        <Button
-          type="button"
-          variant="flat"
-          size="lg"
-          onPress={onBack}
-          startContent={<ArrowLeft className="w-5 h-5" />}
-        >
+      <div className="flex items-center justify-between pt-4">
+        <Button type="button" variant="outline" size="lg" onPress={onBack}>
+          {i18n.language === "en" ? (
+            <ArrowLeft className="h-4 w-4" />
+          ) : (
+            <ArrowRight className="h-4 w-4" />
+          )}
           {t("common.back")}
         </Button>
-        <Button
-          type="submit"
-          color="primary"
-          size="lg"
-          isLoading={isLoading}
-          endContent={!isLoading && <CheckCircle className="w-5 h-5" />}
-        >
-          {isLoading
-            ? t("onboarding.settingUp")
-            : t("onboarding.completeSetup")}
+        <Button type="button" variant="primary" size="lg" onPress={handleNext}>
+          {t("common.continue")}
+          {i18n.language === "en" ? (
+            <ArrowRight className="h-4 w-4" />
+          ) : (
+            <ArrowLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>

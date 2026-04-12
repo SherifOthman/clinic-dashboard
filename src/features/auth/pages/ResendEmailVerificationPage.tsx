@@ -1,88 +1,73 @@
-import { Button } from "@heroui/button";
-import { CheckCircle, Mail } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
-
-import { RouterLink } from "@/core/components/ui/RouterLink";
+import { RouterLink } from "@/core/components/ui";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { ResendEmailVerificationForm } from "@/features/auth/components/ResendEmailVerificationForm";
+import { Button, Card } from "@heroui/react";
+import { CheckCircle, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 
 export default function ResendEmailVerificationPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const success = searchParams.get("success");
+  const successMessage = searchParams.get("message");
 
-  const email = searchParams.get("email") || "";
-
-  const handleSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setIsSuccess(true);
-  };
-
-  if (isSuccess) {
+  if (success === "true") {
     return (
-      <>
-        <AuthHeader
-          subtitle={t("auth.emailVerification.verificationSent")}
-          title={t("auth.emailVerification.checkEmail")}
-        />
-        <div className="bg-content1 p-8 rounded-2xl border border-divider shadow-lg text-center">
-          <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-success" />
-          </div>
-          <p className="text-default-600 mb-6">{successMessage}</p>
-          <div className="space-y-3">
-            <Button
-              className="w-full"
-              color="primary"
-              size="lg"
-              onPress={() => setIsSuccess(false)}
-            >
-              {t("auth.emailVerification.resend")}
-            </Button>
-            <p className="text-sm text-default-600">
-              <RouterLink color="primary" to="/login">
-                {t("auth.emailVerification.backToSignIn")}
-              </RouterLink>
-            </p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <AuthHeader title={t("auth.emailVerification.checkEmail")} />
+          <Card className="mt-6 p-8 text-center">
+            <div className="bg-success-50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+              <CheckCircle className="text-success h-8 w-8" />
+            </div>
+            <p className="text-default-600 mb-6">{successMessage}</p>
+            <div className="flex flex-col gap-4">
+              <Button
+                size="lg"
+                variant="primary"
+                fullWidth
+                onPress={() => window.location.reload()}
+              >
+                {t("auth.emailVerification.resend")}
+              </Button>
+              <p className="text-default-600 text-sm">
+                <RouterLink to="/login">
+                  {t("auth.emailVerification.backToSignIn")}
+                </RouterLink>
+              </p>
+            </div>
+          </Card>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <AuthHeader
-        subtitle={t("auth.emailVerification.resendPage.subtitle")}
-        title={t("auth.emailVerification.resendPage.title")}
-      />
-      <div className="bg-content1 p-8 rounded-2xl border border-divider shadow-lg">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-8 h-8 text-primary" />
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <AuthHeader title={t("auth.emailVerification.resendPage.title")} />
+        <Card className="mt-6 p-8">
+          <div className="mb-6 text-center">
+            <div className="bg-primary-50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+              <Mail className="text-primary h-8 w-8" />
+            </div>
+            <p className="text-default-600">
+              {t("auth.emailVerification.resendPage.message")}
+            </p>
           </div>
-          <p className="text-default-600">
-            {t("auth.emailVerification.resendPage.message")}
-          </p>
-        </div>
 
-        <ResendEmailVerificationForm
-          defaultEmail={email}
-          onSuccess={handleSuccess}
-        />
+          <ResendEmailVerificationForm />
 
-        <div className="text-center mt-6">
-          <p className="text-sm text-default-600">
-            {t("auth.emailVerification.resendPage.alreadyVerified")}{" "}
-            <RouterLink color="primary" to="/login">
-              {t("auth.emailVerification.resendPage.signIn")}
-            </RouterLink>
-          </p>
-        </div>
+          <div className="mt-6 text-center">
+            <p className="text-default-600 text-sm">
+              {t("auth.emailVerification.resendPage.alreadyVerified")}{" "}
+              <RouterLink to="/login">{t("auth.login.signIn")}</RouterLink>
+            </p>
+          </div>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }
+

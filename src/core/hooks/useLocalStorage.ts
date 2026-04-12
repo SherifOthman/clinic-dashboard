@@ -3,35 +3,37 @@ import { useState } from "react";
 type SetValue<T> = T | ((val: T) => T);
 
 /**
- * Reusable local storage hook
- * Provides localStorage functionality with React state synchronization
+ * useState that persists its value in localStorage.
+ *
+ * - Reads the initial value from localStorage on mount (falls back to `initialValue`).
+ * - Every write syncs to localStorage automatically.
+ * - Supports functional updates: setValue(prev => prev + 1).
+ * - Silent fail on errors (localStorage may be disabled or full in some browsers).
+ *
+ * Note: this does NOT sync across browser tabs. If you need cross-tab sync,
+ * you'd need to listen to the "storage" window event.
  */
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
 ): [T, (value: SetValue<T>) => void] {
-  // Get from local storage then parse stored json or return initialValue
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
+    } catch {
       return initialValue;
     }
   });
 
-  // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value: SetValue<T>) => {
     try {
-      // Allow value to be a function so we have the same API as useState
       const valueToStore =
         value instanceof Function ? value(storedValue) : value;
-
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
+    } catch {
+      // Silent fail — localStorage might be disabled or full
     }
   };
 

@@ -1,0 +1,17 @@
+# Exclude node_modules - Docker installs them fresh inside the container
+node_modules/
+
+# Exclude previous build output
+dist/
+
+# Exclude local dev files
+.env
+.env.local
+.env.development
+
+# Exclude git history
+.git/
+.gitignore
+
+# Exclude logs
+*.log

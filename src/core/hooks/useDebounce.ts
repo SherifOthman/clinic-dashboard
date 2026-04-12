@@ -1,17 +1,24 @@
 import { useEffect, useState } from "react";
 
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+/**
+ * Delays updating the returned value until `delay` ms have passed
+ * since the last change to `value`.
+ *
+ * Typical use: debounce a search input before sending it to the API
+ * so we don't fire a request on every keystroke.
+ *
+ * How it works:
+ *   - Every time `value` changes, a new setTimeout is scheduled.
+ *   - The cleanup function cancels the previous timer.
+ *   - Only when the user stops typing for `delay` ms does `debounced` update.
+ */
+export function useDebounce<T>(value: T, delay = 400): T {
+  const [debounced, setDebounced] = useState(value);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
   }, [value, delay]);
 
-  return debouncedValue;
+  return debounced;
 }

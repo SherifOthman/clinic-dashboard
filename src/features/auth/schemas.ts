@@ -1,114 +1,78 @@
-import { createPhoneNumberSchema } from "@/core/utils/phoneValidation";
-import i18next from "i18next";
+import { createValidators } from "@/core/validators";
+import { TFunction } from "i18next";
 import { z } from "zod";
 
-// Login Schema - accepts email or username
-export const createLoginSchema = () =>
-  z.object({
-    email: z.string().min(1, i18next.t("validation.required")),
-    password: z.string().min(1, i18next.t("validation.required")),
-  });
+/**
+ * All Zod schemas for the auth feature, created as a factory so error
+ * messages are translated via the current `t()` function.
+ *
+ * Used with: const schemas = useValidation(createAuthSchemas);
+ *
+ * Types are inferred directly from the schemas so they stay in sync
+ * automatically — no manual type duplication.
+ */
+export const createAuthSchemas = (t: TFunction) => {
+  const v = createValidators(t);
 
-export const loginSchema = createLoginSchema();
-export type LoginFormData = z.infer<typeof loginSchema>;
+  return {
+    login: z.object({
+      emailOrUsername: v.requiredString(),
+      password: v.requiredString(),
+    }),
 
-// Register Schema
-export const createRegisterSchema = () =>
-  z.object({
-    firstName: z.string().min(1, i18next.t("validation.required")),
-    lastName: z.string().min(1, i18next.t("validation.required")),
-    userName: z.string().min(1, i18next.t("validation.required")),
-    email: z
-      .string()
-      .min(1, i18next.t("validation.required"))
-      .pipe(z.email(i18next.t("validation.string.email"))),
-    password: z
-      .string()
-      .min(8, i18next.t("validation.string.minLength", { min: 8 }))
-      .max(128, i18next.t("validation.string.maxLength", { max: 128 }))
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        i18next.t("validation.password.complexity"),
-      )
-      .refine(
-        (val) => !/\s/.test(val),
-        i18next.t("validation.password.noSpaces"),
-      ),
-    phoneNumber: createPhoneNumberSchema(i18next.t.bind(i18next)),
-  });
+    register: z.object({
+      firstName: v.name(),
+      lastName: v.name(),
+      userName: v.username(),
+      email: v.email(),
+      password: v.password(),
+      phoneNumber: v.phoneNumber(),
+      gender: z.enum(["Male", "Female"], { message: t("validation.required") }),
+    }),
 
-export const registerSchema = createRegisterSchema();
-export type RegisterFormData = z.infer<typeof registerSchema>;
+    forgotPassword: z.object({
+      email: v.email(),
+    }),
 
-// Forgot Password Schema
-export const createForgotPasswordSchema = () =>
-  z.object({
-    email: z
-      .string()
-      .min(1, i18next.t("validation.required"))
-      .pipe(z.email(i18next.t("validation.string.email"))),
-  });
+    resetPassword: z.object({
+      token: v.requiredString(),
+      email: v.email(),
+      newPassword: v.password(),
+    }),
 
-export const forgotPasswordSchema = createForgotPasswordSchema();
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+    changePassword: z.object({
+      currentPassword: v.password(),
+      newPassword: v.password(),
+    }),
 
-// Reset Password Schema
-export const createResetPasswordSchema = () =>
-  z.object({
-    token: z.string().min(1, i18next.t("validation.required")),
-    email: z
-      .string()
-      .min(1, i18next.t("validation.required"))
-      .pipe(z.email(i18next.t("validation.string.email"))),
-    newPassword: z
-      .string()
-      .min(8, i18next.t("validation.string.minLength", { min: 8 }))
-      .max(128, i18next.t("validation.string.maxLength", { max: 128 }))
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        i18next.t("validation.password.complexity"),
-      )
-      .refine(
-        (val) => !/\s/.test(val),
-        i18next.t("validation.password.noSpaces"),
-      ),
-  });
+    updateProfile: z.object({
+      firstName: v.name(),
+      lastName: v.name(),
+      userName: v.username(),
+      phoneNumber: v.phoneNumber(),
+      gender: z.enum(["Male", "Female"], { message: t("validation.required") }),
+    }),
 
-export const resetPasswordSchema = createResetPasswordSchema();
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+    confirmEmail: z.object({
+      token: v.requiredString(),
+      email: v.email(),
+    }),
 
-// Change Password Schema
-export const createChangePasswordSchema = () =>
-  z.object({
-    currentPassword: z.string().min(1, i18next.t("validation.required")),
-    newPassword: z
-      .string()
-      .min(8, i18next.t("validation.string.minLength", { min: 8 }))
-      .max(128, i18next.t("validation.string.maxLength", { max: 128 }))
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        i18next.t("validation.password.complexity"),
-      )
-      .refine(
-        (val) => !/\s/.test(val),
-        i18next.t("validation.password.noSpaces"),
-      ),
-  });
+    resendEmailVerification: z.object({
+      email: v.email(),
+    }),
+  };
+};
 
-export const changePasswordSchema = createChangePasswordSchema();
-export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+type AuthSchemas = ReturnType<typeof createAuthSchemas>;
 
-// Resend Email Verification Schema
-export const createResendEmailVerificationSchema = () =>
-  z.object({
-    email: z
-      .string()
-      .min(1, i18next.t("validation.required"))
-      .pipe(z.email(i18next.t("validation.string.email"))),
-  });
-
-export const resendEmailVerificationSchema =
-  createResendEmailVerificationSchema();
-export type ResendEmailVerificationFormData = z.infer<
-  typeof resendEmailVerificationSchema
+export type Login = z.infer<AuthSchemas["login"]>;
+export type Register = z.infer<AuthSchemas["register"]>;
+export type ForgotPassword = z.infer<AuthSchemas["forgotPassword"]>;
+export type ResetPassword = z.infer<AuthSchemas["resetPassword"]>;
+export type ChangePassword = z.infer<AuthSchemas["changePassword"]>;
+export type UpdateProfile = z.infer<AuthSchemas["updateProfile"]>;
+export type ConfirmEmail = z.infer<AuthSchemas["confirmEmail"]>;
+export type ResendEmailVerification = z.infer<
+  AuthSchemas["resendEmailVerification"]
 >;

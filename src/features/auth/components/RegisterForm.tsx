@@ -1,93 +1,166 @@
+import { useValidation } from "@/core/hooks/useValidation";
+import { Button, Label, Radio, RadioGroup } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { FormInput } from "@/core/components/form/FormInput";
-import { FormPasswordInput } from "@/core/components/form/FormPasswordInput";
-import { FormPhoneInput } from "@/core/components/FormPhoneInput";
-import { NameFields } from "@/core/components/NameFields";
-import { setServerErrors } from "@/core/utils/setServerErrors";
-import { useEffect } from "react";
+import {
+  FormInput,
+  FormPasswordInput,
+  FormPhoneInput,
+} from "@/core/components/form/index";
+import { AuthCard, RouterLink } from "@/core/components/ui";
+import { useDebouncedValidation } from "@/core/hooks/useDebouncedValidation";
 import { useRegister } from "../hooks";
-import { createRegisterSchema, type RegisterFormData } from "../schemas";
-import { AuthFormContainer } from "./AuthFormContainer";
-import { AuthSubmitButton } from "./AuthSubmitButton";
+import {
+  useEmailValidation,
+  useUsernameValidation,
+} from "../hooks/useFieldValidation";
+import { type Register, createAuthSchemas } from "../schemas";
 
 export function RegisterForm() {
   const { t } = useTranslation();
-  const {
-    mutateAsync: registerAsync,
-    isPending,
-    isError,
-    error,
-  } = useRegister();
+  const schemas = useValidation(createAuthSchemas);
+  const { mutateAsync: registerAsync, isPending } = useRegister();
 
   const {
-    register,
     handleSubmit,
-    control,
     setError,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(createRegisterSchema()),
-    mode: "onChange",
-    reValidateMode: "onChange",
+    clearErrors,
+    watch,
+    register,
+    control,
+    formState: { errors },
+  } = useForm<Register>({
+    resolver: zodResolver(schemas.register),
   });
 
-  useEffect(() => {
-    if (isError && error) {
-      setServerErrors(error, setError, t);
-    }
-  }, [isError, error, setError, t]);
-
-  const onSubmit = async (data: RegisterFormData) => {
-    await registerAsync(data);
-  };
+  useDebouncedValidation({
+    fieldName: "email",
+    fieldValue: watch("email"),
+    validationHook: useEmailValidation,
+    setError,
+    clearErrors,
+    errorMessage: t("validation.emailAlreadyExists"),
+  });
+  useDebouncedValidation({
+    fieldName: "userName",
+    fieldValue: watch("userName"),
+    validationHook: useUsernameValidation,
+    setError,
+    clearErrors,
+    errorMessage: t("validation.usernameAlreadyExists"),
+  });
 
   return (
-    <AuthFormContainer onSubmit={handleSubmit(onSubmit)}>
-      {/* Name Input */}
-      <NameFields register={register} errors={errors} isUserForm={true} />
+    <AuthCard
+      title={t("auth.register.title")}
+      subtitle={t("auth.register.subtitle")}
+    >
+      <form
+        onSubmit={handleSubmit((data) => registerAsync(data))}
+        className="flex flex-col gap-4"
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormInput
+            {...register("firstName")}
+            label={t("common.fields.firstName")}
+            error={errors.firstName}
+            isRequired
+            noNumbers
+          />
+          <FormInput
+            {...register("lastName")}
+            label={t("common.fields.lastName")}
+            error={errors.lastName}
+            isRequired
+            noNumbers
+          />
+        </div>
 
-      {/* UserName Input */}
-      <FormInput
-        {...register("userName")}
-        isRequired
-        error={errors.userName}
-        label={t("auth.register.username")}
-      />
+        <FormInput
+          {...register("userName")}
+          label={t("common.fields.username")}
+          error={errors.userName}
+          isRequired
+        />
+        <FormInput
+          {...register("email")}
+          type="email"
+          label={t("common.fields.email")}
+          error={errors.email}
+          isRequired
+        />
 
-      {/* Email Input */}
-      <FormInput
-        {...register("email")}
-        isRequired
-        error={errors.email}
-        label={t("auth.register.email")}
-        type="email"
-      />
+        <Controller
+          name="phoneNumber"
+          control={control}
+          render={({ field }) => (
+            <FormPhoneInput
+              {...field}
+              label={t("common.fields.phoneNumber")}
+              error={errors.phoneNumber}
+              isRequired
+            />
+          )}
+        />
 
-      {/* Password Input */}
-      <FormPasswordInput
-        {...register("password")}
-        isRequired
-        error={errors.password}
-        label={t("auth.register.password")}
-      />
+        {/* Gender */}
+        <Controller
+          name="gender"
+          control={control}
+          render={({ field }) => (
+            <RadioGroup
+              orientation="horizontal"
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              isInvalid={!!errors.gender}
+            >
+              <Label isRequired>{t("common.fields.gender")}</Label>
+              <Radio value="Male">
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                <Radio.Content>
+                  <Label>{t("common.fields.male")}</Label>
+                </Radio.Content>
+              </Radio>
+              <Radio value="Female">
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                <Radio.Content>
+                  <Label>{t("common.fields.female")}</Label>
+                </Radio.Content>
+              </Radio>
+            </RadioGroup>
+          )}
+        />
 
-      {/* PhoneNumber Input */}
-      <FormPhoneInput
-        name="phoneNumber"
-        control={control}
-        label={t("auth.register.phoneNumber")}
-        isRequired
-      />
+        <FormPasswordInput
+          {...register("password")}
+          label={t("common.fields.password")}
+          error={errors.password}
+          isRequired
+        />
 
-      {/* Register Button */}
-      <AuthSubmitButton isLoading={isPending || isSubmitting}>
-        {isPending || isSubmitting
-          ? t("common.loading")
-          : t("auth.register.title")}
-      </AuthSubmitButton>
-    </AuthFormContainer>
+        <Button
+          type="submit"
+          variant="primary"
+          fullWidth
+          isPending={isPending}
+          isDisabled={isPending}
+        >
+          {t("auth.register.title")}
+        </Button>
+
+        <div className="text-center text-sm">
+          <p className="text-default-500">
+            {t("auth.register.haveAccount")}{" "}
+            <RouterLink to="/login">{t("auth.register.signIn")}</RouterLink>
+          </p>
+        </div>
+      </form>
+    </AuthCard>
   );
 }

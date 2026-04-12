@@ -1,15 +1,15 @@
-import { Card, CardBody } from "@heroui/card";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { Card, Skeleton } from "@heroui/react";
+import { Clock, TrendingDown, TrendingUp } from "lucide-react";
+import { ReactNode } from "react";
 
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  className?: string;
+  icon: ReactNode;
+  trend?: { value: number; isPositive: boolean };
+  iconColor?: string;
+  isLoading?: boolean;
+  comingSoon?: boolean;
 }
 
 export function StatsCard({
@@ -17,33 +17,54 @@ export function StatsCard({
   value,
   icon,
   trend,
-  className,
+  iconColor = "text-primary",
+  isLoading = false,
+  comingSoon = false,
 }: StatsCardProps) {
   return (
-    <Card className={className}>
-      <CardBody className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-default-600">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
-            {trend && (
+    <Card>
+      <Card.Content className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-default-500 mb-2 text-sm">{title}</p>
+
+            {isLoading ? (
+              <Skeleton className="h-9 w-20 rounded-md" />
+            ) : comingSoon ? (
+              <div className="text-default-400 flex items-center gap-1.5">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm font-medium">{value}</span>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold">{value}</p>
+            )}
+
+            {trend && !comingSoon && !isLoading && (
               <div
-                className={`flex items-center text-sm ${
+                className={`mt-2 flex items-center gap-1 ${
                   trend.isPositive ? "text-success" : "text-danger"
                 }`}
               >
                 {trend.isPositive ? (
-                  <TrendingUp className="w-4 h-4 mr-1" />
+                  <TrendingUp className="h-4 w-4" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 mr-1" />
+                  <TrendingDown className="h-4 w-4" />
                 )}
-                {Math.abs(trend.value)}%
+                <span className="text-sm font-medium">
+                  {Math.abs(trend.value)}%
+                </span>
               </div>
             )}
           </div>
-          <div className="p-3 bg-primary/10 rounded-lg">{icon}</div>
+
+          <div
+            className={`bg-default-100 flex h-12 w-12 items-center justify-center rounded-lg ${iconColor} ${comingSoon ? "opacity-40" : ""}`}
+          >
+            {icon}
+          </div>
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }
+

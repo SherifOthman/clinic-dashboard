@@ -1,5 +1,8 @@
-import { Building2, CheckCircle, MapPin } from "lucide-react";
+import { Separator } from "@heroui/react";
+import { Building2, Check, Hospital, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { cn } from "@/core/utils";
 
 interface ProgressIndicatorProps {
   currentStep: number;
@@ -8,71 +11,86 @@ interface ProgressIndicatorProps {
 export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
   const { t } = useTranslation();
 
+  const steps = [
+    {
+      label: t("onboarding.progress.step1"),
+      description: t("onboarding.progress.clinicAndPlan"),
+      icon: Building2,
+    },
+    {
+      label: t("onboarding.progress.step2"),
+      description: t("onboarding.progress.branchDetails"),
+      icon: MapPin,
+    },
+    {
+      label: t("onboarding.progress.step3"),
+      description: t("onboarding.progress.medicalServices"),
+      icon: Hospital,
+    },
+  ];
+
   return (
-    <div className="mb-12">
+    <div className="mb-8">
       <div className="flex items-center justify-center">
-        <div className="flex items-center space-x-8">
-          <div className="flex items-center space-x-3">
-            <div
-              className={`relative flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                currentStep >= 1
-                  ? "bg-primary border-primary text-primary-foreground shadow-lg"
-                  : "bg-content1 border-default-300 text-default-400"
-              }`}
-            >
-              {currentStep > 1 ? (
-                <CheckCircle className="w-6 h-6" />
-              ) : (
-                <Building2 className="w-6 h-6" />
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > index;
+          const isActive = currentStep === index;
+          const Icon = step.icon;
+
+          return (
+            <div key={index} className="flex items-center">
+              {/* Step */}
+              <div className="flex flex-col items-center">
+                {/* Icon/Number */}
+                <div
+                  className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
+                    isCompleted || isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-default-100 text-default-400",
+                  )}
+                >
+                  {isCompleted ? (
+                    <Check className="h-6 w-6" />
+                  ) : (
+                    <Icon className="h-6 w-6" />
+                  )}
+                </div>
+
+                {/* Label */}
+                <div className="mt-3 text-center">
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      isActive || isCompleted
+                        ? "text-foreground"
+                        : "text-default-400",
+                    )}
+                  >
+                    {step.label}
+                  </p>
+                  <p className="text-xs text-default-500 mt-1 max-w-[120px]">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Connector Line */}
+              {index < steps.length - 1 && (
+                <div className="px-8 pb-8">
+                  <Separator
+                    className={cn(
+                      "w-24",
+                      isCompleted ? "bg-primary" : "bg-default-200",
+                    )}
+                  />
+                </div>
               )}
             </div>
-            <div className="text-left">
-              <div
-                className={`font-semibold ${currentStep >= 1 ? "text-primary" : "text-default-400"}`}
-              >
-                {t("onboarding.progress.step1")}
-              </div>
-              <div
-                className={`text-sm ${currentStep >= 1 ? "text-foreground" : "text-default-400"}`}
-              >
-                {t("onboarding.progress.clinicAndPlan")}
-              </div>
-            </div>
-          </div>
-
-          <div className="w-24 h-1 bg-default-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                currentStep >= 2 ? "bg-primary w-full" : "bg-default-200 w-0"
-              }`}
-            />
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div
-              className={`relative flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
-                currentStep >= 2
-                  ? "bg-primary border-primary text-primary-foreground shadow-lg"
-                  : "bg-content1 border-default-300 text-default-400"
-              }`}
-            >
-              <MapPin className="w-6 h-6" />
-            </div>
-            <div className="text-left">
-              <div
-                className={`font-semibold ${currentStep >= 2 ? "text-primary" : "text-default-400"}`}
-              >
-                {t("onboarding.progress.step2")}
-              </div>
-              <div
-                className={`text-sm ${currentStep >= 2 ? "text-foreground" : "text-default-400"}`}
-              >
-                {t("onboarding.progress.branchDetails")}
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
     </div>
   );
 }
+

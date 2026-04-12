@@ -1,103 +1,120 @@
-import { RouterLink } from "@/core/components/ui/RouterLink";
+import { RouterLink } from "@/core/components/ui";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
-import { useResendEmailVerification } from "@/features/auth/hooks/useAuthMutations";
-import { Button } from "@heroui/button";
-import { CheckCircle, Mail, RefreshCw } from "lucide-react";
+import { useResendEmailVerification } from "@/features/auth/hooks";
+import { Button, Card, Link } from "@heroui/react";
+import { CheckCircle, Mail } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-export const VerifyEmailPage = () => {
+export default function VerifyEmailPage() {
   const { t } = useTranslation();
-  const { email } = useParams();
+  const { email } = useParams<{ email: string }>();
   const [resendCount, setResendCount] = useState(0);
   const resendMutation = useResendEmailVerification();
 
-  const handleResendEmail = async () => {
+  const handleResendEmail = () => {
     if (!email) return;
-    await resendMutation.mutateAsync({ email: decodeURIComponent(email) });
-    setResendCount((prev) => prev + 1);
+    resendMutation.mutate(
+      { email: decodeURIComponent(email) },
+      { onSuccess: () => setResendCount((prev) => prev + 1) },
+    );
   };
 
   return (
-    <>
-      <AuthHeader
-        title={t("auth.emailVerification.checkEmail")}
-        subtitle={t("auth.emailVerification.verificationSent")}
-      />
-      <div className="bg-content1 p-8 rounded-2xl border border-divider shadow-lg text-center">
-        <div className="relative mb-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-            <Mail className="w-8 h-8 text-primary" />
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <AuthHeader
+          title={t("auth.emailVerification.checkEmail")}
+          subtitle={t("auth.emailVerification.verificationSent")}
+        />
+        <Card className="mt-6 p-6">
+          {/* Icon Section */}
+          <div className="mb-6 flex justify-center">
+            <div className="relative">
+              <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-full">
+                <Mail className="text-primary h-8 w-8" />
+              </div>
+              <div className="bg-success border-background absolute -inset-e-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-full border-3">
+                <CheckCircle className="text-success-foreground h-4 w-4" />
+              </div>
+            </div>
           </div>
-          <div className="absolute -top-1 -right-1 bg-background rounded-full p-1">
-            <CheckCircle className="w-6 h-6 text-success" />
+
+          {/* Email Display */}
+          <div className="mb-6 text-center">
+            <p className="text-default-500 mb-2 text-sm">
+              {t("auth.emailVerification.verificationSent")}
+            </p>
+            <h3 className="text-foreground text-lg font-semibold break-all">
+              {email
+                ? decodeURIComponent(email)
+                : t("auth.emailVerification.yourEmail")}
+            </h3>
           </div>
-        </div>
 
-        <div className="space-y-4 mb-6">
-          <p className="font-semibold text-primary break-all">
-            {email
-              ? decodeURIComponent(email)
-              : t("auth.emailVerification.yourEmail")}
-          </p>
-
-          <div className="space-y-2 text-sm text-default-600">
-            <p>{t("auth.emailVerification.clickLinkMessage")}</p>
-            <p>
-              <strong>{t("auth.emailVerification.didntReceive")}</strong>{" "}
+          {/* Instructions */}
+          <div className="bg-default-50 mb-6 space-y-2 rounded-lg p-4">
+            <p className="text-default-700 text-sm">
+              {t("auth.emailVerification.clickLinkMessage")}
+            </p>
+            <p className="text-default-600 text-sm">
+              {t("auth.emailVerification.didntReceive")}{" "}
               {t("auth.emailVerification.checkSpam")}
             </p>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <Button
-            color="primary"
-            className="w-full"
-            size="lg"
-            onPress={handleResendEmail}
-            isLoading={resendMutation.isPending}
-            isDisabled={!email}
-            startContent={
-              !resendMutation.isPending && <RefreshCw className="w-4 h-4" />
-            }
-          >
-            {resendMutation.isPending
-              ? t("auth.emailVerification.sending")
-              : t("auth.emailVerification.resend")}
-          </Button>
-
-          {resendCount > 0 && (
-            <p className="text-sm text-success">
-              ✓ {t("auth.emailVerification.emailSent")} ({resendCount}{" "}
-              {resendCount > 1 ? t("common.times") : t("common.time")})
-            </p>
-          )}
-
-          {resendMutation.isError && (
-            <p className="text-sm text-danger">
-              {t("common.somethingWentWrong")}
-            </p>
-          )}
-
-          <div className="text-center mt-6">
-            <RouterLink color="primary" to="/login" size="sm">
-              {t("auth.forgotPassword.backToLogin")}
-            </RouterLink>
-          </div>
-
-          <div className="text-xs text-default-500 space-y-1 mt-6">
-            <p>{t("auth.emailVerification.needHelp")}</p>
-            <a
-              href="mailto:support@clinicmanagement.com"
-              className="text-primary"
+          {/* Actions */}
+          <div className="space-y-4">
+            <Button
+              size="lg"
+              variant="primary"
+              fullWidth
+              onPress={handleResendEmail}
+              isPending={resendMutation.isPending}
             >
-              support@clinicmanagement.com
-            </a>
+              {t("auth.emailVerification.resend")}
+            </Button>
+
+            {resendCount > 0 && (
+              <div className="text-success flex items-center justify-center gap-2 text-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>
+                  {t("auth.emailVerification.emailSent")} ({resendCount}{" "}
+                  {resendCount > 1 ? t("common.times") : t("common.time")})
+                </span>
+              </div>
+            )}
+
+            {resendMutation.isError && (
+              <p className="text-danger text-center text-sm">
+                {t("common.somethingWentWrong")}
+              </p>
+            )}
           </div>
-        </div>
+
+          {/* Footer Links */}
+          <div className="border-default-200 mt-8 space-y-4 border-t pt-6">
+            <div className="text-center">
+              <RouterLink to="/login">
+                {t("auth.forgotPassword.backToLogin")}
+              </RouterLink>
+            </div>
+
+            <div className="space-y-1 text-center">
+              <p className="text-default-500 text-xs">
+                {t("auth.emailVerification.needHelp")}
+              </p>
+              <Link
+                href="mailto:support@clinicmanagement.com"
+                className="text-primary text-xs hover:underline"
+              >
+                support@clinicmanagement.com
+              </Link>
+            </div>
+          </div>
+        </Card>
       </div>
-    </>
+    </div>
   );
-};
+}

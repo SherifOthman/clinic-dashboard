@@ -1,100 +1,168 @@
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import {
+  differenceInDays,
+  differenceInMonths,
+  differenceInYears,
+  parseISO,
+  startOfDay,
+} from "date-fns";
+
+/** Shape of the detailed age result */
 export interface DetailedAge {
   years: number;
   months: number;
   days: number;
+  totalDays: number;
 }
 
-export function calculateAge(dateOfBirth: string | Date): number {
-  if (!dateOfBirth) return 0;
-
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  ) {
-    age--;
+/**
+ * Safely parse a date of birth.
+ * Ensures "YYYY-MM-DD" is treated as a local date (not UTC).
+ */
+function parseBirthDate(input: string | Date): Date {
+  if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    return parseISO(input);
   }
-
-  return Math.max(0, age);
+  return new Date(input);
 }
 
+/**
+ * Normalize a date to the start of the day (00:00:00)
+ * This avoids time-related calculation errors.
+ */
+function normalize(date: Date): Date {
+  return startOfDay(date);
+}
+
+/**
+ * Calculate detailed age (years, months, days, totalDays)
+ */
 export function calculateDetailedAge(dateOfBirth: string | Date): DetailedAge {
   if (!dateOfBirth) {
-    return { years: 0, months: 0, days: 0 };
+    return { years: 0, months: 0, days: 0, totalDays: 0 };
   }
 
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
+  const today = normalize(new Date());
+  const birth = normalize(parseBirthDate(dateOfBirth));
 
-  let years = today.getFullYear() - birthDate.getFullYear();
-  let months = today.getMonth() - birthDate.getMonth();
-  let days = today.getDate() - birthDate.getDate();
+  // Total days (simple difference)
+  const totalDays = differenceInDays(today, birth);
 
-  if (days < 0) {
-    months--;
-    const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-    days += lastMonth.getDate();
-  }
+  // We'll move forward from birth step-by-step
+  let cursor = new Date(birth);
 
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
+  // 1) Calculate years
+  const years = differenceInYears(today, cursor);
+  cursor.setFullYear(cursor.getFullYear() + years);
+
+  // 2) Calculate months after removing years
+  const months = differenceInMonths(today, cursor);
+  cursor.setMonth(cursor.getMonth() + months);
+
+  // 3) Remaining days
+  const days = differenceInDays(today, cursor);
 
   return {
     years: Math.max(0, years),
     months: Math.max(0, months),
     days: Math.max(0, days),
+    totalDays: Math.max(0, totalDays),
   };
 }
 
-export function formatDetailedAge(detailedAge: DetailedAge): string {
-  const { years, months, days } = detailedAge;
+/**
+ * Calculate simple age in years only
+ */
+export function calculateAge(dateOfBirth: string | Date): number {
+  const today = normalize(new Date());
+  const birth = normalize(parseBirthDate(dateOfBirth));
 
-  if (years === 0 && months === 0 && days === 0) {
-    return "Newborn";
-  }
-
-  const parts: string[] = [];
-
-  if (years > 0) {
-    parts.push(`${years} year${years !== 1 ? "s" : ""}`);
-  }
-
-  if (months > 0) {
-    parts.push(`${months} month${months !== 1 ? "s" : ""}`);
-  }
-
-  if (days > 0 && years === 0) {
-    parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-  }
-
-  return parts.join(", ");
+  return differenceInYears(today, birth);
 }
 
-export function calculateDateOfBirthFromAge(age: number): string {
-  if (!age || age <= 0) return "";
+/**
+ * Format age for UI (medical-friendly)
+ */
+export function formatDetailedAge(age: DetailedAge, isAr = false): string {
+  const { years, months, days, totalDays } = age;
 
-  const today = new Date();
-  const birthYear = today.getFullYear() - age;
-  const birthDate = new Date(birthYear, today.getMonth(), today.getDate());
+  if (totalDays === 0) {
+    return isAr ? "حديث الولادة" : "Newborn";
+  }
 
-  return birthDate.toISOString().split("T")[0];
-}
+  const formatNumber = (n: number) =>
+    isAr ? toArabicNumerals(String(n)) : String(n);
 
-export function isValidAge(age: number): boolean {
-  return age >= 0 && age <= 150;
-}
+  // ---------------- Arabic ----------------
+  if (isAr) {
+    // < 1 month → days
+    if (years === 0 && months === 0) {
+      return `${formatNumber(days)} ${
+        days === 1 ? "يوم" : days <= 10 ? "أيام" : "يوم"
+      }`;
+    }
 
-export function getAgeCategory(age: number): string {
-  if (age < 1) return "Infant";
-  if (age < 13) return "Child";
-  if (age < 20) return "Teenager";
-  if (age < 65) return "Adult";
-  return "Senior";
+    // < 1 year → months + optional days
+    if (years === 0) {
+      const monthText = `${formatNumber(
+        months,
+      )} ${months === 1 ? "شهر" : months <= 10 ? "أشهر" : "شهراً"}`;
+
+      if (days > 0) {
+        return `${monthText} ${formatNumber(days)} ${
+          days === 1 ? "يوم" : days <= 10 ? "أيام" : "يوم"
+        }`;
+      }
+
+      return monthText;
+    }
+
+    // 1–2 years → years + optional months
+    if (years <= 2) {
+      const yearText = years === 1 ? "سنة" : `${formatNumber(years)} سنوات`;
+
+      if (months > 0) {
+        return `${yearText} ${formatNumber(months)} ${
+          months === 1 ? "شهر" : months <= 10 ? "أشهر" : "شهراً"
+        }`;
+      }
+
+      return yearText;
+    }
+
+    // > 2 years → years only
+    return `${formatNumber(years)} ${years <= 10 ? "سنوات" : "سنة"}`;
+  }
+
+  // ---------------- English ----------------
+
+  // < 1 month → days
+  if (years === 0 && months === 0) {
+    return `${days} ${days === 1 ? "day" : "days"}`;
+  }
+
+  // < 1 year → months + optional days
+  if (years === 0) {
+    const monthText = `${months} ${months === 1 ? "month" : "months"}`;
+
+    if (days > 0) {
+      return `${monthText} ${days} ${days === 1 ? "day" : "days"}`;
+    }
+
+    return monthText;
+  }
+
+  // 1–2 years → years + optional months
+  if (years <= 2) {
+    const yearText = `${years} ${years === 1 ? "year" : "years"}`;
+
+    if (months > 0) {
+      return `${yearText} ${months} ${months === 1 ? "month" : "months"}`;
+    }
+
+    return yearText;
+  }
+
+  // > 2 years → years only
+  return `${years} years`;
 }

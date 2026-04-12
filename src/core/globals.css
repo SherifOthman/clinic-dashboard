@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+:root {
+  --font-english:
+    "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-arabic: "Cairo", "Noto Sans Arabic", "Amiri", "Tahoma", sans-serif;
+}
+
+/* Fix: field-background == surface in both light and dark mode, inputs invisible.
+   Light: white fields on gray page background, gray fields inside white cards/drawers.
+   Dark: use --default (darker than surface). */
+.light,
+[data-theme="light"],
+:root {
+  --field-background: var(--surface);
+  --field-border: var(--border);
+}
+
+/* Inside white surfaces (cards, drawers, modals) use slightly gray fields */
+.light .card,
+.light .drawer__dialog,
+.light .modal__dialog,
+[data-theme="light"] .card,
+[data-theme="light"] .drawer__dialog,
+[data-theme="light"] .modal__dialog {
+  --field-background: var(--surface-secondary);
+}
+
+.dark,
+[data-theme="dark"] {
+  --field-background: var(--default);
+}
+
+/* Apply fonts based on direction */
+body {
+  font-family: var(--font-english);
+}
+
+html[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: var(--font-arabic);
+}
+
+/* RTL Support for HeroUI Select Component */
+/* [dir="rtl"] [data-slot="trigger"] {
+  flex-direction: row-reverse !important;
+}
+
+[dir="rtl"] [data-slot="value"] {
+  text-align: right;
+} */
+
+/* RTL: flip close trigger (X button) from right to left in modals/drawers/dialogs */
+[dir="rtl"] .modal__close-trigger,
+[dir="rtl"] .drawer__close-trigger,
+[dir="rtl"] .alert-dialog__close-trigger {
+  right: auto;
+  left: 1rem;
+}
+[dir="rtl"] .table__row > *:first-child {
+  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+}
+
+[dir="rtl"] .table__row > *:last-child {
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+}

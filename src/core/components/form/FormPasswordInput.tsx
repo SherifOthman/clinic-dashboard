@@ -1,53 +1,54 @@
-import { Input, InputProps } from "@heroui/input";
+import {
+  FieldError as FieldErrorComponent,
+  Input,
+  Label,
+  TextField,
+} from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { FieldError } from "react-hook-form";
+import type { FieldError } from "react-hook-form";
 
-interface FormPasswordInputProps extends InputProps {
+interface FormPasswordInputProps
+  extends Omit<React.ComponentProps<typeof Input>, "type"> {
   label: string;
-  error?: string | FieldError;
-  ref?: React.Ref<HTMLInputElement>;
+  error?: FieldError;
+  isRequired?: boolean;
 }
 
-/**
- * Reusable form password input component
- * Provides consistent password input styling with visibility toggle
- */
 export function FormPasswordInput({
   label,
   error,
-  isInvalid,
-  errorMessage,
-  ref,
+  isRequired,
   ...props
 }: FormPasswordInputProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const errorText = typeof error === "string" ? error : error?.message;
-
-  const toggleVisibility = () => setIsVisible(!isVisible);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <Input
-      ref={ref}
-      label={label}
-      variant="bordered"
-      type={isVisible ? "text" : "password"}
-      isInvalid={isInvalid || !!error}
-      errorMessage={errorMessage || errorText}
-      endContent={
+    <TextField isRequired={isRequired} isInvalid={!!error}>
+      <Label>{label}</Label>
+      <div className="relative w-full">
+        <Input
+          type={showPassword ? "text" : "password"}
+          className="w-full"
+          {...props}
+        />
         <button
-          className="focus:outline-none"
           type="button"
-          onClick={toggleVisibility}
+          onClick={() => setShowPassword(!showPassword)}
+          className="text-default-400 hover:text-default-600 absolute inset-e-3 top-1/2 z-10 -translate-y-1/2"
+          aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          {isVisible ? (
-            <EyeOff className="w-4 h-4 text-default-400" />
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
           ) : (
-            <Eye className="w-4 h-4 text-default-400" />
+            <Eye className="h-4 w-4" />
           )}
         </button>
-      }
-      {...props}
-    />
+      </div>
+      {error?.message && (
+        <FieldErrorComponent>{error.message}</FieldErrorComponent>
+      )}
+    </TextField>
   );
 }
+

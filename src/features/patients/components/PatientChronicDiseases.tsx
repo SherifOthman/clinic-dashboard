@@ -1,112 +1,270 @@
-import type { ChronicDiseaseDto } from "@/core/types/api";
-import { Button } from "@heroui/button";
-import { Checkbox, CheckboxGroup } from "@heroui/checkbox";
-import { Divider } from "@heroui/divider";
-import { Plus } from "lucide-react";
-import { useState } from "react";
 import {
-  type FieldErrors,
-  type UseFormSetValue,
-  type UseFormWatch,
-} from "react-hook-form";
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  Chip,
+  Label,
+  Modal,
+  SearchField,
+} from "@heroui/react";
+import { Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { type UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useChronicDiseases } from "../hooks/useChronicDiseases";
-import type {
-  CreatePatientFormData,
-  UpdatePatientFormData,
-} from "../schemas/patientSchemas";
+import { useChronicDiseases } from "../patientsHooks";
+import type { PatientFormData } from "../schemas";
+import type { ChronicDisease } from "../types";
 
-interface PatientChronicDiseasesProps {
-  watch: UseFormWatch<CreatePatientFormData | UpdatePatientFormData>;
-  setValue: UseFormSetValue<CreatePatientFormData | UpdatePatientFormData>;
-  errors: FieldErrors<CreatePatientFormData | UpdatePatientFormData>;
+// ── Most-used tracking ────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "chronic_disease_usage";
+
+function getUsageCounts(): Record<string, number> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
 }
 
-export function PatientChronicDiseases({
-  watch,
-  setValue,
-  errors,
-}: PatientChronicDiseasesProps) {
-  const { t } = useTranslation();
-  const [showDiseases, setShowDiseases] = useState(false);
-  const { data: chronicDiseases, isLoading } = useChronicDiseases();
-  const chronicDiseaseIds = watch("chronicDiseaseIds");
+function incrementUsage(ids: string[]) {
+  const counts = getUsageCounts();
+  for (const id of ids) counts[id] = (counts[id] ?? 0) + 1;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(counts));
+}
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h4 className="text-md font-medium text-foreground">
-            Chronic Diseases
-          </h4>
-          <div className="h-8 w-24 bg-default-200 animate-pulse rounded" />
-        </div>
-      </div>
-    );
-  }
+function getMostUsed(diseases: ChronicDisease[], limit = 8): ChronicDisease[] {
+  const counts = getUsageCounts();
+  return diseases
+    .filter((d) => (counts[d.id] ?? 0) > 0)
+    .sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0))
+    .slice(0, limit);
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+interface PatientChronicDiseasesProps {
+  form: UseFormReturn<PatientFormData>;
+}
+
+export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
+  const { data: diseases = [], isLoading, error } = useChronicDiseases();
+
+  const { watch, setValue } = form;
+  // Normalize to lowercase — patient detail returns uppercase GUIDs, disease list uses lowercase
+  const selectedIds: string[] = (watch("chronicDiseaseIds") ?? []).map(
+    (id: string) => id.toLowerCase(),
+  );
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const name = (d: ChronicDisease) => (isAr ? d.nameAr : d.nameEn);
+
+  const mostUsed = useMemo(() => getMostUsed(diseases), [diseases]);
+
+  const filtered = useMemo(
+    () =>
+      search.trim()
+        ? diseases.filter((d) =>
+            name(d).toLowerCase().includes(search.toLowerCase()),
+          )
+        : diseases,
+    [diseases, search, isAr],
+  );
+
+  const selectedDiseases = diseases.filter((d) => selectedIds.includes(d.id));
+
+  const handleClose = () => {
+    if (selectedIds.length > 0) incrementUsage(selectedIds);
+    setSearch("");
+    setIsOpen(false);
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h4 className="text-md font-medium text-foreground">
-          Chronic Diseases
-        </h4>
+        <Label>{t("patients.chronicDiseases")}</Label>
         <Button
           type="button"
           size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<Plus className="w-4 h-4" />}
-          onPress={() => setShowDiseases(!showDiseases)}
+          variant="outline"
+          onPress={() => setIsOpen(true)}
         >
-          {showDiseases
-            ? t("patients.hideDiseases")
+          <Plus className="h-3.5 w-3.5" />
+          {selectedIds.length > 0
+            ? `${t("patients.addDiseases")} (${selectedIds.length})`
             : t("patients.addDiseases")}
         </Button>
       </div>
 
-      {showDiseases && (
-        <>
-          <Divider />
-          <div className="space-y-3">
-            <p className="text-sm text-default-600">
-              Select any chronic diseases that apply to this patient:
-            </p>
-
-            <CheckboxGroup
-              value={chronicDiseaseIds?.map(String) || []}
-              onValueChange={(values) => {
-                const numericValues = values
-                  .map(Number)
-                  .filter((n) => !isNaN(n));
-                setValue("chronicDiseaseIds", numericValues as any);
-              }}
-              classNames={{
-                wrapper: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2",
-              }}
-            >
-              {(chronicDiseases || []).map((disease: ChronicDiseaseDto) => (
-                <Checkbox
-                  key={disease.id}
-                  value={disease.id.toString()}
-                  classNames={{
-                    base: "max-w-full",
-                    label: "text-sm",
-                  }}
-                >
-                  {disease.name}
-                </Checkbox>
-              ))}
-            </CheckboxGroup>
-
-            {errors.chronicDiseaseIds && (
-              <p className="text-sm text-danger">
-                {errors.chronicDiseaseIds.message}
-              </p>
-            )}
-          </div>
-        </>
+      {/* Selected chips */}
+      {selectedDiseases.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedDiseases.map((d) => (
+            <Chip key={d.id} size="sm" variant="soft" color="warning">
+              {name(d)}
+              <button
+                type="button"
+                onClick={() =>
+                  setValue(
+                    "chronicDiseaseIds",
+                    selectedIds.filter((s) => s !== d.id) as any,
+                  )
+                }
+                className="ml-1 opacity-60 hover:opacity-100"
+                aria-label={`Remove ${name(d)}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Chip>
+          ))}
+        </div>
       )}
+
+      {/* Modal */}
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && handleClose()}
+      >
+        <Modal.Container size="md">
+          <Modal.Dialog>
+            {({ close }) => (
+              <>
+                <Modal.CloseTrigger />
+                <Modal.Header>
+                  <Modal.Heading>{t("patients.chronicDiseases")}</Modal.Heading>
+                </Modal.Header>
+
+                <Modal.Body className="flex flex-col gap-4">
+                  {/* Search */}
+                  <SearchField
+                    value={search}
+                    onChange={setSearch}
+                    aria-label={t("common.search")}
+                  >
+                    <SearchField.Group>
+                      <SearchField.SearchIcon className="ms-3" />
+                      <SearchField.Input
+                        placeholder={t("common.search")}
+                        className="text-sm"
+                      />
+                      <SearchField.ClearButton />
+                    </SearchField.Group>
+                  </SearchField>
+
+                  {error ? (
+                    <p className="text-danger py-6 text-center text-sm">
+                      {t("common.loadError")}
+                    </p>
+                  ) : isLoading ? (
+                    <p className="text-default-400 py-6 text-center text-sm">
+                      {t("common.loading")}
+                    </p>
+                  ) : (
+                    <>
+                      {/* Most used — hidden when searching */}
+                      {!search.trim() && mostUsed.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-default-500 text-xs font-semibold tracking-wide uppercase">
+                            {t("patients.mostUsed")}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {mostUsed.map((d) => {
+                              const selected = selectedIds.includes(d.id);
+                              return (
+                                <button
+                                  key={d.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setValue(
+                                      "chronicDiseaseIds",
+                                      (selected
+                                        ? selectedIds.filter((s) => s !== d.id)
+                                        : [...selectedIds, d.id]) as any,
+                                    )
+                                  }
+                                  className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                                    selected
+                                      ? "border-accent bg-accent text-white"
+                                      : "border-divider hover:border-accent hover:text-accent"
+                                  }`}
+                                >
+                                  {name(d)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* All diseases — same pattern as original working popover */}
+                      <div className="flex flex-col gap-1">
+                        {!search.trim() && mostUsed.length > 0 && (
+                          <p className="text-default-500 text-xs font-semibold tracking-wide uppercase">
+                            {t("patients.allDiseases")}
+                          </p>
+                        )}
+                        <div className="max-h-64 overflow-y-auto">
+                          {filtered.length === 0 ? (
+                            <p className="text-default-400 py-6 text-center text-sm">
+                              {t("common.noResults")}
+                            </p>
+                          ) : (
+                            <CheckboxGroup
+                              value={selectedIds}
+                              onChange={(v) =>
+                                setValue("chronicDiseaseIds", v as any)
+                              }
+                              className="gap-0"
+                            >
+                              <div className="grid grid-cols-1 sm:grid-cols-2">
+                                {filtered.map((d) => (
+                                  <label
+                                    key={d.id}
+                                    className="hover:bg-default-100 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5"
+                                  >
+                                    <Checkbox value={d.id}>
+                                      <Checkbox.Control>
+                                        <Checkbox.Indicator />
+                                      </Checkbox.Control>
+                                    </Checkbox>
+                                    <span className="text-sm">{name(d)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </CheckboxGroup>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </Modal.Body>
+
+                <Modal.Footer>
+                  {selectedIds.length > 0 && (
+                    <span className="text-default-500 me-auto text-sm">
+                      {selectedIds.length} {t("patients.conditions")}
+                    </span>
+                  )}
+                  <Button
+                    variant="primary"
+                    onPress={() => {
+                      handleClose();
+                      close();
+                    }}
+                  >
+                    {t("common.done")}
+                  </Button>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </div>
   );
 }

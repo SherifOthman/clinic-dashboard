@@ -1,30 +1,20 @@
-import { Button } from "@heroui/button";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/modal";
+import { AlertDialog, Button } from "@heroui/react";
 import { AlertTriangle } from "lucide-react";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title?: string;
-  message?: string;
+  title: string;
+  message: string | ReactNode;
   confirmText?: string;
   cancelText?: string;
-  confirmColor?: string;
-  variant?: "danger" | "warning" | "primary";
+  variant?: "danger" | "primary";
   isLoading?: boolean;
 }
 
-/**
- * Confirmation dialog component
- */
 export function ConfirmDialog({
   isOpen,
   onClose,
@@ -33,61 +23,58 @@ export function ConfirmDialog({
   message,
   confirmText,
   cancelText,
-  confirmColor,
   variant = "danger",
   isLoading = false,
 }: ConfirmDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dir = i18n.language === "ar" ? "rtl" : "ltr";
 
-  const getVariantColor = () => {
-    if (confirmColor) return confirmColor as any;
-
-    switch (variant) {
-      case "danger":
-        return "danger";
-      case "warning":
-        return "warning";
-      case "primary":
-      default:
-        return "primary";
-    }
-  };
-
-  const getVariantIcon = () => {
-    switch (variant) {
-      case "danger":
-      case "warning":
-        return <AlertTriangle className="w-6 h-6 text-warning" />;
-      default:
-        return null;
+  const handleConfirm = () => {
+    onConfirm();
+    if (!isLoading) {
+      onClose();
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm">
-      <ModalContent>
-        <ModalHeader className="flex items-center gap-3">
-          {getVariantIcon()}
-          <span>{title || t("common.confirm")}</span>
-        </ModalHeader>
-        <ModalBody>
-          <p className="text-default-600">
-            {message || t("common.confirmAction")}
-          </p>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="flat" onPress={onClose} isDisabled={isLoading}>
-            {cancelText || t("common.cancel")}
-          </Button>
-          <Button
-            color={getVariantColor()}
-            onPress={onConfirm}
-            isLoading={isLoading}
-          >
-            {confirmText || t("common.confirm")}
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+    <AlertDialog.Backdrop
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+    >
+      <AlertDialog.Container>
+        <AlertDialog.Dialog dir={dir} className="max-w-md min-w-[320px]">
+          <AlertDialog.Header>
+            {variant === "danger" && (
+              <AlertDialog.Icon status="danger">
+                <AlertTriangle className="h-5 w-5" />
+              </AlertDialog.Icon>
+            )}
+            <AlertDialog.Heading>{title}</AlertDialog.Heading>
+          </AlertDialog.Header>
+
+          <AlertDialog.Body>
+            {typeof message === "string" ? (
+              <p className="py-2 leading-relaxed">{message}</p>
+            ) : (
+              message
+            )}
+          </AlertDialog.Body>
+
+          <AlertDialog.Footer>
+            <Button variant="tertiary" onPress={onClose} isDisabled={isLoading}>
+              {cancelText || t("common.cancel")}
+            </Button>
+            <Button
+              variant={variant}
+              onPress={handleConfirm}
+              isPending={isLoading}
+              isDisabled={isLoading}
+            >
+              {confirmText || t("common.confirm")}
+            </Button>
+          </AlertDialog.Footer>
+        </AlertDialog.Dialog>
+      </AlertDialog.Container>
+    </AlertDialog.Backdrop>
   );
 }

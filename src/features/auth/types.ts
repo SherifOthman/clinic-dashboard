@@ -1,0 +1,24 @@
+export interface Availability {
+  isAvailable: boolean;
+  message: string;
+}
+
+export interface User {
+  userName: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  profileImageUrl?: string;
+  roles: string[];
+  emailConfirmed: boolean;
+  onboardingCompleted?: boolean;
+  specializationNameEn?: string;
+  specializationNameAr?: string;
+  gender: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string;
+}

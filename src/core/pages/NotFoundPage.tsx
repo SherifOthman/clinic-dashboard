@@ -1,70 +1,66 @@
-import { RouterLink } from "@/core/components/ui/RouterLink";
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
+import { Button, Card } from "@heroui/react";
 import { ArrowLeft, Home, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 export default function NotFoundPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-default-50 to-default-100 p-4">
-      <Card className="max-w-lg w-full shadow-xl">
-        <CardBody className="text-center space-y-6 p-8">
-          {/* Animated 404 */}
-          <div className="relative">
-            <div className="text-8xl font-bold text-primary/20 select-none">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-2xl">
+        <Card.Content className="p-8 text-center">
+          <div className="relative mb-8">
+            <h1 className="text-primary text-[8rem] font-bold opacity-20 select-none">
               404
-            </div>
+            </h1>
             <div className="absolute inset-0 flex items-center justify-center">
-              <Search className="w-16 h-16 text-primary/60 animate-pulse" />
+              <Search className="text-primary h-16 w-16 opacity-60" />
             </div>
           </div>
 
-          {/* Error Message */}
-          <div className="space-y-3">
-            <h1 className="text-3xl font-bold text-foreground">
+          <div className="mb-8">
+            <h2 className="mb-2 text-3xl font-bold">
               {t("errors.pageNotFound")}
-            </h1>
-            <p className="text-lg text-default-600">
+            </h2>
+            <p className="text-foreground-500 mb-2">
               {t("errors.pageNotFoundMessage")}
             </p>
-            <p className="text-sm text-default-500">
+            <p className="text-foreground-400 text-sm">
               {t("errors.pageNotFoundHelp")}
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
             <Button
-              as={RouterLink}
-              to="/"
-              color="primary"
+              variant="primary"
               size="lg"
-              startContent={<Home className="w-4 h-4" />}
-              className="flex-1"
+              fullWidth
+              onPress={() => navigate("/")}
             >
+              <Home className="h-5 w-5" />
               {t("errors.goToDashboard")}
             </Button>
             <Button
-              variant="bordered"
+              variant="outline"
               size="lg"
-              startContent={<ArrowLeft className="w-4 h-4" />}
+              fullWidth
               onPress={() => window.history.back()}
-              className="flex-1"
             >
+              <ArrowLeft className="h-5 w-5" />
               {t("errors.goBack")}
             </Button>
           </div>
 
-          {/* Help Text */}
-          <div className="pt-4 border-t border-divider">
-            <p className="text-xs text-default-400">
+          <div className="border-divider mt-8 border-t pt-6">
+            <p className="text-foreground-400 text-xs">
               {t("errors.contactSupport")}
             </p>
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );
 }
+

@@ -1,65 +1,53 @@
-import { format } from "date-fns";
-import { ar, enUS } from "date-fns/locale";
+import { DateFormatter } from "@internationalized/date";
 import { useTranslation } from "react-i18next";
-
-// Function to convert Western numerals to Arabic numerals
-const toArabicNumerals = (str: string): string => {
-  const arabicNumerals = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-  return str.replace(/[0-9]/g, (digit) => arabicNumerals[parseInt(digit)]);
-};
 
 export function useDateFormat() {
   const { i18n } = useTranslation();
+  // ar-EG: Arabic date format with Arabic-Indic digits (١١/٤/٢٠٢٦)
+  const locale = i18n.language === "ar" ? "ar-EG" : "en-GB";
 
-  const formatDate = (
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const toDate = (date: Date | string | number): Date =>
+    typeof date === "string" || typeof date === "number"
+      ? new Date(date)
+      : date;
+
+  const fmt = (
     date: Date | string | number,
-    formatString: string = "dd/MM/yyyy",
-  ): string => {
-    const dateObj =
-      typeof date === "string" || typeof date === "number"
-        ? new Date(date)
-        : date;
+    options: Intl.DateTimeFormatOptions,
+  ): string =>
+    new DateFormatter(locale, { ...options, timeZone }).format(toDate(date));
 
-    const locale = i18n.language === "ar" ? ar : enUS;
-    const formattedDate = format(dateObj, formatString, { locale });
+  const formatDateShort = (date: Date | string | number): string =>
+    fmt(date, { year: "numeric", month: "numeric", day: "numeric" });
 
-    // Convert to Arabic numerals if language is Arabic
-    return i18n.language === "ar"
-      ? toArabicNumerals(formattedDate)
-      : formattedDate;
-  };
+  const formatDateOnly = formatDateShort;
 
-  const formatDateLong = (date: Date | string | number): string => {
-    const formatString =
-      i18n.language === "ar"
-        ? "dd MMMM yyyy" // Arabic: "15 يناير 2024" -> "١٥ يناير ٢٠٢٤"
-        : "MMMM dd, yyyy"; // English: "January 15, 2024"
+  const formatDateLong = (date: Date | string | number): string =>
+    fmt(date, { year: "numeric", month: "long", day: "numeric" });
 
-    return formatDate(date, formatString);
-  };
+  const formatDateTime = (date: Date | string | number): string =>
+    fmt(date, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
 
-  const formatDateShort = (date: Date | string | number): string => {
-    const formatString =
-      i18n.language === "ar"
-        ? "yyyy/MM/dd" // Arabic: "٢٠٢٦/٠١/٢٨" (reads RTL as day/month/year)
-        : "dd/MM/yyyy"; // English: "28/01/2026"
+  const formatTimeOnly = (date: Date | string | number): string =>
+    fmt(date, { hour: "2-digit", minute: "2-digit", hour12: true });
 
-    return formatDate(date, formatString);
-  };
-
-  const formatDateTime = (date: Date | string | number): string => {
-    const formatString =
-      i18n.language === "ar"
-        ? "yyyy/MM/dd HH:mm" // Arabic format: "٢٠٢٦/٠١/٢٨ ١٤:٣٠"
-        : "MM/dd/yyyy HH:mm"; // English format: "01/28/2026 14:30"
-
-    return formatDate(date, formatString);
-  };
+  const formatDate = formatDateShort;
 
   return {
     formatDate,
     formatDateLong,
     formatDateShort,
     formatDateTime,
+    formatDateOnly,
+    formatTimeOnly,
   };
 }

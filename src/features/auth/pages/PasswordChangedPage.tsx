@@ -1,6 +1,6 @@
-import { RouterLink } from "@/core/components/ui/RouterLink";
+import { RouterLink } from "@/core/components/ui";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
-import { Button } from "@heroui/button";
+import { Button, Card } from "@heroui/react";
 import { CheckCircle } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,12 +11,11 @@ export default function PasswordChangedPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Auto redirect to login after 5 seconds
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       navigate("/login");
     }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => clearInterval(timer);
   }, [navigate]);
 
   const handleGoToLogin = () => {
@@ -24,39 +23,44 @@ export default function PasswordChangedPage() {
   };
 
   return (
-    <>
-      <AuthHeader
-        title={t("passwordChanged.title")}
-        subtitle={t("passwordChanged.subtitle")}
-      />
-      <div className="bg-content1 p-8 rounded-2xl border border-divider shadow-lg text-center">
-        <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-8 h-8 text-success" />
-        </div>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <AuthHeader
+          title={t("passwordChanged.title")}
+          subtitle={t("passwordChanged.subtitle")}
+        />
+        <Card className="mt-6 p-8 text-center">
+          <div className="bg-success-50 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
+            <CheckCircle className="text-success h-8 w-8" />
+          </div>
 
-        <p className="text-default-600 mb-6">{t("passwordChanged.message")}</p>
-
-        <div className="space-y-4">
-          <Button
-            onClick={handleGoToLogin}
-            className="w-full"
-            color="primary"
-            size="lg"
-          >
-            {t("passwordChanged.goToLogin")}
-          </Button>
-
-          <p className="text-sm text-default-500">
-            {t("passwordChanged.autoRedirect")}
+          <p className="text-default-600 mb-6">
+            {t("passwordChanged.message")}
           </p>
 
-          <div className="text-center mt-6">
-            <RouterLink color="primary" to="/login" size="sm">
-              {t("auth.emailVerification.backToSignIn")}
-            </RouterLink>
+          <div className="flex flex-col gap-4">
+            <Button
+              size="lg"
+              variant="primary"
+              fullWidth
+              onPress={handleGoToLogin}
+            >
+              {t("passwordChanged.goToLogin")}
+            </Button>
+
+            <p className="text-default-600 text-sm">
+              {t("passwordChanged.autoRedirect")}
+            </p>
+
+            <div className="mt-4">
+              <RouterLink to="/login">
+                {t("auth.emailVerification.backToSignIn")}
+              </RouterLink>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }
+

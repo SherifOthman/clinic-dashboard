@@ -1,15 +1,16 @@
-import type { SubscriptionPlanDto } from "@/core/types/api";
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Input } from "@heroui/input";
-import { ArrowRight, Building2, CreditCard, Star, X } from "lucide-react";
-import { useState } from "react";
+import { Button, Card } from "@heroui/react";
+import { ArrowLeft, ArrowRight, Building2, CreditCard } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import type { OnboardingFormData } from "../schemas";
+
+import { FormInput } from "@/core/components/form/index";
+import { ErrorMessage } from "@/core/components/ui/index";
+import type { CompleteOnboarding } from "../schemas";
+import type { SubscriptionPlan } from "../types";
+import { SubscriptionPlanCard } from "./SubscriptionPlanCard";
 
 interface ClinicInfoStepProps {
-  plans: SubscriptionPlanDto[];
+  plans: SubscriptionPlan[];
   onNext: () => void;
 }
 
@@ -21,193 +22,96 @@ export function ClinicInfoStep({ plans, onNext }: ClinicInfoStepProps) {
     setValue,
     watch,
     trigger,
-  } = useFormContext<OnboardingFormData>();
+  } = useFormContext<CompleteOnboarding>();
 
   const selectedPlanId = watch("subscriptionPlanId");
-  const [selectedPlan, setSelectedPlan] = useState<string>(
-    selectedPlanId || "",
-  );
-
-  const handlePlanSelect = (planId: string) => {
-    setSelectedPlan(planId);
-    setValue("subscriptionPlanId", planId, { shouldValidate: true });
-  };
 
   const handleNext = async () => {
-    // Validate only step 1 fields
     const isValid = await trigger(["clinicName", "subscriptionPlanId"]);
-    if (isValid) {
-      onNext();
-    }
-  };
-
-  const getPlanName = (plan: SubscriptionPlanDto) => {
-    return i18n.language === "ar" && plan.nameAr ? plan.nameAr : plan.name;
-  };
-
-  const getPlanDescription = (plan: SubscriptionPlanDto) => {
-    return i18n.language === "ar" && plan.descriptionAr
-      ? plan.descriptionAr
-      : plan.description;
+    if (isValid) onNext();
   };
 
   return (
-    <div className="space-y-8">
-      <Card className="shadow-lg border-0 bg-content1/80 backdrop-blur-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center space-x-3">
-            <Building2 className="w-6 h-6 text-primary" />
+    <div className="flex flex-col gap-6">
+      <Card>
+        <Card.Header>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary-50 flex h-10 w-10 items-center justify-center rounded-full">
+              <Building2 className="text-primary h-5 w-5" />
+            </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                {t("onboarding.clinicInfo.title")}
-              </h2>
-              <p className="text-sm text-default-600">
+              <Card.Title>{t("onboarding.clinicInfo.title")}</Card.Title>
+              <Card.Description>
                 {t("onboarding.clinicInfo.subtitle")}
-              </p>
+              </Card.Description>
             </div>
           </div>
-        </CardHeader>
-        <CardBody className="p-6">
-          <Input
+        </Card.Header>
+        <Card.Content>
+          <FormInput
             {...register("clinicName")}
             label={t("onboarding.clinicInfo.clinicName")}
+            error={errors.clinicName}
             placeholder={t("onboarding.clinicNamePlaceholder")}
-            variant="bordered"
-            size="lg"
-            startContent={<Building2 className="w-4 h-4 text-gray-400" />}
-            isInvalid={!!errors.clinicName}
-            errorMessage={errors.clinicName?.message}
             isRequired
           />
-        </CardBody>
+        </Card.Content>
       </Card>
 
-      <Card className="shadow-lg border-0 bg-content1/80 backdrop-blur-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center space-x-3">
-            <CreditCard className="w-6 h-6 text-success" />
+      <Card>
+        <Card.Header>
+          <div className="flex items-center gap-3">
+            <div className="bg-success-50 flex h-10 w-10 items-center justify-center rounded-full">
+              <CreditCard className="text-success h-5 w-5" />
+            </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground">
-                {t("onboarding.subscription.title")}
-              </h2>
-              <p className="text-sm text-default-600">
+              <Card.Title>{t("onboarding.subscription.title")}</Card.Title>
+              <Card.Description>
                 {t("onboarding.subscription.subtitle")}
-              </p>
+              </Card.Description>
             </div>
           </div>
-          {errors.subscriptionPlanId && (
-            <div className="mt-3 p-3 bg-danger-50 border border-danger-200 rounded-lg">
-              <p className="text-sm text-danger flex items-center">
-                <X className="w-4 h-4 mr-2" />
-                {errors.subscriptionPlanId.message}
-              </p>
-            </div>
-          )}
-        </CardHeader>
-        <CardBody className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        </Card.Header>
+        {errors.subscriptionPlanId && (
+          <div className="px-6">
+            <ErrorMessage message={errors.subscriptionPlanId.message} />
+          </div>
+        )}
+        <Card.Content>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {plans.map((plan) => (
-              <Card
+              <SubscriptionPlanCard
                 key={plan.id}
-                className={`relative cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-                  selectedPlan === plan.id
-                    ? "ring-2 ring-primary shadow-xl bg-primary/5 border-primary"
-                    : "border-2 hover:shadow-lg"
-                }`}
-                isPressable
-                onPress={() => handlePlanSelect(plan.id)}
-              >
-                <CardBody className="p-6 text-center space-y-4">
-                  {plan.isPopular && (
-                    <div className="absolute rtl:top-4 ltr:top-5 rotate-45 -right-6 bg-primary text-white text-xs px-5 py-1">
-                      {t("onboarding.subscription.popular")}
-                    </div>
-                  )}
-                  <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center bg-primary/10">
-                    <Star className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground">
-                      {getPlanName(plan)}
-                    </h3>
-                    <div className="text-2xl font-bold text-primary">
-                      ${plan.monthlyFee}
-                      <span className="text-sm font-normal">
-                        /{t("onboarding.subscription.perMonth")}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-default-600 mb-4">
-                    {getPlanDescription(plan)}
-                  </p>
-
-                  <div
-                    className={`space-y-2 ${i18n.language === "ar" ? "text-right" : "text-left"}`}
-                    dir={i18n.language === "ar" ? "rtl" : "ltr"}
-                  >
-                    <div className="text-xs text-default-500">
-                      <div>
-                        •{" "}
-                        {plan.maxBranches === -1
-                          ? t("common.unlimited")
-                          : plan.maxBranches}{" "}
-                        {t("onboarding.subscription.features.branches")}
-                      </div>
-                      <div>
-                        •{" "}
-                        {plan.maxStaff === -1
-                          ? t("common.unlimited")
-                          : plan.maxStaff}{" "}
-                        {t("onboarding.subscription.features.staff")}
-                      </div>
-                      {plan.hasAdvancedReporting && (
-                        <div>
-                          •{" "}
-                          {t(
-                            "onboarding.subscription.features.advancedReporting",
-                          )}
-                        </div>
-                      )}
-                      {plan.hasApiAccess && (
-                        <div>
-                          • {t("onboarding.subscription.features.apiAccess")}
-                        </div>
-                      )}
-                      {plan.hasPrioritySupport && (
-                        <div>
-                          •{" "}
-                          {t(
-                            "onboarding.subscription.features.prioritySupport",
-                          )}
-                        </div>
-                      )}
-                      {plan.hasCustomBranding && (
-                        <div>
-                          •{" "}
-                          {t("onboarding.subscription.features.customBranding")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
+                plan={plan}
+                isSelected={selectedPlanId === plan.id}
+                onSelect={(planId) =>
+                  setValue("subscriptionPlanId", planId, {
+                    shouldValidate: true,
+                  })
+                }
+              />
             ))}
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
 
-      <div className="flex justify-end pt-6">
+      <div className="flex justify-end pt-4">
         <Button
           type="button"
-          color="primary"
+          variant="primary"
           size="lg"
-          isDisabled={!selectedPlan}
+          isDisabled={!selectedPlanId || !watch("clinicName")}
           onPress={handleNext}
-          endContent={<ArrowRight className="w-5 h-5" />}
         >
           {t("onboarding.continueToBranchSetup")}
+          {i18n.language === "en" ? (
+            <ArrowRight className="h-4 w-4" />
+          ) : (
+            <ArrowLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>
   );
 }
+

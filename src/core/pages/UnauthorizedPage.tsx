@@ -1,23 +1,34 @@
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function UnauthorizedPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-danger mb-4">403</h1>
-        <h2 className="text-2xl font-semibold mb-4">
+        <h1 className="text-danger mb-4 text-9xl font-bold">403</h1>
+        <h2 className="mb-2 text-3xl font-semibold">
           {t("errors.accessDenied")}
         </h2>
-        <p className="text-default-600 mb-8">{t("errors.noPermission")}</p>
-        <div className="space-x-4">
-          <Button as={Link} to="/dashboard" color="primary">
+        <p className="text-foreground-500 mb-8">{t("errors.noPermission")}</p>
+        <div className="flex justify-center gap-4">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onPress={() => navigate("/dashboard")}
+          >
             {t("errors.goToDashboard")}
           </Button>
-          <Button as={Link} to="/" variant="light">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onPress={() => navigate("/")}
+          >
             {t("errors.goHome")}
           </Button>
         </div>
@@ -25,3 +36,4 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
+

@@ -1,18 +1,13 @@
+import { useValidation } from "@/core/hooks/useValidation";
+import { Button } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-
-import { FormInput } from "@/core/components/form/FormInput";
-import { FormPasswordInput } from "@/core/components/form/FormPasswordInput";
-import { setServerErrors } from "@/core/utils/setServerErrors";
 import { useTranslation } from "react-i18next";
+
+import { FormInput, FormPasswordInput } from "@/core/components/form/index";
+import { AuthCard } from "@/core/components/ui/AuthCard";
 import { useResetPassword } from "../hooks";
-import {
-  createResetPasswordSchema,
-  type ResetPasswordFormData,
-} from "../schemas";
-import { AuthFormContainer } from "./AuthFormContainer";
-import { AuthSubmitButton } from "./AuthSubmitButton";
+import { type ResetPassword, createAuthSchemas } from "../schemas";
 
 interface ResetPasswordFormProps {
   email: string;
@@ -21,74 +16,53 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
   const { t } = useTranslation();
-  const {
-    mutateAsync: resetPasswordAsync,
-    error,
-    isError,
-    isPending,
-  } = useResetPassword();
+  const schemas = useValidation(createAuthSchemas);
+  const { mutateAsync: resetPasswordAsync, isPending } = useResetPassword();
 
   const {
     register,
     handleSubmit,
-    setError,
-    setValue,
     formState: { errors },
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(createResetPasswordSchema()),
-    defaultValues: {
-      email,
-      token,
-    },
+  } = useForm<ResetPassword>({
+    resolver: zodResolver(schemas.resetPassword),
+    defaultValues: { email, token, newPassword: "" },
   });
 
-  useEffect(() => {
-    setValue("email", email);
-    setValue("token", token);
-  }, [email, token, setValue]);
-
-  useEffect(() => {
-    if (isError && error) {
-      setServerErrors(error, setError, t);
-    }
-  }, [isError, error, setError, t]);
-
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    try {
-      await resetPasswordAsync(data);
-    } catch (error) {
-      console.error("Reset password error:", error);
-    }
-  };
-
   return (
-    <AuthFormContainer onSubmit={handleSubmit(onSubmit)}>
-      {/* Hidden fields for email and token */}
-      <input type="hidden" {...register("email")} />
-      <input type="hidden" {...register("token")} />
+    <AuthCard
+      title={t("auth.resetPassword.title")}
+      subtitle={t("auth.resetPassword.subtitle")}
+    >
+      <form
+        onSubmit={handleSubmit((data) => resetPasswordAsync(data))}
+        className="flex flex-col gap-4"
+      >
+        <FormInput
+          {...register("email")}
+          type="email"
+          label={t("common.fields.email")}
+          readOnly
+        />
 
-      {/* Email display (read-only) */}
-      <FormInput
-        value={email}
-        isReadOnly
-        label={t("auth.register.email")}
-        type="email"
-        variant="bordered"
-      />
+        <FormPasswordInput
+          {...register("newPassword")}
+          label={t("auth.changePassword.newPassword")}
+          error={errors.newPassword}
+          isRequired
+        />
 
-      {/* New Password */}
-      <FormPasswordInput
-        {...register("newPassword")}
-        isRequired
-        error={errors.newPassword}
-        label={t("auth.resetPassword.password")}
-      />
-
-      <AuthSubmitButton isLoading={isPending}>
-        {isPending
-          ? t("auth.resetPassword.resetting")
-          : t("auth.resetPassword.resetPassword")}
-      </AuthSubmitButton>
-    </AuthFormContainer>
+        <Button
+          type="submit"
+          variant="primary"
+          fullWidth
+          isPending={isPending}
+          isDisabled={isPending}
+        >
+          {isPending
+            ? t("auth.resetPassword.resetting")
+            : t("auth.resetPassword.resetPassword")}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }

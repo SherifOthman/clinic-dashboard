@@ -1,44 +1,32 @@
-import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
-import { z } from "zod";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 
-export function createPhoneNumberSchema(t: (key: string) => string) {
-  return z
-    .string()
-    .min(1, { message: t("validation.required") })
-    .refine(
-      (value) => {
-        try {
-          return isValidPhoneNumber(value);
-        } catch {
-          return false;
-        }
-      },
-      { message: t("validation.phoneNumber") },
-    );
-}
+/**
+ * Validates a phone number for a specific country
+ * @param phoneNumber - Phone number in international format (e.g., +966501234567)
+ * @param countryCode - ISO 3166-1 alpha-2 country code (e.g., 'SA', 'EG', 'US')
+ * @returns true if valid, error message if invalid
+ */
+export function validatePhoneNumber(
+  phoneNumber: string,
+  countryCode?: string,
+): true | string {
+  if (!phoneNumber || phoneNumber.trim() === "") {
+    return "validation.phoneRequired";
+  }
 
-export function createOptionalPhoneNumberSchema(t: (key: string) => string) {
-  return z
-    .string()
-    .optional()
-    .refine(
-      (value) => {
-        if (!value || value === "") return true;
-        try {
-          return isValidPhoneNumber(value);
-        } catch {
-          return false;
-        }
-      },
-      { message: t("validation.phoneNumber") },
-    );
-}
+  const formattedPhone = phoneNumber.startsWith("+")
+    ? phoneNumber
+    : `+${phoneNumber}`;
 
-export function formatPhoneNumber(phoneNumber: string): string | undefined {
   try {
-    const parsed = parsePhoneNumber(phoneNumber);
-    return parsed?.formatInternational();
+    const isValid = isValidPhoneNumber(formattedPhone, countryCode as any);
+
+    if (!isValid) {
+      return "validation.phoneInvalid";
+    }
+
+    return true;
   } catch {
-    return undefined;
+    return "validation.phoneInvalid";
   }
 }

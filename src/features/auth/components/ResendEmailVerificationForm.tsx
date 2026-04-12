@@ -1,17 +1,13 @@
+import { useValidation } from "@/core/hooks/useValidation";
+import { Button } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-
-import { FormInput } from "@/core/components/form/FormInput";
-import { setServerErrors } from "@/core/utils/setServerErrors";
 import { useTranslation } from "react-i18next";
+
+import { FormInput } from "@/core/components/form/index";
 import { useResendEmailVerification } from "../hooks";
-import {
-  createResendEmailVerificationSchema,
-  type ResendEmailVerificationFormData,
-} from "../schemas";
-import { AuthFormContainer } from "./AuthFormContainer";
-import { AuthSubmitButton } from "./AuthSubmitButton";
+import { type ResendEmailVerification, createAuthSchemas } from "../schemas";
 
 interface ResendEmailVerificationFormProps {
   defaultEmail?: string;
@@ -23,10 +19,9 @@ export function ResendEmailVerificationForm({
   onSuccess,
 }: ResendEmailVerificationFormProps) {
   const { t } = useTranslation();
+  const schemas = useValidation(createAuthSchemas);
   const {
     mutateAsync: resendEmailAsync,
-    error,
-    isError,
     isPending,
     isSuccess,
   } = useResendEmailVerification();
@@ -34,46 +29,42 @@ export function ResendEmailVerificationForm({
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
-  } = useForm<ResendEmailVerificationFormData>({
-    resolver: zodResolver(createResendEmailVerificationSchema()),
-    defaultValues: {
-      email: defaultEmail,
-    },
+  } = useForm<ResendEmailVerification>({
+    resolver: zodResolver(schemas.resendEmailVerification),
+    defaultValues: { email: defaultEmail },
   });
 
   useEffect(() => {
-    if (isError && error) {
-      setServerErrors(error, setError, t);
-    }
-  }, [isError, error, setError]);
-
-  useEffect(() => {
-    if (isSuccess && onSuccess) {
+    if (isSuccess && onSuccess)
       onSuccess("Verification email has been sent. Please check your inbox.");
-    }
   }, [isSuccess, onSuccess]);
 
-  const onSubmit = async (data: ResendEmailVerificationFormData) => {
-    await resendEmailAsync(data);
-  };
-
   return (
-    <AuthFormContainer onSubmit={handleSubmit(onSubmit)}>
+    <form
+      onSubmit={handleSubmit((data) => resendEmailAsync(data))}
+      className="flex flex-col gap-4"
+    >
       <FormInput
         {...register("email")}
-        isRequired
-        error={errors.email}
-        label={t("auth.register.email")}
         type="email"
+        label={t("common.fields.email")}
+        error={errors.email}
+        placeholder="you@example.com"
+        isRequired
       />
 
-      <AuthSubmitButton isLoading={isPending}>
+      <Button
+        type="submit"
+        variant="primary"
+        fullWidth
+        isPending={isPending}
+        isDisabled={isPending}
+      >
         {isPending
           ? t("auth.emailVerification.sending")
           : t("auth.emailVerification.sendVerificationEmail")}
-      </AuthSubmitButton>
-    </AuthFormContainer>
+      </Button>
+    </form>
   );
 }

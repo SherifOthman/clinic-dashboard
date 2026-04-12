@@ -1,103 +1,143 @@
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { User } from "lucide-react";
+import { LocationSelector } from "@/core/components/form/LocationSelector";
+import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
+import { Button } from "@heroui/react";
+import { MapPin, Phone, User } from "lucide-react";
+import { useEffect } from "react";
+import { type UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { usePatientForm } from "../hooks/usePatientForm";
-import type {
-  CreatePatientFormData,
-  UpdatePatientFormData,
-} from "../schemas/patientSchemas";
-import type { PatientDto } from "../types/patient";
+import { usePatientForm } from "../patientsHooks";
+import type { PatientFormData } from "../schemas";
+import type { PatientDetail } from "../types";
 import { PatientBasicInfo } from "./PatientBasicInfo";
 import { PatientChronicDiseases } from "./PatientChronicDiseases";
-import { PatientLocationInfo } from "./PatientLocationInfo";
-import { PatientPhoneNumbers } from "./PatientPhoneNumbers";
 
 interface PatientFormProps {
-  patient?: PatientDto;
-  onSubmit: (data: CreatePatientFormData | UpdatePatientFormData) => void;
+  patient?: PatientDetail;
+  draft?: Partial<PatientFormData>;
+  onDraftChange?: (values: Partial<PatientFormData>) => void;
+  onSubmit: (data: PatientFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
-  error?: any;
+  showReset?: boolean;
+  onReset?: () => void;
+}
+
+function FormSection({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-accent">{icon}</span>
+        <p className="text-foreground text-sm font-semibold">{title}</p>
+      </div>
+      <div className="border-divider rounded-xl border p-4">{children}</div>
+    </div>
+  );
 }
 
 export function PatientForm({
   patient,
+  draft,
+  onDraftChange,
   onSubmit,
   onCancel,
   isLoading,
-  error,
+  showReset = false,
+  onReset,
 }: PatientFormProps) {
   const { t } = useTranslation();
-  const {
-    form,
-    isEditing,
-    handleFormSubmit,
-    locationState,
-    handleAgeChange,
-    handleDateOfBirthChange,
-  } = usePatientForm({ patient, onSubmit, error });
+  const { form, isEditing, handleFormSubmit, resetForm } = usePatientForm({
+    patient,
+    draft,
+    onSubmit,
+  });
+
+  // Sync form values back to parent as draft whenever they change
+  useEffect(() => {
+    if (!onDraftChange) return;
+    const subscription = form.watch((values) => {
+      onDraftChange(values as Partial<PatientFormData>);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, onDraftChange]);
 
   return (
-    <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-3">
-            <User className="w-6 h-6 text-primary" />
-            <div>
-              <h3 className="text-lg font-semibold">
-                {isEditing
-                  ? t("patients.editPatient")
-                  : t("patients.addPatient")}
-              </h3>
-              <p className="text-sm text-default-600">
-                {isEditing
-                  ? t("patients.updatePatientInfo")
-                  : t("patients.enterPatientDetails")}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
+    <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+      <div className="flex flex-col gap-4">
+        {/* ── Personal Info ── */}
+        <FormSection
+          icon={<User className="h-4 w-4" />}
+          title={t("patients.personalInfo")}
+        >
+          <PatientBasicInfo form={form as UseFormReturn<PatientFormData>} />
+        </FormSection>
 
-        <CardBody className="space-y-6">
-          <PatientBasicInfo
-            register={form.register}
-            watch={form.watch}
-            setValue={form.setValue}
-            errors={form.formState.errors}
-            onAgeChange={handleAgeChange}
-            onDateOfBirthChange={handleDateOfBirthChange}
-          />
+        {/* ── Contact & Location ── */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormSection
+            icon={<Phone className="h-4 w-4" />}
+            title={t("patients.contactInfo")}
+          >
+            <PhoneNumbersInput
+              form={form as UseFormReturn<PatientFormData>}
+              name="phoneNumbers"
+            />
+          </FormSection>
 
-          <PatientLocationInfo
-            locationState={locationState}
-            patient={patient}
-            isEditing={isEditing}
-          />
+          <FormSection
+            icon={<MapPin className="h-4 w-4" />}
+            title={t("common.fields.address")}
+          >
+            <LocationSelector
+              form={form}
+              cityNameEnField="cityNameEn"
+              cityNameArField="cityNameAr"
+              stateNameEnField="stateNameEn"
+              stateNameArField="stateNameAr"
+              countryNameEnField="countryNameEn"
+              countryNameArField="countryNameAr"
+            />
+          </FormSection>
+        </div>
 
-          <PatientPhoneNumbers
-            control={form.control}
-            watch={form.watch}
-            setValue={form.setValue}
-            errors={form.formState.errors}
-          />
+        {/* ── Chronic Diseases ── */}
+        <PatientChronicDiseases form={form as UseFormReturn<PatientFormData>} />
+      </div>
 
-          <PatientChronicDiseases
-            watch={form.watch}
-            setValue={form.setValue}
-            errors={form.formState.errors}
-          />
-        </CardBody>
-      </Card>
-
-      <div className="flex justify-end space-x-3">
-        <Button type="button" variant="flat" onPress={onCancel}>
-          Cancel
+      {/* ── Actions ── */}
+      <div className="border-divider mt-5 flex justify-end gap-2 border-t pt-4">
+        <Button type="button" variant="ghost" onPress={onCancel}>
+          {t("common.cancel")}
         </Button>
-        <Button type="submit" color="primary" isLoading={isLoading}>
+        {showReset && (
+          <Button
+            type="button"
+            variant="ghost"
+            onPress={() => {
+              resetForm();
+              onReset?.();
+            }}
+            className="text-muted"
+          >
+            {t("common.reset")}
+          </Button>
+        )}
+        <Button
+          type="submit"
+          variant="primary"
+          isDisabled={isLoading}
+          isPending={isLoading}
+        >
           {isLoading
             ? isEditing
-              ? "Updating..."
+              ? t("common.update") + "..."
               : t("common.creating")
             : isEditing
               ? t("patients.updatePatient")

@@ -1,130 +1,216 @@
-import { EntityTable } from "@/core/components/ui/EntityTable";
-import { useState } from "react";
+import { DataTable } from "@/core/components/ui/DataTable";
+import { TablePagination } from "@/core/components/ui/TablePagination";
+import { useDateFormat } from "@/core/hooks/useDateFormat";
+import { useDebounce } from "@/core/hooks/useDebounce";
+import { isSuperAdmin } from "@/core/utils/roleUtils";
+import { useMe } from "@/features/auth/hooks";
+import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
+import { UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useDeletePatient } from "../hooks/usePatientsMutations";
-import { usePaginatedPatients } from "../hooks/usePatientsQueries";
-import { usePatientsTableState } from "../hooks/usePatientsTableState";
-import type { PatientDto } from "../types/patient";
-import { PatientDeleteDialog } from "./PatientDeleteDialog";
-import { usePatientTableActions } from "./PatientTableActions";
-import { usePatientTableColumns } from "./PatientTableColumns";
-import { PatientTableHeader } from "./PatientTableHeader";
+import { usePaginatedPatients, usePatientsTableState } from "../patientsHooks";
+import type { PatientListItem } from "../types";
+import { PatientCityFilter } from "./PatientCityFilter";
+import { getPatientColumns } from "./patientColumns";
+import { PatientCountryFilter } from "./PatientCountryFilter";
+import { PatientStateFilter } from "./PatientStateFilter";
 
 interface PatientsListProps {
-  onPatientEdit?: (patient: PatientDto) => void;
-  onPatientCreate?: () => void;
-  onPatientDelete?: (patient: PatientDto) => void;
-  onPatientView?: (patient: PatientDto) => void;
+  onPatientCreate: () => void;
+  onPatientView: (patient: PatientListItem) => void;
 }
 
 export function PatientsList({
-  onPatientEdit,
   onPatientCreate,
-  onPatientDelete,
   onPatientView,
 }: PatientsListProps) {
-  const { t } = useTranslation();
-  const { patientsState, updatePatientsState } = usePatientsTableState();
-  const [patientToDelete, setPatientToDelete] = useState<PatientDto | null>(
-    null,
+  const { t, i18n } = useTranslation();
+  const { formatDateShort } = useDateFormat();
+  const isRTL = i18n.language === "ar";
+  const { user } = useMe();
+  const superAdmin = isSuperAdmin(user);
+
+  const {
+    patientsState,
+    updatePatientsState,
+    genderParam,
+    stateParam,
+    cityParam,
+    countryParam,
+  } = usePatientsTableState();
+
+  // Debounce the URL-backed values before sending to the API.
+  // The input reads directly from the URL so refresh/back/forward all work.
+  const debouncedSearch = useDebounce(patientsState.searchTerm ?? "", 400);
+  const debouncedClinicSearch = useDebounce(
+    patientsState.clinicSearch ?? "",
+    400,
   );
 
-  const { data, isLoading, error } = usePaginatedPatients(patientsState);
-  const deletePatient = useDeletePatient();
+  const { data, isLoading, error } = usePaginatedPatients(
+    {
+      ...patientsState,
+      searchTerm: debouncedSearch || undefined,
+      clinicSearch: debouncedClinicSearch || undefined,
+    },
+    superAdmin,
+  );
 
-  const columns = usePatientTableColumns();
-  const actions = usePatientTableActions({
-    onEdit: onPatientEdit,
-    onDelete: setPatientToDelete,
+  const columns = getPatientColumns({
+    t,
+    formatDate: formatDateShort,
+    isAr: i18n.language === "ar",
+    showClinic: superAdmin,
   });
-
-  const handleGenderChange = (gender?: number) => {
-    updatePatientsState({ gender });
-  };
-
-  const confirmDelete = async () => {
-    if (!patientToDelete) return;
-
-    try {
-      await deletePatient.mutateAsync(patientToDelete.id);
-      onPatientDelete?.(patientToDelete);
-      setPatientToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete patient:", error);
-    }
-  };
-
-  const cancelDelete = () => {
-    setPatientToDelete(null);
-  };
 
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <p className="text-danger">{t("patients.failedToLoad")}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <EntityTable
-        key={t("patients.title")}
-        data={data?.items || []}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        searchPlaceholder={t("patients.searchPlaceholder")}
-        getRowKey={(patient) => patient.id.toString()}
-        onRowClick={onPatientView}
-        currentSort={
-          patientsState.sortBy === "name"
-            ? "fullName"
-            : patientsState.sortBy === "createdat"
-              ? "createdAt"
-              : patientsState.sortBy
-        }
-        sortDirection={patientsState.sortDirection}
-        onSort={(sortBy, sortDirection) => {
-          const backendSortBy =
-            sortBy === "fullName"
-              ? "name"
-              : sortBy === "createdAt"
-                ? "createdat"
-                : sortBy;
+    <div className="flex flex-col gap-4 py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-wrap gap-3">
+          {/* Search — value comes from URL, writes back to URL on change */}
+          <SearchField
+            value={patientsState.searchTerm ?? ""}
+            onChange={(v) => updatePatientsState({ searchTerm: v })}
+            aria-label={t("patients.searchPlaceholder")}
+            className="min-w-0 flex-1 sm:max-w-xs"
+          >
+            <Label className="sr-only">{t("patients.searchPlaceholder")}</Label>
+            <SearchField.Group>
+              <SearchField.SearchIcon className="ms-3" />
+              <SearchField.Input
+                placeholder={t("patients.searchPlaceholder")}
+              />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
 
-          updatePatientsState({
-            sortBy: backendSortBy,
-            sortDirection,
-          });
-        }}
-        onSearch={(searchTerm) => {
-          updatePatientsState({ searchTerm });
-        }}
-        headerAction={
-          <PatientTableHeader
-            genderFilter={patientsState.gender}
-            onGenderChange={handleGenderChange}
-            onCreatePatient={onPatientCreate || (() => {})}
+          {/* Clinic search — SuperAdmin only */}
+          {superAdmin && (
+            <SearchField
+              value={patientsState.clinicSearch ?? ""}
+              onChange={(v) =>
+                updatePatientsState({ clinicSearch: v || undefined })
+              }
+              aria-label={t("patients.filterByClinic")}
+              className="w-full sm:w-64"
+            >
+              <Label className="sr-only">{t("patients.filterByClinic")}</Label>
+              <SearchField.Group>
+                <SearchField.SearchIcon className="ms-3" />
+                <SearchField.Input placeholder={t("patients.filterByClinic")} />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+          )}
+
+          {/* Gender filter */}
+          <Select
+            className="w-full sm:w-44"
+            placeholder={t("patients.allGenders")}
+            value={
+              genderParam === "Male" || genderParam === "Female"
+                ? genderParam
+                : null
+            }
+            onChange={(v) =>
+              updatePatientsState({
+                gender: v === "Male" || v === "Female" ? v : undefined,
+              })
+            }
+            aria-label={t("patients.filterByGender")}
+          >
+            <Select.Trigger>
+              <Select.Value className={isRTL ? "text-right" : ""} />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox dir={isRTL ? "rtl" : "ltr"}>
+                <ListBox.Item id="all" textValue={t("patients.allGenders")}>
+                  {t("patients.allGenders")}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="Male" textValue={t("common.fields.male")}>
+                  {t("common.fields.male")}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="Female" textValue={t("common.fields.female")}>
+                  {t("common.fields.female")}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
+
+          {/* State filter — all users */}
+          <PatientStateFilter
+            value={stateParam}
+            isSuperAdmin={superAdmin}
+            onChange={(v) =>
+              updatePatientsState({ stateSearch: v ?? undefined })
+            }
           />
+
+          {/* City filter — all users */}
+          <PatientCityFilter
+            value={cityParam}
+            isSuperAdmin={superAdmin}
+            onChange={(v) =>
+              updatePatientsState({ citySearch: v ?? undefined })
+            }
+          />
+
+          {/* Country filter — SuperAdmin only */}
+          {superAdmin && (
+            <PatientCountryFilter
+              value={countryParam}
+              onChange={(v) =>
+                updatePatientsState({ countrySearch: v ?? undefined })
+              }
+            />
+          )}
+        </div>
+
+        {!superAdmin && (
+          <Button
+            variant="primary"
+            onPress={onPatientCreate}
+            className="w-full sm:w-auto"
+          >
+            <UserPlus className="h-4 w-4" />
+            {t("patients.addPatient")}
+          </Button>
+        )}
+      </div>
+
+      <DataTable
+        key={i18n.language}
+        columns={columns}
+        data={data?.items ?? []}
+        keyExtractor={(item) => item.id}
+        isLoading={isLoading}
+        emptyMessage={t("common.noResults")}
+        sortBy={patientsState.sortBy}
+        sortDirection={patientsState.sortDirection}
+        onSortChange={(sortBy, sortDirection) =>
+          updatePatientsState({ sortBy, sortDirection, pageNumber: 1 })
         }
-        totalCount={data?.totalCount || 0}
-        pageNumber={data?.pageNumber || 1}
-        pageSize={data?.pageSize || 10}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(pageNumber) => {
-          updatePatientsState({ pageNumber });
-        }}
-        onPageSizeChange={(pageSize) => {
-          updatePatientsState({ pageSize, pageNumber: 1 });
-        }}
+        onRowClick={onPatientView}
       />
 
-      <PatientDeleteDialog
-        patient={patientToDelete}
-        isLoading={deletePatient.isPending}
-        onConfirm={confirmDelete}
-        onCancel={cancelDelete}
+      <TablePagination
+        data={data}
+        currentPage={patientsState.pageNumber ?? 1}
+        onPageChange={(p) => updatePatientsState({ pageNumber: p })}
+        onPageSizeChange={(s) =>
+          updatePatientsState({ pageSize: s, pageNumber: 1 })
+        }
       />
     </div>
   );
