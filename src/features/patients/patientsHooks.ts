@@ -186,56 +186,62 @@ export function usePatientForm({
 // ── Table State ───────────────────────────────────────────────────────────────
 
 export function usePatientsTableState() {
-  const { baseState, updateBaseState, searchParams, updateParam } =
-    useBaseTableState();
-
-  const genderParam = searchParams.get("gender") as "Male" | "Female" | null;
-  const clinicIdParam = searchParams.get("clinicId") ?? undefined;
-  const stateParam = searchParams.get("state") ?? undefined;
-  const cityParam = searchParams.get("city") ?? undefined;
-  const countryParam = searchParams.get("country") ?? undefined;
+  const { baseState, searchParams, updateParams } = useBaseTableState();
 
   const patientsState: PatientsSearchParams = {
     ...baseState,
-    gender: genderParam ?? undefined,
-    stateSearch: stateParam,
-    citySearch: cityParam,
-    countrySearch: countryParam,
-    clinicSearch: clinicIdParam,
+    gender:
+      (searchParams.get("gender") as "Male" | "Female" | null) || undefined,
+    stateSearch: searchParams.get("state") ?? undefined,
+    citySearch: searchParams.get("city") ?? undefined,
+    countrySearch: searchParams.get("country") ?? undefined,
+    clinicSearch: searchParams.get("clinicId") ?? undefined,
   };
 
   const updatePatientsState = (
     updates: Partial<PatientsSearchParams & { gender?: string | null }>,
   ) => {
-    // Base fields (search, page, sort) go through updateBaseState
-    const baseUpdates: Partial<typeof baseState> = {};
-    if ("pageNumber" in updates) baseUpdates.pageNumber = updates.pageNumber;
-    if ("pageSize" in updates) baseUpdates.pageSize = updates.pageSize;
-    if ("searchTerm" in updates) baseUpdates.searchTerm = updates.searchTerm;
-    if ("sortBy" in updates) baseUpdates.sortBy = updates.sortBy;
-    if ("sortDirection" in updates)
-      baseUpdates.sortDirection = updates.sortDirection;
-    if (Object.keys(baseUpdates).length > 0) updateBaseState(baseUpdates);
+    const params: Record<string, any> = {};
 
-    // Patient-specific filters — each maps to a URL param
-    if ("gender" in updates) updateParam("gender", updates.gender ?? null);
-    if ("stateSearch" in updates)
-      updateParam("state", updates.stateSearch ?? null);
-    if ("citySearch" in updates)
-      updateParam("city", updates.citySearch ?? null);
-    if ("countrySearch" in updates)
-      updateParam("country", updates.countrySearch ?? null);
-    if ("clinicSearch" in updates)
-      updateParam("clinicId", updates.clinicSearch ?? null, { replace: true });
+    // 🔹 Base fields
+    if ("pageNumber" in updates) params.page = updates.pageNumber;
+    if ("pageSize" in updates) params.size = updates.pageSize;
+
+    if ("searchTerm" in updates) {
+      params.search = updates.searchTerm;
+      params.page = 1; // reset page
+    }
+
+    if ("sortBy" in updates) params.sortBy = updates.sortBy;
+    if ("sortDirection" in updates) {
+      params.sortDirection =
+        updates.sortDirection === "asc" ? null : updates.sortDirection;
+    }
+
+    // 🔹 Filters
+    if ("gender" in updates) params.gender = updates.gender;
+    if ("stateSearch" in updates) params.state = updates.stateSearch;
+    if ("citySearch" in updates) params.city = updates.citySearch;
+    if ("countrySearch" in updates) params.country = updates.countrySearch;
+    if ("clinicSearch" in updates) params.clinicId = updates.clinicSearch;
+
+    if (
+      "gender" in updates ||
+      "stateSearch" in updates ||
+      "citySearch" in updates ||
+      "countrySearch" in updates ||
+      "clinicSearch" in updates
+    ) {
+      params.page = 1;
+    }
+
+    updateParams(params, {
+      replace: "searchTerm" in updates || "clinicSearch" in updates,
+    });
   };
 
   return {
     patientsState,
     updatePatientsState,
-    genderParam,
-    stateParam,
-    cityParam,
-    countryParam,
-    clinicIdParam,
   };
 }

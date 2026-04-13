@@ -29,14 +29,7 @@ export function PatientsList({
   const { user } = useMe();
   const superAdmin = isSuperAdmin(user);
 
-  const {
-    patientsState,
-    updatePatientsState,
-    genderParam,
-    stateParam,
-    cityParam,
-    countryParam,
-  } = usePatientsTableState();
+  const { patientsState, updatePatientsState } = usePatientsTableState();
 
   // Debounce the URL-backed values before sending to the API.
   // The input reads directly from the URL so refresh/back/forward all work.
@@ -115,8 +108,9 @@ export function PatientsList({
             className="w-full sm:w-44"
             placeholder={t("patients.allGenders")}
             value={
-              genderParam === "Male" || genderParam === "Female"
-                ? genderParam
+              patientsState.gender === "Male" ||
+              patientsState.gender === "Female"
+                ? patientsState.gender
                 : null
             }
             onChange={(v) =>
@@ -150,7 +144,7 @@ export function PatientsList({
 
           {/* State filter — all users */}
           <PatientStateFilter
-            value={stateParam}
+            value={patientsState.stateSearch}
             isSuperAdmin={superAdmin}
             onChange={(v) =>
               updatePatientsState({ stateSearch: v ?? undefined })
@@ -159,7 +153,7 @@ export function PatientsList({
 
           {/* City filter — all users */}
           <PatientCityFilter
-            value={cityParam}
+            value={patientsState.citySearch}
             isSuperAdmin={superAdmin}
             onChange={(v) =>
               updatePatientsState({ citySearch: v ?? undefined })
@@ -169,7 +163,7 @@ export function PatientsList({
           {/* Country filter — SuperAdmin only */}
           {superAdmin && (
             <PatientCountryFilter
-              value={countryParam}
+              value={patientsState.countrySearch}
               onChange={(v) =>
                 updatePatientsState({ countrySearch: v ?? undefined })
               }

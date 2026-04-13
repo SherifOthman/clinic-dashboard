@@ -40,65 +40,28 @@ export function useBaseTableState(defaults?: Partial<BaseTableState>) {
       (searchParams.get("sortDirection") as "asc" | "desc") || "asc",
   };
 
-  const updateBaseState = (updates: Partial<BaseTableState>) => {
-    setSearchParams(
-      (prev) => {
-        const p = new URLSearchParams(prev);
-
-        if (updates.pageNumber !== undefined)
-          p.set("page", String(updates.pageNumber));
-        if (updates.pageSize !== undefined)
-          p.set("size", String(updates.pageSize));
-
-        if (updates.searchTerm !== undefined) {
-          updates.searchTerm
-            ? p.set("search", updates.searchTerm)
-            : p.delete("search");
-          // Reset to page 1 whenever the search term changes
-          p.set("page", "1");
-        }
-
-        if (updates.sortBy !== undefined) {
-          updates.sortBy ? p.set("sortBy", updates.sortBy) : p.delete("sortBy");
-        }
-        if (updates.sortDirection !== undefined) {
-          // Only store "desc" — omit the param entirely when ascending (cleaner URLs)
-          updates.sortDirection !== "asc"
-            ? p.set("sortDirection", updates.sortDirection)
-            : p.delete("sortDirection");
-        }
-
-        return p;
-      },
-      // replace: true so typing in the search box doesn't flood browser history
-      { replace: true },
-    );
-  };
-
-  /**
-   * Set or clear a single URL param, always resetting page to 1.
-   * Pass null/undefined to remove the param.
-   * Pass replace:true to avoid adding a browser history entry (use for text inputs).
-   */
-  const updateParam = (
-    key: string,
-    value: string | null | undefined,
+  const updateParams = (
+    updates: Record<string, string | number | null | undefined>,
     options?: { replace?: boolean },
   ) => {
     setSearchParams((prev) => {
       const p = new URLSearchParams(prev);
-      if (value) p.set(key, value);
-      else p.delete(key);
-      p.set("page", "1");
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === undefined || value === "") {
+          p.delete(key);
+        } else {
+          p.set(key, String(value));
+        }
+      });
+
       return p;
     }, options);
   };
 
   return {
     baseState,
-    updateBaseState,
-    setSearchParams,
     searchParams,
-    updateParam,
+    updateParams,
   };
 }
