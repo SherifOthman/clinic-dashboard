@@ -3,6 +3,7 @@ import { LocationSelector } from "@/core/components/form/LocationSelector";
 import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
 import { Dialog } from "@/core/components/ui/Dialog";
 import { Loading } from "@/core/components/ui/Loading";
+import { useGeonameLabel } from "@/core/location/hooks";
 import type { DialogState } from "@/core/types";
 import { Button, Card, Chip } from "@heroui/react";
 import { Building2, MapPin, Phone, Plus } from "lucide-react";

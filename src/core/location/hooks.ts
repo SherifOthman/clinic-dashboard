@@ -59,7 +59,6 @@ export function useGeonameLabel(
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
 
-  const countryId = type === "country" ? (geonameId ?? null) : null;
   const stateParentId = type === "state" ? (parentGeonameId ?? null) : null;
   const cityParentId = type === "city" ? (parentGeonameId ?? null) : null;
 

@@ -1,5 +1,6 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { InfoRow } from "@/core/components/ui/InfoRow";
+import { useGeonameLabel } from "@/core/location/hooks";
 import { formatPhoneInternational } from "@/core/utils/phoneFormat";
 import { Button, Chip } from "@heroui/react";
 import { Building2, Edit, MapPin, Phone, Power } from "lucide-react";
