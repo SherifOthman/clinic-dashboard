@@ -145,7 +145,6 @@ export function PatientsList({
           {/* City filter — all users */}
           <PatientCityFilter
             value={patientsState.cityGeonameId}
-            stateGeonameId={patientsState.stateGeonameId}
             onChange={(v) =>
               updatePatientsState({ cityGeonameId: v ?? undefined })
             }
@@ -154,7 +153,6 @@ export function PatientsList({
           {/* State filter — all users */}
           <PatientStateFilter
             value={patientsState.stateGeonameId}
-            countryGeonameId={patientsState.countryGeonameId}
             onChange={(v) =>
               updatePatientsState({ stateGeonameId: v ?? undefined })
             }

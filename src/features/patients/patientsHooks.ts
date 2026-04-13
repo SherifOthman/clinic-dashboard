@@ -46,6 +46,36 @@ export function useChronicDiseases() {
   });
 }
 
+/** Returns distinct country GeoNames IDs that have patients — for the country filter. */
+export function usePatientCountryIds(enabled = false) {
+  return useQuery({
+    queryKey: ["patients", "countryIds"],
+    queryFn: () => patientsApi.getDistinctCountryIds(),
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+}
+
+/** Returns distinct state GeoNames IDs that have patients — for the state filter. */
+export function usePatientStateIds(enabled = false) {
+  return useQuery({
+    queryKey: ["patients", "stateIds"],
+    queryFn: () => patientsApi.getDistinctStateIds(),
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+}
+
+/** Returns distinct city GeoNames IDs that have patients — for the city filter. */
+export function usePatientCityIds(enabled = false) {
+  return useQuery({
+    queryKey: ["patients", "cityIds"],
+    queryFn: () => patientsApi.getDistinctCityIds(),
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+}
+
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCreatePatient() {

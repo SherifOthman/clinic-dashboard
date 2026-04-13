@@ -77,4 +77,28 @@ export const patientsApi = {
     );
     return response.data;
   },
+
+  /** Returns distinct country GeoNames IDs from patients in this clinic. */
+  async getDistinctCountryIds(): Promise<number[]> {
+    const response = await apiClient.get<number[]>(
+      `${API_ENDPOINTS.patients}/countries`,
+    );
+    return response.data;
+  },
+
+  /** Returns distinct state GeoNames IDs from patients in this clinic. */
+  async getDistinctStateIds(): Promise<number[]> {
+    const response = await apiClient.get<number[]>(
+      `${API_ENDPOINTS.patients}/states`,
+    );
+    return response.data;
+  },
+
+  /** Returns distinct city GeoNames IDs from patients in this clinic. */
+  async getDistinctCityIds(): Promise<number[]> {
+    const response = await apiClient.get<number[]>(
+      `${API_ENDPOINTS.patients}/cities`,
+    );
+    return response.data;
+  },
 };
