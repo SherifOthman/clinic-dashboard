@@ -6,6 +6,7 @@ import type {
   PatientApiRequest,
   PatientDetail,
   PatientListItem,
+  PatientLocationFilter,
   PatientsSearchParams,
 } from "./types";
 
@@ -78,26 +79,14 @@ export const patientsApi = {
     return response.data;
   },
 
-  /** Returns distinct country GeoNames IDs from patients in this clinic. */
-  async getDistinctCountryIds(): Promise<number[]> {
-    const response = await apiClient.get<number[]>(
-      `${API_ENDPOINTS.patients}/countries`,
-    );
-    return response.data;
-  },
-
-  /** Returns distinct state GeoNames IDs from patients in this clinic. */
-  async getDistinctStateIds(): Promise<number[]> {
-    const response = await apiClient.get<number[]>(
-      `${API_ENDPOINTS.patients}/states`,
-    );
-    return response.data;
-  },
-
-  /** Returns distinct city GeoNames IDs from patients in this clinic. */
-  async getDistinctCityIds(): Promise<number[]> {
-    const response = await apiClient.get<number[]>(
-      `${API_ENDPOINTS.patients}/cities`,
+  /**
+   * Returns all distinct location IDs from patients with names already resolved.
+   * One round trip — backend handles GeoNames resolution with server-side caching.
+   */
+  async getLocationFilter(lang: string): Promise<PatientLocationFilter> {
+    const response = await apiClient.get<PatientLocationFilter>(
+      `${API_ENDPOINTS.patients}/location-filter`,
+      { params: { lang } },
     );
     return response.data;
   },

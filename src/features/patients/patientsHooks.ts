@@ -46,31 +46,17 @@ export function useChronicDiseases() {
   });
 }
 
-/** Returns distinct country GeoNames IDs that have patients — for the country filter. */
-export function usePatientCountryIds(enabled = false) {
+/**
+ * Fetches all distinct location IDs from patients with names resolved — one round trip.
+ * Backend handles GeoNames resolution with server-side caching.
+ * Lazy: only fetches when `enabled` is true (on first filter open).
+ */
+export function usePatientLocationFilter(enabled = false) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   return useQuery({
-    queryKey: ["patients", "countryIds"],
-    queryFn: () => patientsApi.getDistinctCountryIds(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
-/** Returns distinct state GeoNames IDs that have patients — for the state filter. */
-export function usePatientStateIds(enabled = false) {
-  return useQuery({
-    queryKey: ["patients", "stateIds"],
-    queryFn: () => patientsApi.getDistinctStateIds(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
-/** Returns distinct city GeoNames IDs that have patients — for the city filter. */
-export function usePatientCityIds(enabled = false) {
-  return useQuery({
-    queryKey: ["patients", "cityIds"],
-    queryFn: () => patientsApi.getDistinctCityIds(),
+    queryKey: ["patients", "locationFilter", lang],
+    queryFn: () => patientsApi.getLocationFilter(lang),
     staleTime: 5 * 60 * 1000,
     enabled,
   });

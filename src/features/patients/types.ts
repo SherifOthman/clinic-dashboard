@@ -63,6 +63,22 @@ export interface PatientApiRequest {
   chronicDiseaseIds: string[];
 }
 
+/** A resolved GeoNames ID → name pair returned by the backend. */
+export interface LocationNameItem {
+  geonameId: number;
+  name: string;
+}
+
+/**
+ * Combined location filter data — one backend call returns all three lists
+ * with names already resolved (server-side GeoNames + caching).
+ */
+export interface PatientLocationFilter {
+  countries: LocationNameItem[];
+  states: LocationNameItem[];
+  cities: LocationNameItem[];
+}
+
 /** Maps blood type strings to their chip color. Used in table columns and detail dialog. */
 export const BLOOD_TYPE_COLORS: Record<
   string,
