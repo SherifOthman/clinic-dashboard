@@ -25,7 +25,7 @@ export function getPatientColumns({
   showClinic = false,
 }: PatientColumnsOptions): Column<PatientListItem>[] {
   const columns: Column<PatientListItem>[] = [
-    // 1. Name + code
+    // 1. Name + code + blood type
     {
       key: "fullName",
       label: t("common.fields.name"),
@@ -46,10 +46,20 @@ export function getPatientColumns({
             </Avatar.Fallback>
           </Avatar>
           <div className="flex flex-col gap-0.5">
-            <span className="leading-tight font-medium">
-              {patient.fullName}
-            </span>
-            <span className="text-muted text-xs">{patient.patientCode}</span>
+            <span className="leading-tight">{patient.fullName}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted text-xs">{patient.patientCode}</span>
+              {patient.bloodType && (
+                <Chip
+                  size="sm"
+                  variant="soft"
+                  color={BLOOD_TYPE_COLORS[patient.bloodType] ?? "default"}
+                  className="h-4 px-1 text-[10px]"
+                >
+                  {patient.bloodType}
+                </Chip>
+              )}
+            </div>
           </div>
         </div>
       ),
@@ -95,24 +105,7 @@ export function getPatientColumns({
           <span className="text-muted text-xs">—</span>
         ),
     },
-    // 5. Blood type
-    {
-      key: "bloodType",
-      label: t("patients.bloodType"),
-      render: (patient) =>
-        patient.bloodType ? (
-          <Chip
-            size="sm"
-            variant="soft"
-            color={BLOOD_TYPE_COLORS[patient.bloodType] ?? "default"}
-          >
-            {patient.bloodType}
-          </Chip>
-        ) : (
-          <span className="text-muted text-xs">—</span>
-        ),
-    },
-    // 6. Conditions
+    // 5. Conditions
     {
       key: "chronicDiseaseCount",
       label: t("patients.conditions"),

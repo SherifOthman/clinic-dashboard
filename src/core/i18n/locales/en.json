@@ -620,6 +620,7 @@
   },
   "phoneNumbers": {
     "addPhone": "Add Phone",
+    "noPhones": "No phone number added",
     "primaryPhone": "Primary Phone",
     "phoneLabel": "Phone Label",
     "phoneLabelPlaceholder": "e.g., Office, Mobile, Emergency",

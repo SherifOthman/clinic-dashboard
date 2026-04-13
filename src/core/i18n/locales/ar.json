@@ -669,6 +669,7 @@
   },
   "phoneNumbers": {
     "addPhone": "إضافة هاتف",
+    "noPhones": "لم يتم إضافة رقم هاتف",
     "primaryPhone": "الهاتف الأساسي",
     "phoneLabel": "تسمية الهاتف",
     "phoneLabelPlaceholder": "مثال: المكتب، الجوال، الطوارئ",

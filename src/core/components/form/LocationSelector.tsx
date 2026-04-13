@@ -15,6 +15,14 @@ import type {
 } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
+const LAST_LOCATION_KEY = "last_patient_location";
+
+interface LastLocation {
+  countryId: number;
+  stateId: number;
+  cityId: number;
+}
+
 interface LocationSelectorProps {
   form: UseFormReturn<any>;
   countryGeonameIdField?: string;
@@ -135,6 +143,11 @@ export function LocationSelector({
   const lang = i18n.language === "ar" ? "ar" : "en";
   const { contains } = useFilter({ sensitivity: "base" });
 
+  const [lastLocation, setLastLocation] = useLocalStorage<LastLocation | null>(
+    LAST_LOCATION_KEY,
+    null,
+  );
+
   // Read initial values from form fields (supports edit mode)
   const initialCountry = countryGeonameIdField
     ? (form.getValues(countryGeonameIdField) ?? 0)
@@ -146,9 +159,30 @@ export function LocationSelector({
     ? (form.getValues(cityGeonameIdField) ?? 0)
     : 0;
 
-  const [countryId, setCountryId] = useState<number>(initialCountry);
-  const [stateId, setStateId] = useState<number>(initialState);
-  const [cityId, setCityId] = useState<number>(initialCity);
+  // For new patients (no existing values), pre-fill from last used location
+  const isNewForm = !initialCountry && !initialState && !initialCity;
+  const prefill = isNewForm && lastLocation ? lastLocation : null;
+
+  const [countryId, setCountryId] = useState<number>(
+    prefill?.countryId ?? initialCountry,
+  );
+  const [stateId, setStateId] = useState<number>(
+    prefill?.stateId ?? initialState,
+  );
+  const [cityId, setCityId] = useState<number>(prefill?.cityId ?? initialCity);
+
+  // Apply prefill to form on mount (new form only)
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (!prefill || prefillApplied.current) return;
+    prefillApplied.current = true;
+    if (countryGeonameIdField && prefill.countryId)
+      form.setValue(countryGeonameIdField, prefill.countryId);
+    if (stateGeonameIdField && prefill.stateId)
+      form.setValue(stateGeonameIdField, prefill.stateId);
+    if (cityGeonameIdField && prefill.cityId)
+      form.setValue(cityGeonameIdField, prefill.cityId);
+  }, []);
 
   // Prevent re-applying fallbacks after they already ran
   const noStatesFallbackApplied = useRef(false);
@@ -282,6 +316,8 @@ export function LocationSelector({
             if (stateGeonameIdField)
               form.setValue(stateGeonameIdField, id || null);
             if (cityGeonameIdField) form.setValue(cityGeonameIdField, null);
+            // Save partial location (country + state) — city will update it further
+            if (id) setLastLocation({ countryId, stateId: id, cityId: 0 });
           }}
         />
       )}
@@ -304,6 +340,10 @@ export function LocationSelector({
             setCityId(id);
             if (cityGeonameIdField)
               form.setValue(cityGeonameIdField, id || null);
+            // Save the completed location selection for next time
+            if (id) {
+              setLastLocation({ countryId, stateId, cityId: id });
+            }
           }}
         />
       )}

@@ -46,12 +46,6 @@ export function PhoneNumbersInput<T extends FieldValues>({
   const phoneNumbers: string[] = watch(name as any) || [];
   const fieldErrors = errors[name as any] as any;
 
-  // Always show at least one phone input — append an empty one on first render
-  // if the array is empty. This avoids the user having to click "Add Phone".
-  if (fields.length === 0) {
-    append("" as any);
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -75,26 +69,28 @@ export function PhoneNumbersInput<T extends FieldValues>({
       </div>
 
       <div className="flex flex-col gap-3">
-        {fields.map((field, index) => (
-          <div key={field.id} className="flex items-end gap-2">
-            <div className="flex-1">
-              <FormPhoneInput
-                label={
-                  index === 0
-                    ? t("common.fields.phoneNumber")
-                    : `${t("common.fields.phoneNumber")} ${index + 1}`
-                }
-                isRequired={index === 0}
-                value={phoneNumbers[index] || ""}
-                onChange={(val) =>
-                  setValue(`${name}.${index}` as any, val as any, {
-                    shouldValidate: submitCount > 0,
-                  })
-                }
-                error={fieldErrors?.[index]}
-              />
-            </div>
-            {fields.length > 1 && (
+        {fields.length === 0 ? (
+          <p className="text-muted text-sm">{t("phoneNumbers.noPhones")}</p>
+        ) : (
+          fields.map((field, index) => (
+            <div key={field.id} className="flex items-end gap-2">
+              <div className="flex-1">
+                <FormPhoneInput
+                  label={
+                    index === 0
+                      ? t("common.fields.phoneNumber")
+                      : `${t("common.fields.phoneNumber")} ${index + 1}`
+                  }
+                  isRequired={false}
+                  value={phoneNumbers[index] || ""}
+                  onChange={(val) =>
+                    setValue(`${name}.${index}` as any, val as any, {
+                      shouldValidate: submitCount > 0,
+                    })
+                  }
+                  error={fieldErrors?.[index]}
+                />
+              </div>
               <Button
                 type="button"
                 size="sm"
@@ -105,9 +101,9 @@ export function PhoneNumbersInput<T extends FieldValues>({
               >
                 <X className="h-4 w-4" />
               </Button>
-            )}
-          </div>
-        ))}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
