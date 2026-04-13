@@ -12,94 +12,72 @@ const SIZE_MAP = {
 };
 
 /**
- * Heartbeat monitor animation.
+ * Heartbeat ECG animation — fully transparent background.
  *
- * Technique: two overlay divs (fade-in / fade-out) slide over a static SVG
- * polyline to reveal and then erase the line — same approach as codeconvey.com.
+ * Uses SVG stroke-dashoffset animation (the "draw a line" technique):
+ *   - pathLength="1" normalises dash values to 0–1 so no pixel math needed
+ *   - strokeDasharray="0.4 0.6" = 40% visible segment, 60% gap
+ *   - Animating dashoffset from 1.4 → 0 moves the segment across the full path
  *
- * Colors use CSS variables so it works in both light and dark mode:
- *   --background  → overlay color (matches page background, auto light/dark)
- *   --accent      → line stroke color
- *
- * To revert to the spinner:
- *   git checkout 2ee6a2c -- src/core/components/ui/Loading.tsx
+ * Why not the overlay-div technique?
+ *   The previous approach used two divs with background: var(--background) to
+ *   mask the line. Inside dialogs/cards the background is var(--overlay), not
+ *   var(--background), so the masks showed as coloured blocks.
+ *   This SVG-only approach has zero background dependency — works on any surface
+ *   in both light and dark mode.
  */
 export function Loading({ size = "md", className }: LoadingProps) {
   const { width, height } = SIZE_MAP[size];
 
-  // Standard PQRST heartbeat polyline — same points as codeconvey, scaled to our viewBox
   const points =
     "0,45.486 38.514,45.486 44.595,33.324 50.676,45.486 57.771,45.486 62.838,55.622 71.959,9 80.067,63.729 84.122,45.486 97.297,45.486 103.379,40.419 110.473,45.486 150,45.486";
 
   return (
     <div
       className={cn(
-        "flex min-h-64 flex-col items-center justify-center gap-3",
+        "flex min-h-64 flex-col items-center justify-center",
         className,
       )}
+      role="status"
+      aria-label="Loading"
     >
-      <div
-        style={{ width, height, position: "relative" }}
-        aria-label="Loading"
-        role="status"
+      <svg
+        version="1.0"
+        xmlns="http://www.w3.org/2000/svg"
+        width={width}
+        height={height}
+        viewBox="0 0 150 73"
+        aria-hidden="true"
       >
-        {/* Static ECG polyline */}
-        <svg
-          version="1.0"
-          xmlns="http://www.w3.org/2000/svg"
-          width={width}
-          height={height}
-          viewBox="0 0 150 73"
-          style={{ display: "block" }}
-          aria-hidden="true"
-        >
-          <polyline
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="3"
-            strokeMiterlimit="10"
-            points={points}
-          />
-        </svg>
-
-        {/* Reveal mask — slides from right to left, uncovering the line */}
-        <div
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            background: "var(--background)",
-            top: 0,
-            right: 0,
-            animation: "ecg-fade-in 2.5s linear infinite",
-          }}
+        {/* Faint ghost track so the eye knows where the line will travel */}
+        <polyline
+          fill="none"
+          stroke="var(--accent)"
+          strokeOpacity="0.15"
+          strokeWidth="3"
+          strokeMiterlimit="10"
+          points={points}
         />
 
-        {/* Erase mask — follows behind with a gradient fade */}
-        <div
-          style={{
-            position: "absolute",
-            width: "120%",
-            height: "100%",
-            top: 0,
-            left: "-120%",
-            animation: "ecg-fade-out 2.5s linear infinite",
-            background:
-              "linear-gradient(to right, var(--background) 0%, var(--background) 80%, transparent 100%)",
-          }}
+        {/* Animated segment — travels left to right, erasing itself from behind */}
+        <polyline
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="3"
+          strokeMiterlimit="10"
+          strokeLinecap="round"
+          points={points}
+          pathLength={1}
+          strokeDasharray="0.4 0.6"
+          strokeDashoffset={1.4}
+          style={{ animation: "ecg-travel 2s linear infinite" }}
         />
-      </div>
+      </svg>
 
       <style>{`
-        @keyframes ecg-fade-in {
-          0%   { width: 100%; }
-          50%  { width: 0; }
-          100% { width: 0; }
-        }
-        @keyframes ecg-fade-out {
-          0%   { left: -120%; }
-          15%  { left: -120%; }
-          100% { left: 0; }
+        @keyframes ecg-travel {
+          0%   { stroke-dashoffset: 1.4; }
+          100% { stroke-dashoffset: 0;   }
         }
       `}</style>
     </div>

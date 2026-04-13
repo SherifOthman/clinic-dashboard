@@ -142,21 +142,21 @@ export function PatientsList({
             </Select.Popover>
           </Select>
 
-          {/* State filter — all users */}
-          <PatientStateFilter
-            value={patientsState.stateSearch}
-            isSuperAdmin={superAdmin}
-            onChange={(v) =>
-              updatePatientsState({ stateSearch: v ?? undefined })
-            }
-          />
-
           {/* City filter — all users */}
           <PatientCityFilter
             value={patientsState.citySearch}
             isSuperAdmin={superAdmin}
             onChange={(v) =>
               updatePatientsState({ citySearch: v ?? undefined })
+            }
+          />
+
+          {/* State filter — all users */}
+          <PatientStateFilter
+            value={patientsState.stateSearch}
+            isSuperAdmin={superAdmin}
+            onChange={(v) =>
+              updatePatientsState({ stateSearch: v ?? undefined })
             }
           />
 
