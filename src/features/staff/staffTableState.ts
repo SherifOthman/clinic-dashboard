@@ -16,11 +16,14 @@ export function useStaffTableState() {
     isActive: activeFilter === undefined ? undefined : activeFilter === "true",
   };
 
-  const updateStaffState = (
-    updates: Partial<
-      StaffSearchParams & { role?: string | null; active?: string | null }
-    >,
-  ) => {
+  const updateStaffState = (updates: {
+    role?: string;
+    isActive?: boolean;
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortDirection?: "asc" | "desc";
+  }) => {
     const params: Record<string, string | number | null | undefined> = {};
 
     if ("pageNumber" in updates) params.page = updates.pageNumber;
@@ -70,14 +73,14 @@ export function useInvitationsTableState() {
     role: roleFilter,
   };
 
-  const updateInvitationsState = (
-    updates: Partial<
-      InvitationsSearchParams & {
-        status?: string | null;
-        invRole?: string | null;
-      }
-    >,
-  ) => {
+  const updateInvitationsState = (updates: {
+    status?: string;
+    invRole?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortDirection?: "asc" | "desc";
+  }) => {
     const params: Record<string, string | number | null | undefined> = {};
 
     if ("pageNumber" in updates) params.page = updates.pageNumber;

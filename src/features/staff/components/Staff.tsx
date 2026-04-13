@@ -66,8 +66,10 @@ export function Staff() {
         <Select
           className="w-full sm:w-48"
           placeholder={t("staff.allRoles")}
-          value={roleFilter || undefined}
-          onChange={(v) => updateStaffState({ role: v ? String(v) : null })}
+          value={roleFilter}
+          onChange={(v) =>
+            updateStaffState({ role: v ? String(v) : undefined })
+          }
           aria-label={t("staff.filterByRole")}
         >
           <Select.Trigger>
@@ -98,7 +100,7 @@ export function Staff() {
         <Select
           className="w-full sm:w-48"
           placeholder={t("staff.allStatuses")}
-          value={activeFilter ?? undefined}
+          value={activeFilter}
           onChange={(v) =>
             updateStaffState({
               isActive: v === "true" ? true : v === "false" ? false : undefined,

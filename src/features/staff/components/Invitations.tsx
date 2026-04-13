@@ -53,9 +53,9 @@ export function Invitations() {
           <Select
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allStatuses")}
-            value={statusParam ?? undefined}
+            value={statusParam}
             onChange={(v) =>
-              updateInvitationsState({ status: v ? String(v) : null })
+              updateInvitationsState({ status: v ? String(v) : undefined })
             }
             aria-label={t("staff.filterByStatus")}
           >
@@ -93,9 +93,9 @@ export function Invitations() {
           <Select
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allRoles")}
-            value={roleFilter ?? undefined}
+            value={roleFilter}
             onChange={(v) =>
-              updateInvitationsState({ invRole: v ? String(v) : null })
+              updateInvitationsState({ invRole: v ? String(v) : undefined })
             }
             aria-label={t("staff.filterByRole")}
           >
