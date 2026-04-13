@@ -38,13 +38,12 @@ export const createPatientSchema = (t: TFunction) => {
     stateGeonameId: z.number().int().nullable().optional(),
     cityGeonameId: z.number().int().nullable().optional(),
 
-    // Phone numbers are optional — patients may not have a phone on file
+    // Phone numbers are optional — empty entries are ignored on submit
     phoneNumbers: z
       .array(
         z
           .string()
-          .min(1, t("validation.required"))
-          .refine((val) => validatePhoneNumber(val) === true, {
+          .refine((val) => val === "" || validatePhoneNumber(val) === true, {
             message: t("validation.phoneInvalid"),
           }),
       )

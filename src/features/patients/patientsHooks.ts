@@ -102,7 +102,7 @@ export function toPatientApiRequest(data: PatientFormData): PatientApiRequest {
     countryGeonameId: data.countryGeonameId ?? undefined,
     stateGeonameId: data.stateGeonameId ?? undefined,
     cityGeonameId: data.cityGeonameId ?? undefined,
-    phoneNumbers: data.phoneNumbers,
+    phoneNumbers: data.phoneNumbers.filter((p) => p.trim() !== ""),
     chronicDiseaseIds: data.chronicDiseaseIds ?? [],
   };
 }
