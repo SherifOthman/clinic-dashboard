@@ -62,6 +62,9 @@ export function PatientsList({
     return map;
   }, [locationFilter]);
 
+  // Key changes when names load so DataTable re-renders rows with resolved names
+  const tableKey = `${i18n.language}-${cityNameMap.size}`;
+
   const columns = getPatientColumns({
     t,
     formatDate: formatDateShort,
@@ -197,7 +200,7 @@ export function PatientsList({
       </div>
 
       <DataTable
-        key={i18n.language}
+        key={tableKey}
         columns={columns}
         data={data?.items ?? []}
         keyExtractor={(item) => item.id}
