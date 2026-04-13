@@ -26,6 +26,8 @@ interface LocationSelectorProps {
   countryNameEnField?: string;
   countryNameArField?: string;
   isRequired?: boolean;
+  /** Called when the user selects a country — provides the ISO 3166-1 alpha-2 code (e.g. "EG") */
+  onCountryCodeChange?: (code: string | null) => void;
   errors?: {
     country?: RHFFieldError;
     state?: RHFFieldError;
@@ -134,6 +136,7 @@ export function LocationSelector({
   countryNameEnField,
   countryNameArField,
   isRequired = false,
+  onCountryCodeChange,
   errors,
 }: LocationSelectorProps) {
   const { t, i18n } = useTranslation();
@@ -301,7 +304,7 @@ export function LocationSelector({
           ].forEach((f) => f && form.setValue(f, null));
           if (id) {
             const country = countries.find((c) => c.geonameId === id);
-            if (country)
+            if (country) {
               await writeNames(
                 "country",
                 id,
@@ -309,10 +312,14 @@ export function LocationSelector({
                 countryNameEnField,
                 countryNameArField,
               );
+              // Notify parent of the ISO country code (e.g. "EG") for phone normalization
+              onCountryCodeChange?.(country.countryCode ?? null);
+            }
           } else {
             [countryNameEnField, countryNameArField].forEach(
               (f) => f && form.setValue(f, null),
             );
+            onCountryCodeChange?.(null);
           }
         }}
       />

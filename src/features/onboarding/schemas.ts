@@ -15,6 +15,7 @@ export const createOnboardingSchemas = (t: TFunction) => {
       cityNameAr: z.string().nullable().optional(),
       stateNameEn: z.string().nullable().optional(),
       stateNameAr: z.string().nullable().optional(),
+      countryCode: z.string().length(2).nullable().optional(),
       provideMedicalServices: z.enum(["yes", "no"]),
       specializationId: z.uuid().optional(),
     })

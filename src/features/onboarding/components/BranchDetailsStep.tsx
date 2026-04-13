@@ -63,6 +63,7 @@ export function BranchDetailsStep({ onBack, onNext }: BranchDetailsStepProps) {
             cityNameArField="cityNameAr"
             stateNameEnField="stateNameEn"
             stateNameArField="stateNameAr"
+            onCountryCodeChange={(code) => form.setValue("countryCode", code)}
           />
         </Card.Content>
       </Card>
