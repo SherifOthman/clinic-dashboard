@@ -16,8 +16,7 @@ export default function AuditPage() {
 
   const {
     auditState,
-    updateBaseState,
-    updateParam,
+    updateAuditState,
     userSearch,
     setUserSearch,
     clinicSearch,
@@ -52,13 +51,13 @@ export default function AuditPage() {
         clinicSearch={clinicSearch}
         onClinicSearchChange={setClinicSearch}
         entityType={entityType}
-        onEntityTypeChange={(v) => updateParam("entityType", v)}
+        onEntityTypeChange={(v) => updateAuditState({ entityType: v })}
         action={action}
-        onActionChange={(v) => updateParam("action", v)}
+        onActionChange={(v) => updateAuditState({ action: v })}
         from={from}
-        onFromChange={(v) => updateParam("from", v)}
+        onFromChange={(v) => updateAuditState({ from: v })}
         to={to}
-        onToChange={(v) => updateParam("to", v)}
+        onToChange={(v) => updateAuditState({ to: v })}
         onClearAll={clearAllFilters}
       />
 
@@ -67,9 +66,9 @@ export default function AuditPage() {
         isLoading={isLoading}
         pageNumber={auditState.pageNumber ?? 1}
         onRowClick={(item: AuditLogItem) => setSelectedLog(item)}
-        onPageChange={(p) => updateBaseState({ pageNumber: p })}
+        onPageChange={(p) => updateAuditState({ pageNumber: p })}
         onPageSizeChange={(s) =>
-          updateBaseState({ pageSize: s, pageNumber: 1 })
+          updateAuditState({ pageSize: s, pageNumber: 1 })
         }
       />
 

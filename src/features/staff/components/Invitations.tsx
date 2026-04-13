@@ -28,13 +28,8 @@ export function Invitations() {
     null,
   );
 
-  const {
-    invitationsState,
-    updateBaseState,
-    updateParam,
-    statusParam,
-    roleFilter,
-  } = useInvitationsTableState();
+  const { invitationsState, updateInvitationsState, statusParam, roleFilter } =
+    useInvitationsTableState();
 
   const { data, isLoading } = useInvitations(invitationsState);
   const resendInvitation = useResendInvitation();
@@ -59,7 +54,9 @@ export function Invitations() {
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allStatuses")}
             value={statusParam ?? null}
-            onChange={(v) => updateParam("status", v ? String(v) : null)}
+            onChange={(v) =>
+              updateInvitationsState({ status: v ? String(v) : null })
+            }
             aria-label={t("staff.filterByStatus")}
           >
             <Select.Trigger>
@@ -97,7 +94,9 @@ export function Invitations() {
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allRoles")}
             value={roleFilter ?? null}
-            onChange={(v) => updateParam("invRole", v ? String(v) : null)}
+            onChange={(v) =>
+              updateInvitationsState({ invRole: v ? String(v) : null })
+            }
             aria-label={t("staff.filterByRole")}
           >
             <Select.Trigger>
@@ -146,7 +145,7 @@ export function Invitations() {
         sortBy={invitationsState.sortBy || undefined}
         sortDirection={invitationsState.sortDirection}
         onSortChange={(sortBy, sortDirection) =>
-          updateBaseState({ sortBy, sortDirection, pageNumber: 1 })
+          updateInvitationsState({ sortBy, sortDirection, pageNumber: 1 })
         }
         onRowClick={(item) => setDetailInvitationId(item.id)}
       />
@@ -154,9 +153,9 @@ export function Invitations() {
       <TablePagination
         data={data}
         currentPage={invitationsState.pageNumber ?? 1}
-        onPageChange={(p) => updateBaseState({ pageNumber: p })}
+        onPageChange={(p) => updateInvitationsState({ pageNumber: p })}
         onPageSizeChange={(s) =>
-          updateBaseState({ pageSize: s, pageNumber: 1 })
+          updateInvitationsState({ pageSize: s, pageNumber: 1 })
         }
       />
 

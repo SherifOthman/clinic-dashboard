@@ -5,8 +5,7 @@ import { InvitationStatus } from "./types";
 // ── Staff list table state ────────────────────────────────────────────────────
 
 export function useStaffTableState() {
-  const { baseState, updateBaseState, searchParams, updateParam } =
-    useBaseTableState();
+  const { baseState, searchParams, updateParams } = useBaseTableState();
 
   const roleFilter = searchParams.get("role") || undefined;
   const activeFilter = searchParams.get("active"); // "true" | "false" | null
@@ -17,10 +16,36 @@ export function useStaffTableState() {
     isActive: activeFilter === null ? undefined : activeFilter === "true",
   };
 
+  const updateStaffState = (
+    updates: Partial<
+      StaffSearchParams & { role?: string | null; active?: string | null }
+    >,
+  ) => {
+    const params: Record<string, string | number | null | undefined> = {};
+
+    if ("pageNumber" in updates) params.page = updates.pageNumber;
+    if ("pageSize" in updates) params.size = updates.pageSize;
+    if ("sortBy" in updates) params.sortBy = updates.sortBy;
+    if ("sortDirection" in updates)
+      params.sortDirection =
+        updates.sortDirection === "asc" ? null : updates.sortDirection;
+
+    if ("role" in updates) {
+      params.role = updates.role;
+      params.page = 1;
+    }
+    if ("isActive" in updates) {
+      params.active =
+        updates.isActive === undefined ? null : String(updates.isActive);
+      params.page = 1;
+    }
+
+    updateParams(params);
+  };
+
   return {
     staffState,
-    updateBaseState,
-    updateParam,
+    updateStaffState,
     roleFilter,
     activeFilter,
   };
@@ -29,8 +54,7 @@ export function useStaffTableState() {
 // ── Invitations table state ───────────────────────────────────────────────────
 
 export function useInvitationsTableState() {
-  const { baseState, updateBaseState, searchParams, updateParam } =
-    useBaseTableState();
+  const { baseState, searchParams, updateParams } = useBaseTableState();
 
   const statusParam = searchParams.get("status");
   const roleFilter = searchParams.get("invRole") || undefined;
@@ -46,10 +70,38 @@ export function useInvitationsTableState() {
     role: roleFilter,
   };
 
+  const updateInvitationsState = (
+    updates: Partial<
+      InvitationsSearchParams & {
+        status?: string | null;
+        invRole?: string | null;
+      }
+    >,
+  ) => {
+    const params: Record<string, string | number | null | undefined> = {};
+
+    if ("pageNumber" in updates) params.page = updates.pageNumber;
+    if ("pageSize" in updates) params.size = updates.pageSize;
+    if ("sortBy" in updates) params.sortBy = updates.sortBy;
+    if ("sortDirection" in updates)
+      params.sortDirection =
+        updates.sortDirection === "asc" ? null : updates.sortDirection;
+
+    if ("status" in updates) {
+      params.status = updates.status;
+      params.page = 1;
+    }
+    if ("invRole" in updates) {
+      params.invRole = updates.invRole;
+      params.page = 1;
+    }
+
+    updateParams(params);
+  };
+
   return {
     invitationsState,
-    updateBaseState,
-    updateParam,
+    updateInvitationsState,
     statusParam,
     roleFilter,
   };

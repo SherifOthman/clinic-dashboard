@@ -20,7 +20,7 @@ export function Staff() {
   const [detailStaffId, setDetailStaffId] = useState<string | null>(null);
   const isRTL = i18n.language === "ar";
 
-  const { staffState, updateBaseState, updateParam, roleFilter, activeFilter } =
+  const { staffState, updateStaffState, roleFilter, activeFilter } =
     useStaffTableState();
 
   const { data, isLoading } = useStaffList(staffState);
@@ -67,7 +67,7 @@ export function Staff() {
           className="w-full sm:w-48"
           placeholder={t("staff.allRoles")}
           value={roleFilter || null}
-          onChange={(v) => updateParam("role", v ? String(v) : null)}
+          onChange={(v) => updateStaffState({ role: v ? String(v) : null })}
           aria-label={t("staff.filterByRole")}
         >
           <Select.Trigger>
@@ -99,7 +99,11 @@ export function Staff() {
           className="w-full sm:w-48"
           placeholder={t("staff.allStatuses")}
           value={activeFilter ?? null}
-          onChange={(v) => updateParam("active", v ? String(v) : null)}
+          onChange={(v) =>
+            updateStaffState({
+              isActive: v === "true" ? true : v === "false" ? false : undefined,
+            })
+          }
           aria-label={t("staff.filterByStatus")}
         >
           <Select.Trigger>
@@ -135,7 +139,7 @@ export function Staff() {
         sortBy={staffState.sortBy || undefined}
         sortDirection={staffState.sortDirection}
         onSortChange={(sortBy, sortDirection) =>
-          updateBaseState({ sortBy, sortDirection, pageNumber: 1 })
+          updateStaffState({ sortBy, sortDirection, pageNumber: 1 })
         }
         onRowClick={(item) => setDetailStaffId(item.id)}
       />
@@ -143,9 +147,9 @@ export function Staff() {
       <TablePagination
         data={data}
         currentPage={staffState.pageNumber ?? 1}
-        onPageChange={(p) => updateBaseState({ pageNumber: p })}
+        onPageChange={(p) => updateStaffState({ pageNumber: p })}
         onPageSizeChange={(s) =>
-          updateBaseState({ pageSize: s, pageNumber: 1 })
+          updateStaffState({ pageSize: s, pageNumber: 1 })
         }
       />
 

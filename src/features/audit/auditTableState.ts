@@ -4,13 +4,7 @@ import { useState } from "react";
 import type { AuditAction, AuditSearchParams } from "./types";
 
 export function useAuditTableState() {
-  const {
-    baseState,
-    updateBaseState,
-    searchParams,
-    updateParam,
-    setSearchParams,
-  } = useBaseTableState();
+  const { baseState, searchParams, updateParams } = useBaseTableState();
 
   // Text search inputs are local state — debounced before hitting the API
   const [userSearch, setUserSearch] = useState("");
@@ -35,28 +29,68 @@ export function useAuditTableState() {
     clinicSearch: debouncedClinicSearch || undefined,
   };
 
+  const updateAuditState = (
+    updates: Partial<
+      Pick<AuditSearchParams, "pageNumber" | "pageSize"> & {
+        entityType?: string | null;
+        action?: string | null;
+        entityId?: string | null;
+        from?: string | null;
+        to?: string | null;
+      }
+    >,
+  ) => {
+    const params: Record<string, string | number | null | undefined> = {};
+
+    if ("pageNumber" in updates) params.page = updates.pageNumber;
+    if ("pageSize" in updates) params.size = updates.pageSize;
+
+    if ("entityType" in updates) {
+      params.entityType = updates.entityType;
+      params.page = 1;
+    }
+    if ("action" in updates) {
+      params.action = updates.action;
+      params.page = 1;
+    }
+    if ("entityId" in updates) {
+      params.entityId = updates.entityId;
+      params.page = 1;
+    }
+    if ("from" in updates) {
+      params.from = updates.from;
+      params.page = 1;
+    }
+    if ("to" in updates) {
+      params.to = updates.to;
+      params.page = 1;
+    }
+
+    updateParams(params);
+  };
+
   const clearAllFilters = () => {
     setUserSearch("");
     setClinicSearch("");
-    setSearchParams((prev) => {
-      const p = new URLSearchParams(prev);
-      ["entityType", "action", "entityId", "from", "to", "page"].forEach((k) =>
-        p.delete(k),
-      );
-      return p;
+    updateParams({
+      entityType: null,
+      action: null,
+      entityId: null,
+      from: null,
+      to: null,
+      page: 1,
     });
   };
 
   return {
     auditState,
-    updateBaseState,
-    updateParam,
+    updateAuditState,
     // text search (local, debounced)
     userSearch,
     setUserSearch,
     clinicSearch,
     setClinicSearch,
-    // URL-backed filters
+    // URL-backed filters (for controlled inputs)
     entityType,
     action,
     entityId,
