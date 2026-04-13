@@ -36,9 +36,13 @@ function parseDateSafe(iso: string) {
 
 interface PatientBasicInfoProps {
   form: UseFormReturn<PatientFormData>;
+  resetKey?: number;
 }
 
-export function PatientBasicInfo({ form }: PatientBasicInfoProps) {
+export function PatientBasicInfo({
+  form,
+  resetKey = 0,
+}: PatientBasicInfoProps) {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const {
@@ -155,8 +159,9 @@ export function PatientBasicInfo({ form }: PatientBasicInfoProps) {
           )}
         </div>
 
-        {/* Age - HeroUI NumberField */}
+        {/* Age - HeroUI NumberField — keyed on resetKey so it remounts on form reset */}
         <NumberField
+          key={resetKey}
           isInvalid={!!errors.age}
           value={age ?? undefined}
           minValue={0}

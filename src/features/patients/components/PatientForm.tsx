@@ -58,6 +58,7 @@ export function PatientForm({
     draft,
     onSubmit,
   });
+  const [resetKey, setResetKey] = useState(0);
 
   // Sync form values back to parent as draft whenever they change
   useEffect(() => {
@@ -76,7 +77,10 @@ export function PatientForm({
           icon={<User className="h-4 w-4" />}
           title={t("patients.personalInfo")}
         >
-          <PatientBasicInfo form={form as UseFormReturn<PatientFormData>} />
+          <PatientBasicInfo
+            form={form as UseFormReturn<PatientFormData>}
+            resetKey={resetKey}
+          />
         </FormSection>
 
         {/* ── Contact & Location ── */}
@@ -119,6 +123,7 @@ export function PatientForm({
             variant="ghost"
             onPress={() => {
               resetForm();
+              setResetKey((k) => k + 1);
               onReset?.();
             }}
             className="text-muted"
