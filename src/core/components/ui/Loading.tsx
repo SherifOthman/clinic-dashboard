@@ -1,4 +1,5 @@
 import { cn } from "@/core/utils";
+import { useEffect, useRef, useState } from "react";
 
 interface LoadingProps {
   size?: "sm" | "md" | "lg";
@@ -12,23 +13,40 @@ const SIZE_MAP = {
 };
 
 /**
- * Heartbeat ECG animation — codeconvey.com technique, transparent background.
+ * Heartbeat ECG animation — codeconvey.com technique.
  *
- * Both overlay divs use `background: inherit` so they always match the
- * surface they sit on (page, dialog, card, dark/light mode).
- *
- * The erase mask uses CSS `mask-image` with a linear gradient instead of
- * a background gradient — this way the div's inherited background shows
- * through with a fade, without needing to know the actual color.
+ * Reads the actual computed background color of the nearest parent at mount
+ * time, then uses that color for the overlay divs. This works on any surface
+ * (page, dialog, card) in both dark and light mode without hardcoding colors.
  */
 export function Loading({ size = "md", className }: LoadingProps) {
   const { width, height } = SIZE_MAP[size];
+  const ref = useRef<HTMLDivElement>(null);
+  const [bgColor, setBgColor] = useState("var(--background)");
+
+  useEffect(() => {
+    if (!ref.current) return;
+    // Walk up the DOM until we find an element with a non-transparent background
+    let el: HTMLElement | null = ref.current.parentElement;
+    while (el) {
+      const bg = window.getComputedStyle(el).backgroundColor;
+      // Skip transparent / rgba(0,0,0,0)
+      if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+        setBgColor(bg);
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, []);
 
   const points =
     "0,45.486 38.514,45.486 44.595,33.324 50.676,45.486 57.771,45.486 62.838,55.622 71.959,9 80.067,63.729 84.122,45.486 97.297,45.486 103.379,40.419 110.473,45.486 150,45.486";
 
+  const gradientBg = `linear-gradient(to right, ${bgColor} 0%, ${bgColor} 80%, transparent 100%)`;
+
   return (
     <div
+      ref={ref}
       className={cn(
         "flex min-h-64 flex-col items-center justify-center",
         className,
@@ -37,7 +55,7 @@ export function Loading({ size = "md", className }: LoadingProps) {
       aria-label="Loading"
     >
       <div style={{ width, height, position: "relative" }}>
-        {/* Static ECG polyline in accent color */}
+        {/* Static ECG polyline */}
         <svg
           version="1.0"
           xmlns="http://www.w3.org/2000/svg"
@@ -56,20 +74,20 @@ export function Loading({ size = "md", className }: LoadingProps) {
           />
         </svg>
 
-        {/* Reveal mask — solid, inherits parent background, shrinks to reveal line */}
+        {/* Reveal mask — solid, covers the line then shrinks to reveal it */}
         <div
           style={{
             position: "absolute",
             width: "100%",
             height: "100%",
-            background: "inherit",
+            backgroundColor: bgColor,
             top: 0,
             right: 0,
             animation: "ecg-reveal 2.5s linear infinite",
           }}
         />
 
-        {/* Erase mask — inherits background, fades out via mask-image gradient */}
+        {/* Erase mask — gradient fade that follows behind */}
         <div
           style={{
             position: "absolute",
@@ -77,11 +95,7 @@ export function Loading({ size = "md", className }: LoadingProps) {
             height: "100%",
             top: 0,
             left: "-120%",
-            background: "inherit",
-            WebkitMaskImage:
-              "linear-gradient(to right, black 0%, black 80%, transparent 100%)",
-            maskImage:
-              "linear-gradient(to right, black 0%, black 80%, transparent 100%)",
+            background: gradientBg,
             animation: "ecg-erase 2.5s linear infinite",
           }}
         />
