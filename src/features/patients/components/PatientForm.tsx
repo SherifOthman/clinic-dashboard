@@ -2,7 +2,7 @@ import { LocationSelector } from "@/core/components/form/LocationSelector";
 import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
 import { Button } from "@heroui/react";
 import { MapPin, Phone, User } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { type UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { usePatientForm } from "../patientsHooks";
