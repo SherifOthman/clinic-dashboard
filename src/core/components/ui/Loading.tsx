@@ -12,19 +12,14 @@ const SIZE_MAP = {
 };
 
 /**
- * Heartbeat ECG animation — fully transparent background.
+ * Heartbeat ECG animation — codeconvey.com technique, transparent background.
  *
- * Uses SVG stroke-dashoffset animation (the "draw a line" technique):
- *   - pathLength="1" normalises dash values to 0–1 so no pixel math needed
- *   - strokeDasharray="0.4 0.6" = 40% visible segment, 60% gap
- *   - Animating dashoffset from 1.4 → 0 moves the segment across the full path
+ * Both overlay divs use `background: inherit` so they always match the
+ * surface they sit on (page, dialog, card, dark/light mode).
  *
- * Why not the overlay-div technique?
- *   The previous approach used two divs with background: var(--background) to
- *   mask the line. Inside dialogs/cards the background is var(--overlay), not
- *   var(--background), so the masks showed as coloured blocks.
- *   This SVG-only approach has zero background dependency — works on any surface
- *   in both light and dark mode.
+ * The erase mask uses CSS `mask-image` with a linear gradient instead of
+ * a background gradient — this way the div's inherited background shows
+ * through with a fade, without needing to know the actual color.
  */
 export function Loading({ size = "md", className }: LoadingProps) {
   const { width, height } = SIZE_MAP[size];
@@ -41,43 +36,67 @@ export function Loading({ size = "md", className }: LoadingProps) {
       role="status"
       aria-label="Loading"
     >
-      <svg
-        version="1.0"
-        xmlns="http://www.w3.org/2000/svg"
-        width={width}
-        height={height}
-        viewBox="0 0 150 73"
-        aria-hidden="true"
-      >
-        {/* Faint ghost track so the eye knows where the line will travel */}
-        <polyline
-          fill="none"
-          stroke="var(--accent)"
-          strokeOpacity="0.15"
-          strokeWidth="3"
-          strokeMiterlimit="10"
-          points={points}
+      <div style={{ width, height, position: "relative" }}>
+        {/* Static ECG polyline in accent color */}
+        <svg
+          version="1.0"
+          xmlns="http://www.w3.org/2000/svg"
+          width={width}
+          height={height}
+          viewBox="0 0 150 73"
+          style={{ display: "block" }}
+          aria-hidden="true"
+        >
+          <polyline
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="3"
+            strokeMiterlimit="10"
+            points={points}
+          />
+        </svg>
+
+        {/* Reveal mask — solid, inherits parent background, shrinks to reveal line */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            background: "inherit",
+            top: 0,
+            right: 0,
+            animation: "ecg-reveal 2.5s linear infinite",
+          }}
         />
 
-        {/* Animated segment — travels left to right, erasing itself from behind */}
-        <polyline
-          fill="none"
-          stroke="var(--accent)"
-          strokeWidth="3"
-          strokeMiterlimit="10"
-          strokeLinecap="round"
-          points={points}
-          pathLength={1}
-          strokeDasharray="0.4 0.6"
-          strokeDashoffset={1.4}
-          style={{ animation: "ecg-travel 2s linear infinite" }}
+        {/* Erase mask — inherits background, fades out via mask-image gradient */}
+        <div
+          style={{
+            position: "absolute",
+            width: "120%",
+            height: "100%",
+            top: 0,
+            left: "-120%",
+            background: "inherit",
+            WebkitMaskImage:
+              "linear-gradient(to right, black 0%, black 80%, transparent 100%)",
+            maskImage:
+              "linear-gradient(to right, black 0%, black 80%, transparent 100%)",
+            animation: "ecg-erase 2.5s linear infinite",
+          }}
         />
-      </svg>
+      </div>
 
       <style>{`
-        @keyframes ecg-travel {
-          0%   { stroke-dashoffset: 1.4; }
-          100% { stroke-dashoffset: 0;   }
+        @keyframes ecg-reveal {
+          0%   { width: 100%; }
+          50%  { width: 0;    }
+          100% { width: 0;    }
+        }
+        @keyframes ecg-erase {
+          0%   { left: -120%; }
+          15%  { left: -120%; }
+          100% { left: 0;     }
         }
       `}</style>
     </div>
