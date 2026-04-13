@@ -25,15 +25,34 @@ export function PatientStateFilter({
   );
   const { getMostUsed, increment } = useMostUsed("patient_state_usage");
 
-  const items = useMemo(
-    () =>
-      states.map((s) => ({
-        key: s.nameEn || s.nameAr,
-        label: isAr ? s.nameAr || s.nameEn : s.nameEn || s.nameAr,
-        labelAlt: isAr ? s.nameEn : s.nameAr,
-      })),
-    [states, isAr],
-  );
+  const items = useMemo(() => {
+    // Build one item per unique EN name, merging rows that share the same EN or AR.
+    // This handles old data where some patients have only EN and others only AR
+    // for the same location.
+    const seen = new Map<
+      string,
+      { key: string; label: string; labelAlt?: string }
+    >();
+
+    states.forEach((s) => {
+      const key = s.nameEn || s.nameAr;
+      if (!seen.has(key)) {
+        seen.set(key, {
+          key,
+          label: isAr ? s.nameAr || s.nameEn : s.nameEn || s.nameAr,
+          labelAlt: isAr ? s.nameEn : s.nameAr,
+        });
+      } else {
+        // Merge: fill in missing label/labelAlt from this row
+        const existing = seen.get(key)!;
+        if (!existing.labelAlt && (isAr ? s.nameEn : s.nameAr)) {
+          existing.labelAlt = isAr ? s.nameEn : s.nameAr;
+        }
+      }
+    });
+
+    return Array.from(seen.values());
+  }, [states, isAr]);
 
   const mostUsedItems = useMemo(
     () => getMostUsed(items, (i) => i.key, 6),

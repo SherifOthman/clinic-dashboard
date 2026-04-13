@@ -25,15 +25,23 @@ export function PatientCityFilter({
   );
   const { getMostUsed, increment } = useMostUsed("patient_city_usage");
 
-  const items = useMemo(
-    () =>
-      cities.map((c) => ({
-        key: c.nameEn || c.nameAr,
-        label: isAr ? c.nameAr || c.nameEn : c.nameEn || c.nameAr,
-        labelAlt: isAr ? c.nameEn : c.nameAr,
-      })),
-    [cities, isAr],
-  );
+  const items = useMemo(() => {
+    const seen = new Map<
+      string,
+      { key: string; label: string; labelAlt?: string }
+    >();
+    cities.forEach((c) => {
+      const key = c.nameEn || c.nameAr;
+      if (!seen.has(key)) {
+        seen.set(key, {
+          key,
+          label: isAr ? c.nameAr || c.nameEn : c.nameEn || c.nameAr,
+          labelAlt: isAr ? c.nameEn : c.nameAr,
+        });
+      }
+    });
+    return Array.from(seen.values());
+  }, [cities, isAr]);
 
   const mostUsedItems = useMemo(
     () => getMostUsed(items, (i) => i.key, 6),
