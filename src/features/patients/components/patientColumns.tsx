@@ -46,7 +46,9 @@ export function getPatientColumns({
             </Avatar.Fallback>
           </Avatar>
           <div className="flex flex-col gap-0.5">
-            <span className="leading-tight">{patient.fullName}</span>
+            <span className="leading-tight font-medium">
+              {patient.fullName}
+            </span>
             <div className="flex items-center gap-1.5">
               <span className="text-muted text-xs">{patient.patientCode}</span>
               {patient.bloodType && (
