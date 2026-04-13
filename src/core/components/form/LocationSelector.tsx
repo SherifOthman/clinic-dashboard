@@ -1,5 +1,3 @@
-import { useLocalStorage } from "@/core/hooks/useLocalStorage";
-import { resolveBilingualNames } from "@/core/location/api";
 import { useCities, useCountries, useStates } from "@/core/location/hooks";
 import {
   Autocomplete,
@@ -10,7 +8,7 @@ import {
   SearchField,
   useFilter,
 } from "@heroui/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   FieldError as RHFFieldError,
   UseFormReturn,
@@ -19,12 +17,9 @@ import { useTranslation } from "react-i18next";
 
 interface LocationSelectorProps {
   form: UseFormReturn<any>;
-  cityNameEnField?: string;
-  cityNameArField?: string;
-  stateNameEnField?: string;
-  stateNameArField?: string;
-  countryNameEnField?: string;
-  countryNameArField?: string;
+  countryGeonameIdField?: string;
+  stateGeonameIdField?: string;
+  cityGeonameIdField?: string;
   isRequired?: boolean;
   /** Called when the user selects a country — provides the ISO 3166-1 alpha-2 code (e.g. "EG") */
   onCountryCodeChange?: (code: string | null) => void;
@@ -129,12 +124,9 @@ function LocationAutocomplete({
 
 export function LocationSelector({
   form,
-  cityNameEnField,
-  cityNameArField,
-  stateNameEnField,
-  stateNameArField,
-  countryNameEnField,
-  countryNameArField,
+  countryGeonameIdField,
+  stateGeonameIdField,
+  cityGeonameIdField,
   isRequired = false,
   onCountryCodeChange,
   errors,
@@ -143,13 +135,20 @@ export function LocationSelector({
   const lang = i18n.language === "ar" ? "ar" : "en";
   const { contains } = useFilter({ sensitivity: "base" });
 
-  // Persist selected IDs across page reloads
-  const [countryId, setCountryId] = useLocalStorage<number>(
-    "loc_last_country_id",
-    0,
-  );
-  const [stateId, setStateId] = useLocalStorage<number>("loc_last_state_id", 0);
-  const [cityId, setCityId] = useLocalStorage<number>("loc_last_city_id", 0);
+  // Read initial values from form fields (supports edit mode)
+  const initialCountry = countryGeonameIdField
+    ? (form.getValues(countryGeonameIdField) ?? 0)
+    : 0;
+  const initialState = stateGeonameIdField
+    ? (form.getValues(stateGeonameIdField) ?? 0)
+    : 0;
+  const initialCity = cityGeonameIdField
+    ? (form.getValues(cityGeonameIdField) ?? 0)
+    : 0;
+
+  const [countryId, setCountryId] = useState<number>(initialCountry);
+  const [stateId, setStateId] = useState<number>(initialState);
+  const [cityId, setCityId] = useState<number>(initialCity);
 
   // Prevent re-applying fallbacks after they already ran
   const noStatesFallbackApplied = useRef(false);
@@ -171,27 +170,26 @@ export function LocationSelector({
     error: citiesError,
   } = useCities(stateId > 0 ? stateId : null);
 
-  // Awaits both EN and AR before writing — no race condition on submit.
-  const writeNames = async (
-    type: "country" | "state" | "city",
-    id: number,
-    currentName: string,
-    enField?: string,
-    arField?: string,
-    parentId?: number,
-  ) => {
-    const { en, ar } = await resolveBilingualNames(
-      type,
-      id,
-      lang,
-      currentName,
-      parentId,
-    );
-    if (enField) form.setValue(enField, en ?? ar ?? currentName);
-    if (arField) form.setValue(arField, ar ?? en ?? currentName);
-  };
+  // When form values change externally (e.g. edit mode populates), sync local state
+  useEffect(() => {
+    const sub = form.watch((values) => {
+      if (countryGeonameIdField) {
+        const v = values[countryGeonameIdField] ?? 0;
+        setCountryId(v);
+      }
+      if (stateGeonameIdField) {
+        const v = values[stateGeonameIdField] ?? 0;
+        setStateId(v);
+      }
+      if (cityGeonameIdField) {
+        const v = values[cityGeonameIdField] ?? 0;
+        setCityId(v);
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [form, countryGeonameIdField, stateGeonameIdField, cityGeonameIdField]);
 
-  // City-states (Singapore, Vatican, etc.) have no ADM1 children — use country name for state+city
+  // City-states (Singapore, Vatican, etc.) have no ADM1 children — use country for state+city
   useEffect(() => {
     if (
       countryId > 0 &&
@@ -201,28 +199,14 @@ export function LocationSelector({
       !noStatesFallbackApplied.current
     ) {
       noStatesFallbackApplied.current = true;
-      const country = countries.find((c) => c.geonameId === countryId);
-      if (country) {
-        writeNames(
-          "country",
-          countryId,
-          country.name,
-          stateNameEnField,
-          stateNameArField,
-        );
-        writeNames(
-          "country",
-          countryId,
-          country.name,
-          cityNameEnField,
-          cityNameArField,
-        );
-      }
+      // Store the country ID as both state and city fallback
+      if (stateGeonameIdField) form.setValue(stateGeonameIdField, countryId);
+      if (cityGeonameIdField) form.setValue(cityGeonameIdField, countryId);
     }
     if (countryId === 0) noStatesFallbackApplied.current = false;
   }, [countryId, statesLoading, states.length]);
 
-  // Small territories may have states but no city-level data — use state name for city
+  // Small territories may have states but no city-level data — use state for city
   useEffect(() => {
     if (
       stateId > 0 &&
@@ -232,42 +216,10 @@ export function LocationSelector({
       !noCitiesFallbackApplied.current
     ) {
       noCitiesFallbackApplied.current = true;
-      const state = states.find((s) => s.geonameId === stateId);
-      if (state)
-        writeNames(
-          "state",
-          stateId,
-          state.name,
-          cityNameEnField,
-          cityNameArField,
-          countryId,
-        );
+      if (cityGeonameIdField) form.setValue(cityGeonameIdField, stateId);
     }
     if (stateId === 0) noCitiesFallbackApplied.current = false;
   }, [stateId, citiesLoading, cities.length]);
-
-  // Restore saved names on initial load (after data arrives)
-  useEffect(() => {
-    if (stateId > 0 && states.length > 0) {
-      const state = states.find((s) => s.geonameId === stateId);
-      if (state)
-        form.setValue(
-          lang === "en" ? stateNameEnField! : stateNameArField!,
-          state.name,
-        );
-    }
-  }, [states.length, stateId]);
-
-  useEffect(() => {
-    if (cityId > 0 && cities.length > 0) {
-      const city = cities.find((c) => c.geonameId === cityId);
-      if (city)
-        form.setValue(
-          lang === "en" ? cityNameEnField! : cityNameArField!,
-          city.name,
-        );
-    }
-  }, [cities.length, cityId]);
 
   if (countriesError)
     return <p className="text-danger text-sm">{t("location.loadError")}</p>;
@@ -290,35 +242,22 @@ export function LocationSelector({
         isDisabled={countriesLoading}
         isInvalid={!!errors?.country}
         error={errors?.country}
-        onChange={async (id) => {
+        onChange={(id) => {
           setCountryId(id);
           setStateId(0);
           setCityId(0);
           noStatesFallbackApplied.current = false;
           noCitiesFallbackApplied.current = false;
-          [
-            stateNameEnField,
-            stateNameArField,
-            cityNameEnField,
-            cityNameArField,
-          ].forEach((f) => f && form.setValue(f, null));
+
+          if (countryGeonameIdField)
+            form.setValue(countryGeonameIdField, id || null);
+          if (stateGeonameIdField) form.setValue(stateGeonameIdField, null);
+          if (cityGeonameIdField) form.setValue(cityGeonameIdField, null);
+
           if (id) {
             const country = countries.find((c) => c.geonameId === id);
-            if (country) {
-              await writeNames(
-                "country",
-                id,
-                country.name,
-                countryNameEnField,
-                countryNameArField,
-              );
-              // Notify parent of the ISO country code (e.g. "EG") for phone normalization
-              onCountryCodeChange?.(country.countryCode ?? null);
-            }
+            onCountryCodeChange?.(country?.countryCode ?? null);
           } else {
-            [countryNameEnField, countryNameArField].forEach(
-              (f) => f && form.setValue(f, null),
-            );
             onCountryCodeChange?.(null);
           }
         }}
@@ -335,44 +274,14 @@ export function LocationSelector({
           isInvalid={!!errors?.state}
           error={errors?.state}
           loadError={!!statesError}
-          onChange={async (id) => {
+          onChange={(id) => {
             setStateId(id);
             setCityId(0);
             noCitiesFallbackApplied.current = false;
-            [cityNameEnField, cityNameArField].forEach(
-              (f) => f && form.setValue(f, null),
-            );
-            if (id) {
-              const state = states.find((s) => s.geonameId === id);
-              if (state)
-                await writeNames(
-                  "state",
-                  id,
-                  state.name,
-                  stateNameEnField,
-                  stateNameArField,
-                  countryId,
-                );
-              // Also ensure country name is written — user may have selected
-              // state without touching the country dropdown (e.g. restored from localStorage)
-              if (countryId) {
-                const country = countries.find(
-                  (c) => c.geonameId === countryId,
-                );
-                if (country)
-                  await writeNames(
-                    "country",
-                    countryId,
-                    country.name,
-                    countryNameEnField,
-                    countryNameArField,
-                  );
-              }
-            } else {
-              [stateNameEnField, stateNameArField].forEach(
-                (f) => f && form.setValue(f, null),
-              );
-            }
+
+            if (stateGeonameIdField)
+              form.setValue(stateGeonameIdField, id || null);
+            if (cityGeonameIdField) form.setValue(cityGeonameIdField, null);
           }}
         />
       )}
@@ -391,27 +300,10 @@ export function LocationSelector({
           isInvalid={!!errors?.city}
           error={errors?.city}
           loadError={!!citiesError}
-          onChange={async (id) => {
+          onChange={(id) => {
             setCityId(id);
-            if (id) {
-              // Save all three so restoring city also restores its parent context
-              setStateId(stateId);
-              setCountryId(countryId);
-              const city = cities.find((c) => c.geonameId === id);
-              if (city)
-                await writeNames(
-                  "city",
-                  id,
-                  city.name,
-                  cityNameEnField,
-                  cityNameArField,
-                  stateId,
-                );
-            } else {
-              [cityNameEnField, cityNameArField].forEach(
-                (f) => f && form.setValue(f, null),
-              );
-            }
+            if (cityGeonameIdField)
+              form.setValue(cityGeonameIdField, id || null);
           }}
         />
       )}

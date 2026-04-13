@@ -1,6 +1,5 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { InfoRow } from "@/core/components/ui/InfoRow";
-import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { formatPhoneInternational } from "@/core/utils/phoneFormat";
 import { Button, Chip } from "@heroui/react";
 import { Building2, Edit, MapPin, Phone, Power } from "lucide-react";
@@ -19,22 +18,17 @@ export function BranchDetailDialog({
   onClose,
   onEdit,
 }: BranchDetailDialogProps) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const { t } = useTranslation();
   const toggleActive = useSetBranchActiveStatus();
 
   if (!branch) return null;
 
-  const cityName = getLocalizedValue(
-    isAr,
-    branch.cityNameAr,
-    branch.cityNameEn,
+  const cityName = useGeonameLabel(
+    branch.cityGeonameId,
+    "city",
+    branch.stateGeonameId,
   );
-  const stateName = getLocalizedValue(
-    isAr,
-    branch.stateNameAr,
-    branch.stateNameEn,
-  );
+  const stateName = useGeonameLabel(branch.stateGeonameId, "state", undefined);
   const locationParts = [stateName, cityName].filter(Boolean);
 
   const footer = (

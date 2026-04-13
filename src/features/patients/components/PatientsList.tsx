@@ -144,28 +144,28 @@ export function PatientsList({
 
           {/* City filter — all users */}
           <PatientCityFilter
-            value={patientsState.citySearch}
-            isSuperAdmin={superAdmin}
+            value={patientsState.cityGeonameId}
+            stateGeonameId={patientsState.stateGeonameId}
             onChange={(v) =>
-              updatePatientsState({ citySearch: v ?? undefined })
+              updatePatientsState({ cityGeonameId: v ?? undefined })
             }
           />
 
           {/* State filter — all users */}
           <PatientStateFilter
-            value={patientsState.stateSearch}
-            isSuperAdmin={superAdmin}
+            value={patientsState.stateGeonameId}
+            countryGeonameId={patientsState.countryGeonameId}
             onChange={(v) =>
-              updatePatientsState({ stateSearch: v ?? undefined })
+              updatePatientsState({ stateGeonameId: v ?? undefined })
             }
           />
 
           {/* Country filter — SuperAdmin only */}
           {superAdmin && (
             <PatientCountryFilter
-              value={patientsState.countrySearch}
+              value={patientsState.countryGeonameId}
               onChange={(v) =>
-                updatePatientsState({ countrySearch: v ?? undefined })
+                updatePatientsState({ countryGeonameId: v ?? undefined })
               }
             />
           )}

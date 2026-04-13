@@ -1,77 +1,31 @@
-import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
-import { useMostUsed } from "@/core/hooks/useMostUsed";
+import { useStates } from "@/core/location/hooks";
 import { MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { usePatientStates } from "../patientsHooks";
+import { GeonameFilterButton } from "./GeonameFilterButton";
 
 interface PatientStateFilterProps {
-  value: string | undefined;
-  onChange: (nameEn: string | null) => void;
-  isSuperAdmin?: boolean;
+  value: number | undefined;
+  onChange: (geonameId: number | null) => void;
+  /** GeoName ID of the selected country — required to load states */
+  countryGeonameId?: number;
 }
 
 export function PatientStateFilter({
   value,
   onChange,
-  isSuperAdmin = false,
+  countryGeonameId,
 }: PatientStateFilterProps) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
-  const [enabled, setEnabled] = useState(false);
-  const { data: states = [], isLoading } = usePatientStates(
-    isSuperAdmin,
-    enabled,
-  );
-  const { getMostUsed, increment } = useMostUsed("patient_state_usage");
-
-  const items = useMemo(() => {
-    // Build one item per unique EN name, merging rows that share the same EN or AR.
-    // This handles old data where some patients have only EN and others only AR
-    // for the same location.
-    const seen = new Map<
-      string,
-      { key: string; label: string; labelAlt?: string }
-    >();
-
-    states.forEach((s) => {
-      const key = s.nameEn || s.nameAr;
-      if (!seen.has(key)) {
-        seen.set(key, {
-          key,
-          label: isAr ? s.nameAr || s.nameEn : s.nameEn || s.nameAr,
-          labelAlt: isAr ? s.nameEn : s.nameAr,
-        });
-      } else {
-        // Merge: fill in missing label/labelAlt from this row
-        const existing = seen.get(key)!;
-        if (!existing.labelAlt && (isAr ? s.nameEn : s.nameAr)) {
-          existing.labelAlt = isAr ? s.nameEn : s.nameAr;
-        }
-      }
-    });
-
-    return Array.from(seen.values());
-  }, [states, isAr]);
-
-  const mostUsedItems = useMemo(
-    () => getMostUsed(items, (i) => i.key, 6),
-    [items, getMostUsed],
-  );
+  const { t } = useTranslation();
+  const { data: states = [], isLoading } = useStates(countryGeonameId ?? null);
 
   return (
-    <LocationFilterButton
+    <GeonameFilterButton
       value={value}
       onChange={onChange}
-      items={items}
-      mostUsedItems={mostUsedItems}
-      onUsed={increment}
-      onOpen={() => setEnabled(true)}
+      items={states}
       isLoading={isLoading}
       placeholder={t("patients.filterByState")}
       modalTitle={t("patients.filterByState")}
-      mostUsedLabel={t("patients.mostUsed")}
-      allItemsLabel={t("patients.allStates")}
       icon={MapPin}
     />
   );

@@ -6,7 +6,6 @@ import type {
   PatientApiRequest,
   PatientDetail,
   PatientListItem,
-  PatientState,
   PatientsSearchParams,
 } from "./types";
 
@@ -20,12 +19,15 @@ export const patientsApi = {
     if (params.searchTerm) p.append("searchTerm", params.searchTerm);
     if (params.pageNumber) p.append("pageNumber", params.pageNumber.toString());
     if (params.pageSize) p.append("pageSize", params.pageSize.toString());
-    if (params.sortBy) p.append("sortBy", params.sortBy); // same name as backend
+    if (params.sortBy) p.append("sortBy", params.sortBy);
     if (params.sortDirection) p.append("sortDirection", params.sortDirection);
     if (params.gender) p.append("gender", params.gender);
-    if (params.stateSearch) p.append("stateSearch", params.stateSearch);
-    if (params.citySearch) p.append("citySearch", params.citySearch);
-    if (params.countrySearch) p.append("countrySearch", params.countrySearch);
+    if (params.stateGeonameId != null)
+      p.append("stateGeonameId", params.stateGeonameId.toString());
+    if (params.cityGeonameId != null)
+      p.append("cityGeonameId", params.cityGeonameId.toString());
+    if (params.countryGeonameId != null)
+      p.append("countryGeonameId", params.countryGeonameId.toString());
     if (isSuperAdmin && params.clinicSearch)
       p.append("clinicSearch", params.clinicSearch);
 
@@ -52,11 +54,9 @@ export const patientsApi = {
       API_ENDPOINTS.patients,
       patient,
       {
-        // Capture the Location header returned by CreatedAtAction
         validateStatus: (s) => s === 201,
       },
     );
-    // Extract the new patient id from the Location header: /api/patients/{id}
     const location =
       (response.headers as Record<string, string>)["location"] ?? "";
     return location.split("/").pop() ?? "";
@@ -74,27 +74,6 @@ export const patientsApi = {
     const response = await apiClient.get<ChronicDisease[]>(
       API_ENDPOINTS.chronicDiseases,
       { params: language ? { language } : {} },
-    );
-    return response.data;
-  },
-
-  async getStates(): Promise<PatientState[]> {
-    const response = await apiClient.get<PatientState[]>(
-      `${API_ENDPOINTS.patients}/states`,
-    );
-    return response.data;
-  },
-
-  async getCities(): Promise<PatientState[]> {
-    const response = await apiClient.get<PatientState[]>(
-      `${API_ENDPOINTS.patients}/cities`,
-    );
-    return response.data;
-  },
-
-  async getCountries(): Promise<PatientState[]> {
-    const response = await apiClient.get<PatientState[]>(
-      `${API_ENDPOINTS.patients}/countries`,
     );
     return response.data;
   },

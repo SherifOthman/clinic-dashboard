@@ -21,7 +21,7 @@ export function useMostUsed(storageKey: string) {
 
   const increment = useCallback(
     (key: string) => {
-      setCounts((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
+      setCounts((prev) => ({ ...prev, key: (prev[key] ?? 0) + 1 }));
     },
     [setCounts],
   );

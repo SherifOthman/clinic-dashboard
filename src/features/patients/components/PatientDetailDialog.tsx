@@ -2,7 +2,6 @@ import { Dialog } from "@/core/components/ui/Dialog";
 import { InfoRow } from "@/core/components/ui/InfoRow";
 import { Loading } from "@/core/components/ui/Loading";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
-import { getLocalizedValue } from "@/core/utils";
 import { getPatientImageSrc } from "@/core/utils/patientImageUtils";
 import {
   canDeletePatient,
@@ -53,17 +52,17 @@ export function PatientDetailDialog({
   const { data, isLoading } = usePatientDetail(patientId, isSuperAdmin);
   const { user } = useMe();
 
-  const cityName = getLocalizedValue(isRTL, data?.cityNameAr, data?.cityNameEn);
-  const stateName = getLocalizedValue(
-    isRTL,
-    data?.stateNameAr,
-    data?.stateNameEn,
+  const cityName = useGeonameLabel(
+    data?.cityGeonameId,
+    "city",
+    data?.stateGeonameId,
   );
-  const countryName = getLocalizedValue(
-    isRTL,
-    data?.countryNameAr,
-    data?.countryNameEn,
+  const stateName = useGeonameLabel(
+    data?.stateGeonameId,
+    "state",
+    data?.countryGeonameId,
   );
+  const countryName = useGeonameLabel(data?.countryGeonameId, "country");
   const locationParts = [cityName, stateName, countryName].filter(Boolean);
 
   const showEdit = canEditPatient(user);

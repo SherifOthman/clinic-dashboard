@@ -34,12 +34,9 @@ export const createPatientSchema = (t: TFunction) => {
     gender: z.enum(["Male", "Female"], { message: t("validation.required") }),
 
     bloodType: z.string().optional(),
-    cityNameEn: z.string().nullable().optional(),
-    cityNameAr: z.string().nullable().optional(),
-    stateNameEn: z.string().nullable().optional(),
-    stateNameAr: z.string().nullable().optional(),
-    countryNameEn: z.string().nullable().optional(),
-    countryNameAr: z.string().nullable().optional(),
+    countryGeonameId: z.number().int().nullable().optional(),
+    stateGeonameId: z.number().int().nullable().optional(),
+    cityGeonameId: z.number().int().nullable().optional(),
 
     // Phone numbers are optional — patients may not have a phone on file
     phoneNumbers: z

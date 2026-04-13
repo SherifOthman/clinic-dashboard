@@ -46,33 +46,6 @@ export function useChronicDiseases() {
   });
 }
 
-export function usePatientStates(isSuperAdmin = false, enabled = false) {
-  return useQuery({
-    queryKey: ["patients", "states", isSuperAdmin],
-    queryFn: () => patientsApi.getStates(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
-export function usePatientCities(isSuperAdmin = false, enabled = false) {
-  return useQuery({
-    queryKey: ["patients", "cities", isSuperAdmin],
-    queryFn: () => patientsApi.getCities(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
-export function usePatientCountries(isSuperAdmin = false, enabled = false) {
-  return useQuery({
-    queryKey: ["patients", "countries", isSuperAdmin],
-    queryFn: () => patientsApi.getCountries(),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCreatePatient() {
@@ -110,12 +83,9 @@ export function toPatientApiRequest(data: PatientFormData): PatientApiRequest {
     dateOfBirth: data.dateOfBirth,
     gender: data.gender,
     bloodType: data.bloodType || undefined,
-    cityNameEn: data.cityNameEn || undefined,
-    cityNameAr: data.cityNameAr || undefined,
-    stateNameEn: data.stateNameEn || undefined,
-    stateNameAr: data.stateNameAr || undefined,
-    countryNameEn: data.countryNameEn || undefined,
-    countryNameAr: data.countryNameAr || undefined,
+    countryGeonameId: data.countryGeonameId ?? undefined,
+    stateGeonameId: data.stateGeonameId ?? undefined,
+    cityGeonameId: data.cityGeonameId ?? undefined,
     phoneNumbers: data.phoneNumbers,
     chronicDiseaseIds: data.chronicDiseaseIds ?? [],
   };
@@ -140,15 +110,13 @@ export function usePatientForm({
     age: undefined,
     gender: "Male",
     bloodType: "",
-    cityNameEn: null,
-    cityNameAr: null,
-    stateNameEn: null,
-    stateNameAr: null,
+    countryGeonameId: null,
+    stateGeonameId: null,
+    cityGeonameId: null,
     phoneNumbers: [],
     chronicDiseaseIds: [],
   };
 
-  // For create mode: merge draft over defaults so saved values are restored
   const createDefaults: PatientFormData = draft
     ? { ...defaults, ...(draft as PatientFormData) }
     : defaults;
@@ -165,10 +133,9 @@ export function usePatientForm({
             : undefined,
           gender: patient.gender as "Male" | "Female",
           bloodType: patient.bloodType || "",
-          cityNameEn: patient.cityNameEn ?? null,
-          cityNameAr: patient.cityNameAr ?? null,
-          stateNameEn: patient.stateNameEn ?? null,
-          stateNameAr: patient.stateNameAr ?? null,
+          countryGeonameId: patient.countryGeonameId ?? null,
+          stateGeonameId: patient.stateGeonameId ?? null,
+          cityGeonameId: patient.cityGeonameId ?? null,
           phoneNumbers: patient.phoneNumbers,
           chronicDiseaseIds: patient.chronicDiseases.map((d) => d.id),
         }
@@ -188,13 +155,17 @@ export function usePatientForm({
 export function usePatientsTableState() {
   const { baseState, searchParams, updateParams } = useBaseTableState();
 
+  const rawState = searchParams.get("stateGeonameId");
+  const rawCity = searchParams.get("cityGeonameId");
+  const rawCountry = searchParams.get("countryGeonameId");
+
   const patientsState: PatientsSearchParams = {
     ...baseState,
     gender:
       (searchParams.get("gender") as "Male" | "Female" | null) || undefined,
-    stateSearch: searchParams.get("state") ?? undefined,
-    citySearch: searchParams.get("city") ?? undefined,
-    countrySearch: searchParams.get("country") ?? undefined,
+    stateGeonameId: rawState ? parseInt(rawState) : undefined,
+    cityGeonameId: rawCity ? parseInt(rawCity) : undefined,
+    countryGeonameId: rawCountry ? parseInt(rawCountry) : undefined,
     clinicSearch: searchParams.get("clinicId") ?? undefined,
   };
 
@@ -203,13 +174,12 @@ export function usePatientsTableState() {
   ) => {
     const params: Record<string, any> = {};
 
-    // 🔹 Base fields
     if ("pageNumber" in updates) params.page = updates.pageNumber;
     if ("pageSize" in updates) params.size = updates.pageSize;
 
     if ("searchTerm" in updates) {
       params.search = updates.searchTerm;
-      params.page = 1; // reset page
+      params.page = 1;
     }
 
     if ("sortBy" in updates) params.sortBy = updates.sortBy;
@@ -218,18 +188,20 @@ export function usePatientsTableState() {
         updates.sortDirection === "asc" ? null : updates.sortDirection;
     }
 
-    // 🔹 Filters
     if ("gender" in updates) params.gender = updates.gender;
-    if ("stateSearch" in updates) params.state = updates.stateSearch;
-    if ("citySearch" in updates) params.city = updates.citySearch;
-    if ("countrySearch" in updates) params.country = updates.countrySearch;
+    if ("stateGeonameId" in updates)
+      params.stateGeonameId = updates.stateGeonameId ?? null;
+    if ("cityGeonameId" in updates)
+      params.cityGeonameId = updates.cityGeonameId ?? null;
+    if ("countryGeonameId" in updates)
+      params.countryGeonameId = updates.countryGeonameId ?? null;
     if ("clinicSearch" in updates) params.clinicId = updates.clinicSearch;
 
     if (
       "gender" in updates ||
-      "stateSearch" in updates ||
-      "citySearch" in updates ||
-      "countrySearch" in updates ||
+      "stateGeonameId" in updates ||
+      "cityGeonameId" in updates ||
+      "countryGeonameId" in updates ||
       "clinicSearch" in updates
     ) {
       params.page = 1;

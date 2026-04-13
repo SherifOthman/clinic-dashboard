@@ -59,10 +59,8 @@ export function BranchDetailsStep({ onBack, onNext }: BranchDetailsStepProps) {
           />
           <LocationSelector
             form={form}
-            cityNameEnField="cityNameEn"
-            cityNameArField="cityNameAr"
-            stateNameEnField="stateNameEn"
-            stateNameArField="stateNameAr"
+            stateGeonameIdField="stateGeonameId"
+            cityGeonameIdField="cityGeonameId"
             onCountryCodeChange={(code) => form.setValue("countryCode", code)}
           />
         </Card.Content>

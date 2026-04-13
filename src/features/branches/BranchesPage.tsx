@@ -4,7 +4,6 @@ import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
 import { Dialog } from "@/core/components/ui/Dialog";
 import { Loading } from "@/core/components/ui/Loading";
 import type { DialogState } from "@/core/types";
-import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { Button, Card, Chip } from "@heroui/react";
 import { Building2, MapPin, Phone, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -89,19 +88,14 @@ function BranchCard({
   branch: BranchDto;
   onView: () => void;
 }) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const { t } = useTranslation();
 
-  const cityName = getLocalizedValue(
-    isAr,
-    branch.cityNameAr,
-    branch.cityNameEn,
+  const cityName = useGeonameLabel(
+    branch.cityGeonameId,
+    "city",
+    branch.stateGeonameId,
   );
-  const stateName = getLocalizedValue(
-    isAr,
-    branch.stateNameAr,
-    branch.stateNameEn,
-  );
+  const stateName = useGeonameLabel(branch.stateGeonameId, "state", undefined);
   const locationLabel = [stateName, cityName].filter(Boolean).join(", ");
 
   return (
@@ -198,10 +192,8 @@ function BranchFormDialog({
     defaultValues: {
       name: "",
       addressLine: "",
-      cityNameEn: undefined,
-      cityNameAr: undefined,
-      stateNameEn: undefined,
-      stateNameAr: undefined,
+      stateGeonameId: undefined,
+      cityGeonameId: undefined,
       phoneNumbers: [""],
     },
   });
@@ -212,20 +204,16 @@ function BranchFormDialog({
       reset({
         name: branch.name,
         addressLine: branch.addressLine ?? "",
-        cityNameEn: branch.cityNameEn,
-        cityNameAr: branch.cityNameAr,
-        stateNameEn: branch.stateNameEn,
-        stateNameAr: branch.stateNameAr,
+        stateGeonameId: branch.stateGeonameId,
+        cityGeonameId: branch.cityGeonameId,
         phoneNumbers: branch.phoneNumbers.map((p) => p.phoneNumber),
       });
     } else {
       reset({
         name: "",
         addressLine: "",
-        cityNameEn: undefined,
-        cityNameAr: undefined,
-        stateNameEn: undefined,
-        stateNameAr: undefined,
+        stateGeonameId: undefined,
+        cityGeonameId: undefined,
         phoneNumbers: [""],
       });
     }
@@ -278,10 +266,8 @@ function BranchFormDialog({
           >
             <LocationSelector
               form={{ watch, setValue, formState: { errors } } as any}
-              cityNameEnField="cityNameEn"
-              cityNameArField="cityNameAr"
-              stateNameEnField="stateNameEn"
-              stateNameArField="stateNameAr"
+              stateGeonameIdField="stateGeonameId"
+              cityGeonameIdField="cityGeonameId"
             />
           </FormSection>
 

@@ -1,5 +1,4 @@
 import type { Column } from "@/core/components/ui/DataTable";
-import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { getPatientImageSrc } from "@/core/utils/patientImageUtils";
 import { formatPhoneNational } from "@/core/utils/phoneFormat";
 import { Avatar, Chip } from "@heroui/react";
@@ -84,20 +83,17 @@ export function getPatientColumns({
     },
     // 4. City
     {
-      key: "cityNameEn",
+      key: "cityGeonameId",
       label: t("location.city"),
-      render: (patient) => {
-        const cityName = getLocalizedValue(
-          isAr,
-          patient.cityNameAr,
-          patient.cityNameEn,
-        );
-        return cityName ? (
-          <span className="text-sm">{cityName}</span>
+      render: (patient) =>
+        patient.cityGeonameId ? (
+          // TODO: resolve city name from GeoNames — requires per-row hook or a lookup map
+          <span className="text-muted font-mono text-xs">
+            {patient.cityGeonameId}
+          </span>
         ) : (
           <span className="text-muted text-xs">—</span>
-        );
-      },
+        ),
     },
     // 5. Blood type
     {

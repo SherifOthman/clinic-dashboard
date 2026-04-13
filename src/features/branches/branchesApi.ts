@@ -9,10 +9,8 @@ export interface BranchDto {
   id: string;
   name: string;
   addressLine?: string;
-  cityNameEn?: string;
-  cityNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
   isMainBranch: boolean;
   isActive: boolean;
   phoneNumbers: BranchPhoneDto[];
@@ -21,10 +19,8 @@ export interface BranchDto {
 export interface CreateBranchRequest {
   name: string;
   addressLine: string;
-  cityNameEn?: string;
-  cityNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
   phoneNumbers: string[];
 }
 

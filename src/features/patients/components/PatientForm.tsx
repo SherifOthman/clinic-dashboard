@@ -97,12 +97,9 @@ export function PatientForm({
           >
             <LocationSelector
               form={form}
-              cityNameEnField="cityNameEn"
-              cityNameArField="cityNameAr"
-              stateNameEnField="stateNameEn"
-              stateNameArField="stateNameAr"
-              countryNameEnField="countryNameEn"
-              countryNameArField="countryNameAr"
+              countryGeonameIdField="countryGeonameId"
+              stateGeonameIdField="stateGeonameId"
+              cityGeonameIdField="cityGeonameId"
             />
           </FormSection>
         </div>

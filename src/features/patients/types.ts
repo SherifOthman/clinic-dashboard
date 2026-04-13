@@ -11,10 +11,9 @@ export interface PatientListItem {
   primaryPhone?: string;
   createdAt: string;
   clinicName?: string;
-  cityNameEn?: string;
-  cityNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
+  countryGeonameId?: number;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
 }
 
 export interface PatientDetail {
@@ -26,23 +25,15 @@ export interface PatientDetail {
   bloodType?: string;
   phoneNumbers: string[];
   chronicDiseases: { id: string; nameEn: string; nameAr: string }[];
-  cityNameEn?: string;
-  cityNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
-  countryNameEn?: string;
-  countryNameAr?: string;
+  countryGeonameId?: number;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
   createdAt: string;
   updatedAt?: string;
   createdBy?: string;
   updatedBy?: string;
   clinicId?: string;
   clinicName?: string;
-}
-
-export interface PatientState {
-  nameEn: string;
-  nameAr: string;
 }
 
 export interface ChronicDisease {
@@ -53,9 +44,9 @@ export interface ChronicDisease {
 
 export interface PatientsSearchParams extends BaseSearchParams {
   gender?: "Male" | "Female";
-  stateSearch?: string;
-  citySearch?: string;
-  countrySearch?: string;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
+  countryGeonameId?: number;
   clinicSearch?: string;
 }
 
@@ -64,12 +55,9 @@ export interface PatientApiRequest {
   fullName: string;
   dateOfBirth: string;
   gender: string;
-  cityNameEn?: string;
-  cityNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
-  countryNameEn?: string;
-  countryNameAr?: string;
+  countryGeonameId?: number;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
   bloodType?: string;
   phoneNumbers: string[];
   chronicDiseaseIds: string[];
