@@ -56,11 +56,11 @@ export function useStaffTableState() {
 export function useInvitationsTableState() {
   const { baseState, searchParams, updateParams } = useBaseTableState();
 
-  const statusParam = searchParams.get("status");
+  const statusParam = searchParams.get("status") || undefined;
   const roleFilter = searchParams.get("invRole") || undefined;
 
   const statusFilter: InvitationStatus | undefined =
-    statusParam !== null
+    statusParam !== undefined
       ? (Number(statusParam) as InvitationStatus)
       : undefined;
 
