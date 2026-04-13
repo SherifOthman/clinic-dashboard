@@ -53,7 +53,7 @@ export function Invitations() {
           <Select
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allStatuses")}
-            value={statusParam ?? null}
+            value={statusParam ?? undefined}
             onChange={(v) =>
               updateInvitationsState({ status: v ? String(v) : null })
             }
@@ -93,7 +93,7 @@ export function Invitations() {
           <Select
             className="flex-1 sm:w-48 sm:flex-none"
             placeholder={t("staff.allRoles")}
-            value={roleFilter ?? null}
+            value={roleFilter ?? undefined}
             onChange={(v) =>
               updateInvitationsState({ invRole: v ? String(v) : null })
             }

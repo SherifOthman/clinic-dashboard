@@ -46,6 +46,12 @@ export function PhoneNumbersInput<T extends FieldValues>({
   const phoneNumbers: string[] = watch(name as any) || [];
   const fieldErrors = errors[name as any] as any;
 
+  // Always show at least one phone input — append an empty one on first render
+  // if the array is empty. This avoids the user having to click "Add Phone".
+  if (fields.length === 0) {
+    append("" as any);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">

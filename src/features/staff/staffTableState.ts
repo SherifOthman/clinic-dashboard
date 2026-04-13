@@ -8,12 +8,12 @@ export function useStaffTableState() {
   const { baseState, searchParams, updateParams } = useBaseTableState();
 
   const roleFilter = searchParams.get("role") || undefined;
-  const activeFilter = searchParams.get("active"); // "true" | "false" | null
+  const activeFilter = searchParams.get("active") || undefined; // "true" | "false" | undefined
 
   const staffState: StaffSearchParams = {
     ...baseState,
     role: roleFilter,
-    isActive: activeFilter === null ? undefined : activeFilter === "true",
+    isActive: activeFilter === undefined ? undefined : activeFilter === "true",
   };
 
   const updateStaffState = (

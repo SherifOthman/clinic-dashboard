@@ -66,7 +66,7 @@ export function Staff() {
         <Select
           className="w-full sm:w-48"
           placeholder={t("staff.allRoles")}
-          value={roleFilter || null}
+          value={roleFilter || undefined}
           onChange={(v) => updateStaffState({ role: v ? String(v) : null })}
           aria-label={t("staff.filterByRole")}
         >
@@ -98,7 +98,7 @@ export function Staff() {
         <Select
           className="w-full sm:w-48"
           placeholder={t("staff.allStatuses")}
-          value={activeFilter ?? null}
+          value={activeFilter ?? undefined}
           onChange={(v) =>
             updateStaffState({
               isActive: v === "true" ? true : v === "false" ? false : undefined,
