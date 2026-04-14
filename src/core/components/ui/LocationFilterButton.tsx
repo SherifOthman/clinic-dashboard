@@ -1,13 +1,13 @@
 /**
  * Generic location filter button + modal.
  *
- * Renders a trigger button that opens a searchable radio-list modal.
+ * Renders a trigger button that opens a searchable selectable-list modal.
  * Supports an optional "most used" pills section at the top.
  *
  * Used by PatientStateFilter and PatientCityFilter — any future
  * location-style filter can reuse this without duplication.
  */
-import { Button, Modal, Radio, RadioGroup, SearchField } from "@heroui/react";
+import { Button, Modal, SearchField } from "@heroui/react";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -185,30 +185,25 @@ export function LocationFilterButton({
                               {t("common.noResults")}
                             </p>
                           ) : (
-                            <RadioGroup
-                              value={value ?? ""}
-                              onChange={(v) => handleSelect(v, close)}
-                              className="gap-0"
-                            >
-                              <div className="grid grid-cols-1 sm:grid-cols-2">
-                                {filtered.map((item) => (
-                                  <Radio
-                                    key={item.key}
-                                    value={item.key}
-                                    className="hover:bg-surface-secondary rounded-md px-3 py-2"
-                                  >
-                                    <Radio.Control>
-                                      <Radio.Indicator />
-                                    </Radio.Control>
-                                    <Radio.Content>
-                                      <span className="text-sm">
-                                        {item.label}
-                                      </span>
-                                    </Radio.Content>
-                                  </Radio>
-                                ))}
-                              </div>
-                            </RadioGroup>
+                            <div className="flex flex-col">
+                              {filtered.map((item) => (
+                                <button
+                                  key={item.key}
+                                  type="button"
+                                  onClick={() => handleSelect(item.key, close)}
+                                  className={`hover:bg-surface-secondary flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                                    value === item.key
+                                      ? "text-accent font-medium"
+                                      : ""
+                                  }`}
+                                >
+                                  {item.label}
+                                  {value === item.key && (
+                                    <Check className="h-4 w-4 shrink-0" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
