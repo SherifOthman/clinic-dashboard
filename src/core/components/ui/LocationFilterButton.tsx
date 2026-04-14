@@ -87,7 +87,7 @@ export function LocationFilterButton({
   }, [items, search]);
 
   const handleSelect = (key: string, close: () => void) => {
-    if (value === key) {
+    if (key === value) {
       onChange(null);
     } else {
       onUsed?.(key);
@@ -97,7 +97,6 @@ export function LocationFilterButton({
     setIsOpen(false);
     close();
   };
-
   return (
     <>
       {/* ── Trigger ── */}
@@ -185,25 +184,41 @@ export function LocationFilterButton({
                               {t("common.noResults")}
                             </p>
                           ) : (
-                            <div className="flex flex-col">
+                            <ListBox
+                              aria-label={modalTitle}
+                              selectionMode="single"
+                              selectedKeys={
+                                value ? new Set([value]) : new Set()
+                              }
+                              onSelectionChange={(keys) => {
+                                const key = Array.from(keys)[0] as
+                                  | string
+                                  | undefined;
+                                if (!key) return;
+                                if (key === value) {
+                                  onChange(null);
+                                } else {
+                                  onUsed?.(key);
+                                  onChange(key);
+                                }
+                                setSearch("");
+                                setIsOpen(false);
+                                close();
+                              }}
+                              className="gap-0"
+                            >
                               {filtered.map((item) => (
-                                <button
+                                <ListBox.Item
                                   key={item.key}
-                                  type="button"
-                                  onClick={() => handleSelect(item.key, close)}
-                                  className={`hover:bg-surface-secondary flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
-                                    value === item.key
-                                      ? "text-accent font-medium"
-                                      : ""
-                                  }`}
+                                  id={item.key}
+                                  textValue={item.label}
+                                  className="rounded-md px-3 py-2 text-sm"
                                 >
                                   {item.label}
-                                  {value === item.key && (
-                                    <Check className="h-4 w-4 shrink-0" />
-                                  )}
-                                </button>
+                                  <ListBox.ItemIndicator />
+                                </ListBox.Item>
                               ))}
-                            </div>
+                            </ListBox>
                           )}
                         </div>
                       </div>
