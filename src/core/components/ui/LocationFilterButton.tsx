@@ -12,6 +12,7 @@ import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MostUsedPills } from "./MostUsedPills";
 
 export interface LocationFilterItem {
   /** The key sent to the backend / used as the filter value */
@@ -109,8 +110,8 @@ export function LocationFilterButton({
         <Icon className="h-3.5 w-3.5" />
         {selectedItem ? selectedItem.label : placeholder}
         {value && (
-          <span
-            role="button"
+          <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onChange(null);
@@ -118,7 +119,7 @@ export function LocationFilterButton({
             className="ms-1 opacity-70 hover:opacity-100"
           >
             <X className="h-3 w-3" />
-          </span>
+          </button>
         )}
       </Button>
 
@@ -160,30 +161,13 @@ export function LocationFilterButton({
                   ) : (
                     <>
                       {/* Most-used pills — hidden while searching */}
-                      {!search.trim() && mostUsedItems.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          {mostUsedLabel && (
-                            <p className="text-muted text-xs font-semibold tracking-wide uppercase">
-                              {mostUsedLabel}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {mostUsedItems.map((item) => (
-                              <button
-                                key={item.key}
-                                type="button"
-                                onClick={() => handleSelect(item.key, close)}
-                                className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-                                  value === item.key
-                                    ? "border-accent bg-accent text-white"
-                                    : "border-divider hover:border-accent hover:text-accent"
-                                }`}
-                              >
-                                {item.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                      {!search.trim() && (
+                        <MostUsedPills
+                          items={mostUsedItems}
+                          selectedKeys={value ? [value] : []}
+                          onSelect={(key) => handleSelect(key, close)}
+                          label={mostUsedLabel}
+                        />
                       )}
 
                       {/* Full list */}

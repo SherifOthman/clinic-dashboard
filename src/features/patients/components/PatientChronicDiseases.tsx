@@ -1,3 +1,5 @@
+import { MostUsedPills } from "@/core/components/ui/MostUsedPills";
+import { useMostUsed } from "@/core/hooks/useMostUsed";
 import {
   Button,
   Checkbox,
@@ -15,32 +17,6 @@ import { useChronicDiseases } from "../patientsHooks";
 import type { PatientFormData } from "../schemas";
 import type { ChronicDisease } from "../types";
 
-// ── Most-used tracking ────────────────────────────────────────────────────────
-
-const STORAGE_KEY = "chronic_disease_usage";
-
-function getUsageCounts(): Record<string, number> {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
-  } catch {
-    return {};
-  }
-}
-
-function incrementUsage(ids: string[]) {
-  const counts = getUsageCounts();
-  for (const id of ids) counts[id] = (counts[id] ?? 0) + 1;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(counts));
-}
-
-function getMostUsed(diseases: ChronicDisease[], limit = 8): ChronicDisease[] {
-  const counts = getUsageCounts();
-  return diseases
-    .filter((d) => (counts[d.id] ?? 0) > 0)
-    .sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0))
-    .slice(0, limit);
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface PatientChronicDiseasesProps {
@@ -51,6 +27,7 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const { data: diseases = [], isLoading, error } = useChronicDiseases();
+  const { getMostUsed, increment } = useMostUsed("chronic_disease_usage");
 
   const { watch, setValue } = form;
   // Normalize to lowercase — patient detail returns uppercase GUIDs, disease list uses lowercase
@@ -63,7 +40,14 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
 
   const name = (d: ChronicDisease) => (isAr ? d.nameAr : d.nameEn);
 
-  const mostUsed = useMemo(() => getMostUsed(diseases), [diseases]);
+  const mostUsedItems = useMemo(
+    () =>
+      getMostUsed(diseases, (d) => d.id, 8).map((d) => ({
+        key: d.id,
+        label: name(d),
+      })),
+    [diseases, getMostUsed, isAr],
+  );
 
   const filtered = useMemo(
     () =>
@@ -78,7 +62,7 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
   const selectedDiseases = diseases.filter((d) => selectedIds.includes(d.id));
 
   const handleClose = () => {
-    if (selectedIds.length > 0) incrementUsage(selectedIds);
+    if (selectedIds.length > 0) selectedIds.forEach((id) => increment(id));
     setSearch("");
     setIsOpen(false);
   };
@@ -167,43 +151,25 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
                   ) : (
                     <>
                       {/* Most used — hidden when searching */}
-                      {!search.trim() && mostUsed.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <p className="text-default-500 text-xs font-semibold tracking-wide uppercase">
-                            {t("patients.mostUsed")}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {mostUsed.map((d) => {
-                              const selected = selectedIds.includes(d.id);
-                              return (
-                                <button
-                                  key={d.id}
-                                  type="button"
-                                  onClick={() =>
-                                    setValue(
-                                      "chronicDiseaseIds",
-                                      (selected
-                                        ? selectedIds.filter((s) => s !== d.id)
-                                        : [...selectedIds, d.id]) as any,
-                                    )
-                                  }
-                                  className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-                                    selected
-                                      ? "border-accent bg-accent text-white"
-                                      : "border-divider hover:border-accent hover:text-accent"
-                                  }`}
-                                >
-                                  {name(d)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
+                      {!search.trim() && (
+                        <MostUsedPills
+                          items={mostUsedItems}
+                          selectedKeys={selectedIds}
+                          onSelect={(key) =>
+                            setValue(
+                              "chronicDiseaseIds",
+                              (selectedIds.includes(key)
+                                ? selectedIds.filter((s) => s !== key)
+                                : [...selectedIds, key]) as any,
+                            )
+                          }
+                          label={t("patients.mostUsed")}
+                        />
                       )}
 
                       {/* All diseases — same pattern as original working popover */}
                       <div className="flex flex-col gap-1">
-                        {!search.trim() && mostUsed.length > 0 && (
+                        {!search.trim() && mostUsedItems.length > 0 && (
                           <p className="text-default-500 text-xs font-semibold tracking-wide uppercase">
                             {t("patients.allDiseases")}
                           </p>

@@ -10,6 +10,7 @@ export { LanguageSwitcher } from "./LanguageSwitcher";
 export { Loading } from "./Loading";
 export { LocationFilterButton } from "./LocationFilterButton";
 export type { LocationFilterItem } from "./LocationFilterButton";
+export { MostUsedPills } from "./MostUsedPills";
 export { RouterLink } from "./RouterLink";
 export { Sidebar } from "./Sidebar";
 export { StatsCard } from "./StatsCard";
