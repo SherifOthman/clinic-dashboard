@@ -7,7 +7,7 @@
  * Used by PatientStateFilter and PatientCityFilter — any future
  * location-style filter can reuse this without duplication.
  */
-import { Button, Modal, SearchField } from "@heroui/react";
+import { Button, ListBox, Modal, SearchField } from "@heroui/react";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -100,27 +100,27 @@ export function LocationFilterButton({
   return (
     <>
       {/* ── Trigger ── */}
-      <Button
-        variant={value ? "primary" : "outline"}
-        size="sm"
-        onPress={openModal}
-        className="h-9 gap-1.5"
-      >
-        <Icon className="h-3.5 w-3.5" />
-        {selectedItem ? selectedItem.label : placeholder}
+      <div className="flex items-center">
+        <Button
+          variant={value ? "primary" : "outline"}
+          size="sm"
+          onPress={openModal}
+          className={`h-9 gap-1.5 ${value ? "rounded-e-none" : ""}`}
+        >
+          <Icon className="h-3.5 w-3.5" />
+          {selectedItem ? selectedItem.label : placeholder}
+        </Button>
         {value && (
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange(null);
-            }}
-            className="ms-1 opacity-70 hover:opacity-100"
+            onClick={() => onChange(null)}
+            className="border-accent bg-accent text-accent-foreground hover:bg-accent/90 flex h-9 items-center rounded-e-md border px-1.5"
+            aria-label="Clear filter"
           >
             <X className="h-3 w-3" />
           </button>
         )}
-      </Button>
+      </div>
 
       {/* ── Modal ── */}
       <Modal.Backdrop
