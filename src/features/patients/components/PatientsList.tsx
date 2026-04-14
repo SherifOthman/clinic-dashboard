@@ -137,7 +137,7 @@ export function PatientsList({
             </Select.Popover>
           </Select>
 
-          {/* Country → State → City (dependent, all users) */}
+          {/* Country → State → City: each step only appears after the previous is selected */}
           <PatientCountryFilter
             value={patientsState.countryGeonameId}
             onChange={(v) =>
@@ -149,24 +149,28 @@ export function PatientsList({
             }
           />
 
-          <PatientStateFilter
-            value={patientsState.stateGeonameId}
-            countryGeonameId={patientsState.countryGeonameId}
-            onChange={(v) =>
-              updatePatientsState({
-                stateGeonameId: v ?? undefined,
-                cityGeonameId: undefined,
-              })
-            }
-          />
+          {patientsState.countryGeonameId && (
+            <PatientStateFilter
+              value={patientsState.stateGeonameId}
+              countryGeonameId={patientsState.countryGeonameId}
+              onChange={(v) =>
+                updatePatientsState({
+                  stateGeonameId: v ?? undefined,
+                  cityGeonameId: undefined,
+                })
+              }
+            />
+          )}
 
-          <PatientCityFilter
-            value={patientsState.cityGeonameId}
-            stateGeonameId={patientsState.stateGeonameId}
-            onChange={(v) =>
-              updatePatientsState({ cityGeonameId: v ?? undefined })
-            }
-          />
+          {patientsState.stateGeonameId && (
+            <PatientCityFilter
+              value={patientsState.cityGeonameId}
+              stateGeonameId={patientsState.stateGeonameId}
+              onChange={(v) =>
+                updatePatientsState({ cityGeonameId: v ?? undefined })
+              }
+            />
+          )}
 
           {/* Clinic search — SuperAdmin only */}
           {superAdmin && (
