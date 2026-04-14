@@ -52,11 +52,12 @@ export function PatientDetailDialog({
   const { data, isLoading } = usePatientDetail(patientId, isSuperAdmin);
   const { user } = useMe();
 
-  // Names come directly from the backend — no extra API calls needed
+  // Names come directly from the backend — pick language here, no extra API calls
+  const isAr = i18n.language === "ar";
   const locationParts = [
-    data?.cityName,
-    data?.stateName,
-    data?.countryName,
+    isAr ? data?.cityNameAr : data?.cityNameEn,
+    isAr ? data?.stateNameAr : data?.stateNameEn,
+    isAr ? data?.countryNameAr : data?.countryNameEn,
   ].filter(Boolean);
 
   const showEdit = canEditPatient(user);

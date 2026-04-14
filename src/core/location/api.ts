@@ -3,35 +3,28 @@ import { API_ENDPOINTS } from "@/core/constants";
 import type { City, Country, State } from "./types";
 
 /**
- * API calls for the location dropdowns (country → state → city).
- * All three endpoints accept a ?lang=en|ar param and return names in that language.
- * Results are cached 24h by React Query — no repeated network calls.
+ * Location API — no ?lang= param needed.
+ * Both EN and AR names are always returned; the component picks which to display.
+ * Results are cached 24h by React Query — no re-fetching on language switch.
  */
 export const locationApi = {
-  /** Returns all countries ordered by name. */
-  getCountries(lang: string): Promise<Country[]> {
+  getCountries(): Promise<Country[]> {
     return apiClient
-      .get<
-        Country[]
-      >(`${API_ENDPOINTS.locations}/countries`, { params: { lang } })
+      .get<Country[]>(`${API_ENDPOINTS.locations}/countries`)
       .then((r) => r.data);
   },
 
-  /** Returns all states/governorates for a given country. */
-  getStates(countryGeonameId: number, lang: string): Promise<State[]> {
+  getStates(countryGeonameId: number): Promise<State[]> {
     return apiClient
       .get<
         State[]
-      >(`${API_ENDPOINTS.locations}/countries/${countryGeonameId}/states`, { params: { lang } })
+      >(`${API_ENDPOINTS.locations}/countries/${countryGeonameId}/states`)
       .then((r) => r.data);
   },
 
-  /** Returns all cities for a given state. */
-  getCities(stateGeonameId: number, lang: string): Promise<City[]> {
+  getCities(stateGeonameId: number): Promise<City[]> {
     return apiClient
-      .get<
-        City[]
-      >(`${API_ENDPOINTS.locations}/states/${stateGeonameId}/cities`, { params: { lang } })
+      .get<City[]>(`${API_ENDPOINTS.locations}/states/${stateGeonameId}/cities`)
       .then((r) => r.data);
   },
 };

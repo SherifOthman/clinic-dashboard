@@ -1,16 +1,19 @@
-/// Single-language location types — name is already in the requested language.
+// Both EN and AR names are always returned — the component picks which to display.
 export interface Country {
   geonameId: number;
-  name: string;
+  nameEn: string;
+  nameAr: string;
   countryCode: string;
 }
 
 export interface State {
   geonameId: number;
-  name: string;
+  nameEn: string;
+  nameAr: string;
 }
 
 export interface City {
   geonameId: number;
-  name: string;
+  nameEn: string;
+  nameAr: string;
 }

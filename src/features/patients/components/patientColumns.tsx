@@ -85,12 +85,14 @@ export function getPatientColumns({
     {
       key: "cityGeonameId",
       label: t("location.city"),
-      render: (patient) =>
-        patient.cityName ? (
-          <span className="text-sm">{patient.cityName}</span>
+      render: (patient) => {
+        const name = isAr ? patient.cityNameAr : patient.cityNameEn;
+        return name ? (
+          <span className="text-sm">{name}</span>
         ) : (
           <span className="text-muted text-xs">—</span>
-        ),
+        );
+      },
     },
 
     // 4. Phone

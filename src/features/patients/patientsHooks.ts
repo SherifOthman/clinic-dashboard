@@ -21,22 +21,18 @@ export function usePaginatedPatients(
   params: PatientsSearchParams = {},
   isSuperAdmin = false,
 ) {
-  const { i18n } = useTranslation();
-  const lang = i18n.language === "ar" ? "ar" : "en";
   return useQuery({
-    queryKey: ["patients", "paginated", params, isSuperAdmin, lang],
-    queryFn: () => patientsApi.getPaginated(params, isSuperAdmin, lang),
+    queryKey: ["patients", "paginated", params, isSuperAdmin],
+    queryFn: () => patientsApi.getPaginated(params, isSuperAdmin),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
   });
 }
 
 export function usePatientDetail(id: string | null, isSuperAdmin = false) {
-  const { i18n } = useTranslation();
-  const lang = i18n.language === "ar" ? "ar" : "en";
   return useQuery({
-    queryKey: ["patients", "detail", id, isSuperAdmin, lang],
-    queryFn: () => patientsApi.getDetail(id!, isSuperAdmin, lang),
+    queryKey: ["patients", "detail", id, isSuperAdmin],
+    queryFn: () => patientsApi.getDetail(id!, isSuperAdmin),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
@@ -56,37 +52,51 @@ export function useChronicDiseases() {
 export function usePatientCountryOptions(enabled = false) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
-  return useQuery({
-    queryKey: ["patients", "locationOptions", "countries", lang],
-    queryFn: () => patientsApi.getLocationOptions(lang),
+  const { data: raw = [], ...rest } = useQuery({
+    queryKey: ["patients", "locationOptions", "countries"],
+    queryFn: () => patientsApi.getLocationOptions(),
     enabled,
     staleTime: 2 * 60 * 1000,
   });
+  const data = raw.map((r) => ({
+    geonameId: r.geonameId,
+    name: lang === "ar" ? r.nameAr : r.nameEn,
+  }));
+  return { data, ...rest };
 }
 
 /** States in a country that have at least one patient. Fetches when countryGeonameId is set. */
 export function usePatientStateOptions(countryGeonameId: number | undefined) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
-  return useQuery({
-    queryKey: ["patients", "locationOptions", "states", countryGeonameId, lang],
-    queryFn: () => patientsApi.getLocationOptions(lang, countryGeonameId),
+  const { data: raw = [], ...rest } = useQuery({
+    queryKey: ["patients", "locationOptions", "states", countryGeonameId],
+    queryFn: () => patientsApi.getLocationOptions(countryGeonameId),
     enabled: !!countryGeonameId,
     staleTime: 2 * 60 * 1000,
   });
+  const data = raw.map((r) => ({
+    geonameId: r.geonameId,
+    name: lang === "ar" ? r.nameAr : r.nameEn,
+  }));
+  return { data, ...rest };
 }
 
 /** Cities in a state that have at least one patient. Fetches when stateGeonameId is set. */
 export function usePatientCityOptions(stateGeonameId: number | undefined) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
-  return useQuery({
-    queryKey: ["patients", "locationOptions", "cities", stateGeonameId, lang],
-    queryFn: () =>
-      patientsApi.getLocationOptions(lang, undefined, stateGeonameId),
+  const { data: raw = [], ...rest } = useQuery({
+    queryKey: ["patients", "locationOptions", "cities", stateGeonameId],
+    queryFn: () => patientsApi.getLocationOptions(undefined, stateGeonameId),
     enabled: !!stateGeonameId,
     staleTime: 2 * 60 * 1000,
   });
+  const data = raw.map((r) => ({
+    geonameId: r.geonameId,
+    name: lang === "ar" ? r.nameAr : r.nameEn,
+  }));
+  return { data, ...rest };
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────

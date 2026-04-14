@@ -15,10 +15,13 @@ export interface PatientListItem {
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  // Resolved names — returned directly by the backend, no extra API calls needed
-  countryName?: string;
-  stateName?: string;
-  cityName?: string;
+  // Both language names — frontend picks based on current language, no re-fetch needed
+  countryNameEn?: string;
+  countryNameAr?: string;
+  stateNameEn?: string;
+  stateNameAr?: string;
+  cityNameEn?: string;
+  cityNameAr?: string;
 }
 
 export interface PatientDetail {
@@ -34,10 +37,13 @@ export interface PatientDetail {
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  // Resolved names — ready to display
-  countryName?: string;
-  stateName?: string;
-  cityName?: string;
+  // Both language names
+  countryNameEn?: string;
+  countryNameAr?: string;
+  stateNameEn?: string;
+  stateNameAr?: string;
+  cityNameEn?: string;
+  cityNameAr?: string;
   createdAt: string;
   updatedAt?: string;
   createdBy?: string;
