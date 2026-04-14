@@ -1,9 +1,9 @@
 import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
 import { useMostUsed } from "@/core/hooks/useMostUsed";
-import { useCities } from "@/core/location/hooks";
 import { Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { usePatientCityOptions } from "../patientsHooks";
 
 interface PatientCityFilterProps {
   value: number | undefined;
@@ -19,12 +19,12 @@ export function PatientCityFilter({
   const { t } = useTranslation();
   const { getMostUsed, increment } = useMostUsed("patient_city_usage");
 
-  // Only fetches when a state is selected — same cached data as LocationSelector (24h stale)
-  const { data: cities = [], isLoading } = useCities(stateGeonameId ?? null);
+  // Fetches distinct cities for this state from actual patient data
+  const { data = [], isLoading } = usePatientCityOptions(stateGeonameId);
 
   const items = useMemo(
-    () => cities.map((c) => ({ key: c.geonameId.toString(), label: c.name })),
-    [cities],
+    () => data.map((c) => ({ key: c.geonameId.toString(), label: c.name })),
+    [data],
   );
 
   const mostUsedItems = useMemo(

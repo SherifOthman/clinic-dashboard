@@ -1,9 +1,9 @@
 import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
 import { useMostUsed } from "@/core/hooks/useMostUsed";
-import { useStates } from "@/core/location/hooks";
 import { MapPin } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { usePatientStateOptions } from "../patientsHooks";
 
 interface PatientStateFilterProps {
   value: number | undefined;
@@ -19,12 +19,13 @@ export function PatientStateFilter({
   const { t } = useTranslation();
   const { getMostUsed, increment } = useMostUsed("patient_state_usage");
 
-  // Only fetches when a country is selected — same cached data as LocationSelector (24h stale)
-  const { data: states = [], isLoading } = useStates(countryGeonameId ?? null);
+  // Fetches distinct states for this country from actual patient data
+  // Automatically fetches when countryGeonameId is set (no lazy flag needed — parent controls visibility)
+  const { data = [], isLoading } = usePatientStateOptions(countryGeonameId);
 
   const items = useMemo(
-    () => states.map((s) => ({ key: s.geonameId.toString(), label: s.name })),
-    [states],
+    () => data.map((s) => ({ key: s.geonameId.toString(), label: s.name })),
+    [data],
   );
 
   const mostUsedItems = useMemo(

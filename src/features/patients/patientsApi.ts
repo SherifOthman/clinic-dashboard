@@ -85,4 +85,22 @@ export const patientsApi = {
     );
     return response.data;
   },
+
+  /**
+   * Returns distinct location options from actual patient data.
+   * - No params            → countries that have patients
+   * - countryGeonameId     → states in that country that have patients
+   * - stateGeonameId       → cities in that state that have patients
+   */
+  async getLocationOptions(
+    lang: string,
+    countryGeonameId?: number,
+    stateGeonameId?: number,
+  ): Promise<{ geonameId: number; name: string }[]> {
+    const response = await apiClient.get(
+      `${API_ENDPOINTS.patients}/location-options`,
+      { params: { lang, countryGeonameId, stateGeonameId } },
+    );
+    return response.data;
+  },
 };

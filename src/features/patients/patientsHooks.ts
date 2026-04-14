@@ -50,8 +50,46 @@ export function useChronicDiseases() {
   });
 }
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
+// ── Location filter options (from actual patient data) ────────────────────────
 
+/** Countries that have at least one patient in this clinic. Lazy — fetches on first open. */
+export function usePatientCountryOptions(enabled = false) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
+  return useQuery({
+    queryKey: ["patients", "locationOptions", "countries", lang],
+    queryFn: () => patientsApi.getLocationOptions(lang),
+    enabled,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+/** States in a country that have at least one patient. Fetches when countryGeonameId is set. */
+export function usePatientStateOptions(countryGeonameId: number | undefined) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
+  return useQuery({
+    queryKey: ["patients", "locationOptions", "states", countryGeonameId, lang],
+    queryFn: () => patientsApi.getLocationOptions(lang, countryGeonameId),
+    enabled: !!countryGeonameId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+/** Cities in a state that have at least one patient. Fetches when stateGeonameId is set. */
+export function usePatientCityOptions(stateGeonameId: number | undefined) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
+  return useQuery({
+    queryKey: ["patients", "locationOptions", "cities", stateGeonameId, lang],
+    queryFn: () =>
+      patientsApi.getLocationOptions(lang, undefined, stateGeonameId),
+    enabled: !!stateGeonameId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+// ── Mutations ─────────────────────────────────────────────────────────────────
 export function useCreatePatient() {
   return useMutationWithToast<string, PatientApiRequest>({
     mutationFn: (patient) => patientsApi.create(patient),
