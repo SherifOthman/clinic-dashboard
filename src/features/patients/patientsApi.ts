@@ -6,7 +6,6 @@ import type {
   PatientApiRequest,
   PatientDetail,
   PatientListItem,
-  PatientLocationFilter,
   PatientsSearchParams,
 } from "./types";
 
@@ -83,18 +82,6 @@ export const patientsApi = {
     const response = await apiClient.get<ChronicDisease[]>(
       API_ENDPOINTS.chronicDiseases,
       { params: language ? { language } : {} },
-    );
-    return response.data;
-  },
-
-  /**
-   * Returns all distinct location IDs from patients with names already resolved.
-   * One round trip — backend handles GeoNames resolution with server-side caching.
-   */
-  async getLocationFilter(lang: string): Promise<PatientLocationFilter> {
-    const response = await apiClient.get<PatientLocationFilter>(
-      `${API_ENDPOINTS.patients}/location-filter`,
-      { params: { lang } },
     );
     return response.data;
   },

@@ -1,9 +1,9 @@
 import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
 import { useMostUsed } from "@/core/hooks/useMostUsed";
+import { useCountries } from "@/core/location/hooks";
 import { Globe } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { usePatientLocationFilter } from "../patientsHooks";
 
 interface PatientCountryFilterProps {
   value: number | undefined;
@@ -15,17 +15,15 @@ export function PatientCountryFilter({
   onChange,
 }: PatientCountryFilterProps) {
   const { t } = useTranslation();
-  const [enabled, setEnabled] = useState(false);
   const { getMostUsed, increment } = useMostUsed("patient_country_usage");
-  const { data, isLoading } = usePatientLocationFilter(enabled);
+
+  // Reuses the same cached data as the LocationSelector form component (24h stale)
+  const { data: countries = [], isLoading } = useCountries();
 
   const items = useMemo(
     () =>
-      (data?.countries ?? []).map((c) => ({
-        key: c.geonameId.toString(),
-        label: c.name,
-      })),
-    [data],
+      countries.map((c) => ({ key: c.geonameId.toString(), label: c.name })),
+    [countries],
   );
 
   const mostUsedItems = useMemo(
@@ -40,7 +38,6 @@ export function PatientCountryFilter({
       items={items}
       mostUsedItems={mostUsedItems}
       onUsed={increment}
-      onOpen={() => setEnabled(true)}
       isLoading={isLoading}
       placeholder={t("patients.filterByCountry")}
       modalTitle={t("patients.filterByCountry")}

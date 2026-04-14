@@ -80,7 +80,20 @@ export function getPatientColumns({
         );
       },
     },
-    // 3. Phone
+
+    // 3. City
+    {
+      key: "cityGeonameId",
+      label: t("location.city"),
+      render: (patient) =>
+        patient.cityName ? (
+          <span className="text-sm">{patient.cityName}</span>
+        ) : (
+          <span className="text-muted text-xs">—</span>
+        ),
+    },
+
+    // 4. Phone
     {
       key: "primaryPhone",
       label: t("common.fields.phone"),
@@ -93,17 +106,7 @@ export function getPatientColumns({
           <span className="text-muted text-xs">—</span>
         ),
     },
-    // 4. City
-    {
-      key: "cityGeonameId",
-      label: t("location.city"),
-      render: (patient) =>
-        patient.cityName ? (
-          <span className="text-sm">{patient.cityName}</span>
-        ) : (
-          <span className="text-muted text-xs">—</span>
-        ),
-    },
+
     // 5. Conditions
     {
       key: "chronicDiseaseCount",

@@ -1,13 +1,12 @@
 import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
 import { useMostUsed } from "@/core/hooks/useMostUsed";
+import { useCities } from "@/core/location/hooks";
 import { Building2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { usePatientLocationFilter } from "../patientsHooks";
 
 interface PatientCityFilterProps {
   value: number | undefined;
-  /** When set, only cities belonging to this state are shown. */
   stateGeonameId: number | undefined;
   onChange: (geonameId: number | null) => void;
 }
@@ -18,21 +17,15 @@ export function PatientCityFilter({
   onChange,
 }: PatientCityFilterProps) {
   const { t } = useTranslation();
-  const [enabled, setEnabled] = useState(false);
   const { getMostUsed, increment } = useMostUsed("patient_city_usage");
-  const { data, isLoading } = usePatientLocationFilter(enabled);
 
-  // Filter cities by selected state (client-side — data already loaded)
-  const items = useMemo(() => {
-    const cities = data?.cities ?? [];
-    const filtered = stateGeonameId
-      ? cities.filter((c) => c.stateGeonameId === stateGeonameId)
-      : cities;
-    return filtered.map((c) => ({
-      key: c.geonameId.toString(),
-      label: c.name,
-    }));
-  }, [data, stateGeonameId]);
+  // Only fetches when a state is selected — same cached data as LocationSelector (24h stale)
+  const { data: cities = [], isLoading } = useCities(stateGeonameId ?? null);
+
+  const items = useMemo(
+    () => cities.map((c) => ({ key: c.geonameId.toString(), label: c.name })),
+    [cities],
+  );
 
   const mostUsedItems = useMemo(
     () => getMostUsed(items, (i) => i.key, 6),
@@ -46,7 +39,6 @@ export function PatientCityFilter({
       items={items}
       mostUsedItems={mostUsedItems}
       onUsed={increment}
-      onOpen={() => setEnabled(true)}
       isLoading={isLoading}
       placeholder={t("patients.filterByCity")}
       modalTitle={t("patients.filterByCity")}

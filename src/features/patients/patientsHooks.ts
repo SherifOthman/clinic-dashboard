@@ -50,22 +50,6 @@ export function useChronicDiseases() {
   });
 }
 
-/**
- * Fetches all distinct location IDs from patients with names resolved — one round trip.
- * Backend handles GeoNames resolution with server-side caching.
- * Lazy: only fetches when `enabled` is true (on first filter open).
- */
-export function usePatientLocationFilter(enabled = false) {
-  const { i18n } = useTranslation();
-  const lang = i18n.language === "ar" ? "ar" : "en";
-  return useQuery({
-    queryKey: ["patients", "locationFilter", lang],
-    queryFn: () => patientsApi.getLocationFilter(lang),
-    staleTime: 5 * 60 * 1000,
-    enabled,
-  });
-}
-
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 export function useCreatePatient() {

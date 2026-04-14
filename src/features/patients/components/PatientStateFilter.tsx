@@ -1,13 +1,12 @@
 import { LocationFilterButton } from "@/core/components/ui/LocationFilterButton";
 import { useMostUsed } from "@/core/hooks/useMostUsed";
+import { useStates } from "@/core/location/hooks";
 import { MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { usePatientLocationFilter } from "../patientsHooks";
 
 interface PatientStateFilterProps {
   value: number | undefined;
-  /** When set, only states belonging to this country are shown. */
   countryGeonameId: number | undefined;
   onChange: (geonameId: number | null) => void;
 }
@@ -18,21 +17,15 @@ export function PatientStateFilter({
   onChange,
 }: PatientStateFilterProps) {
   const { t } = useTranslation();
-  const [enabled, setEnabled] = useState(false);
   const { getMostUsed, increment } = useMostUsed("patient_state_usage");
-  const { data, isLoading } = usePatientLocationFilter(enabled);
 
-  // Filter states by selected country (client-side — data already loaded)
-  const items = useMemo(() => {
-    const states = data?.states ?? [];
-    const filtered = countryGeonameId
-      ? states.filter((s) => s.countryGeonameId === countryGeonameId)
-      : states;
-    return filtered.map((s) => ({
-      key: s.geonameId.toString(),
-      label: s.name,
-    }));
-  }, [data, countryGeonameId]);
+  // Only fetches when a country is selected — same cached data as LocationSelector (24h stale)
+  const { data: states = [], isLoading } = useStates(countryGeonameId ?? null);
+
+  const items = useMemo(
+    () => states.map((s) => ({ key: s.geonameId.toString(), label: s.name })),
+    [states],
+  );
 
   const mostUsedItems = useMemo(
     () => getMostUsed(items, (i) => i.key, 6),
@@ -46,7 +39,6 @@ export function PatientStateFilter({
       items={items}
       mostUsedItems={mostUsedItems}
       onUsed={increment}
-      onOpen={() => setEnabled(true)}
       isLoading={isLoading}
       placeholder={t("patients.filterByState")}
       modalTitle={t("patients.filterByState")}
