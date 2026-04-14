@@ -1,5 +1,6 @@
 import { Button } from "@heroui/react";
 import { Phone, Plus, X } from "lucide-react";
+import { useEffect } from "react";
 import {
   useFieldArray,
   type FieldValues,
@@ -46,11 +47,10 @@ export function PhoneNumbersInput<T extends FieldValues>({
   const phoneNumbers: string[] = watch(name as any) || [];
   const fieldErrors = errors[name as any] as any;
 
-  // Start with one empty input so the user doesn't have to click "Add Phone",
-  // but it's not required — they can leave it blank or remove it.
-  if (fields.length === 0) {
-    append("" as any);
-  }
+  // Ensure at least one empty input on mount — must be in useEffect, not render
+  useEffect(() => {
+    if (fields.length === 0) append("" as any);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">

@@ -86,7 +86,7 @@ function LocationAutocomplete({
     >
       <Label>{label}</Label>
       <Autocomplete.Trigger>
-        <Autocomplete.Value />
+        <Autocomplete.Value className={dir == "rtl" ? "text-right" : ""} />
         <Autocomplete.ClearButton />
         <Autocomplete.Indicator />
       </Autocomplete.Trigger>

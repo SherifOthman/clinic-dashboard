@@ -7,7 +7,7 @@
  * Used by PatientStateFilter and PatientCityFilter — any future
  * location-style filter can reuse this without duplication.
  */
-import { Button, ListBox, Modal, SearchField } from "@heroui/react";
+import { ListBox, Modal, SearchField } from "@heroui/react";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -100,27 +100,30 @@ export function LocationFilterButton({
   return (
     <>
       {/* ── Trigger ── */}
-      <div className="flex items-center">
-        <Button
-          variant={value ? "primary" : "outline"}
-          size="sm"
-          onPress={openModal}
-          className={`h-9 gap-1.5 ${value ? "rounded-e-none" : ""}`}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          {selectedItem ? selectedItem.label : placeholder}
-        </Button>
+      <button
+        type="button"
+        onClick={openModal}
+        className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ${
+          value
+            ? "bg-accent text-white"
+            : "border-input bg-background hover:bg-surface-secondary border"
+        }`}
+      >
+        <Icon className="h-3.5 w-3.5" />
+        {selectedItem ? selectedItem.label : placeholder}
         {value && (
-          <button
-            type="button"
-            onClick={() => onChange(null)}
-            className="border-accent bg-accent text-accent-foreground hover:bg-accent/90 flex h-9 items-center rounded-e-md border px-1.5"
-            aria-label="Clear filter"
+          <span
+            role="presentation"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(null);
+            }}
+            className="hover:bg-accent/60 ms-0.5 flex h-4 w-4 items-center justify-center rounded-full"
           >
-            <X className="h-3 w-3" />
-          </button>
+            <X className="h-2.5 w-2.5" />
+          </span>
         )}
-      </div>
+      </button>
 
       {/* ── Modal ── */}
       <Modal.Backdrop
@@ -194,18 +197,9 @@ export function LocationFilterButton({
                                 const key = Array.from(keys)[0] as
                                   | string
                                   | undefined;
-                                if (!key) return;
-                                if (key === value) {
-                                  onChange(null);
-                                } else {
-                                  onUsed?.(key);
-                                  onChange(key);
-                                }
-                                setSearch("");
-                                setIsOpen(false);
-                                close();
+                                if (key) handleSelect(key, close);
                               }}
-                              className="gap-0"
+                              className="grid grid-cols-2 gap-0"
                             >
                               {filtered.map((item) => (
                                 <ListBox.Item
@@ -215,7 +209,7 @@ export function LocationFilterButton({
                                   className="rounded-md px-3 py-2 text-sm"
                                 >
                                   {item.label}
-                                  <ListBox.ItemIndicator />
+                                  <ListBox.ItemIndicator className="text-accent" />
                                 </ListBox.Item>
                               ))}
                             </ListBox>
@@ -225,22 +219,6 @@ export function LocationFilterButton({
                     </>
                   )}
                 </Modal.Body>
-
-                {value && (
-                  <Modal.Footer>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onPress={() => {
-                        onChange(null);
-                        close();
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      {t("filters.clearAll")}
-                    </Button>
-                  </Modal.Footer>
-                )}
               </>
             )}
           </Modal.Dialog>

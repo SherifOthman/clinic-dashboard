@@ -1,4 +1,5 @@
 import { FormInputField } from "@/core/components/form/FormInputField";
+import { FormSection } from "@/core/components/form/FormSection";
 import { LocationSelector } from "@/core/components/form/LocationSelector";
 import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
 import { Dialog } from "@/core/components/ui/Dialog";
@@ -7,8 +8,8 @@ import { useGeonameLabel } from "@/core/location/hooks";
 import type { DialogState } from "@/core/types";
 import { Button, Card, Chip } from "@heroui/react";
 import { Building2, MapPin, Phone, Plus } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { BranchDetailDialog } from "./BranchDetailDialog";
 import type { BranchDto, CreateBranchRequest } from "./branchesApi";
@@ -147,28 +148,6 @@ function BranchCard({
 
 // ── Branch Form Dialog ────────────────────────────────────────────────────────
 
-// ── Shared section wrapper (same pattern as PatientForm) ─────────────────────
-
-function FormSection({
-  icon,
-  title,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <span className="text-accent">{icon}</span>
-        <p className="text-foreground text-sm font-semibold">{title}</p>
-      </div>
-      <div className="border-divider rounded-xl border p-4">{children}</div>
-    </div>
-  );
-}
-
 function BranchFormDialog({
   state,
   onClose,
@@ -182,14 +161,7 @@ function BranchFormDialog({
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<CreateBranchRequest>({
+  const form = useForm<CreateBranchRequest>({
     defaultValues: {
       name: "",
       addressLine: "",
@@ -198,6 +170,13 @@ function BranchFormDialog({
       phoneNumbers: [""],
     },
   });
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = form;
 
   // Populate form when opening in edit mode
   useEffect(() => {
@@ -237,67 +216,65 @@ function BranchFormDialog({
       title={isEditing ? t("branches.editBranch") : t("branches.addBranch")}
       size="lg"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        {/* Branch info */}
-        <FormSection
-          icon={<Building2 className="h-4 w-4" />}
-          title={t("branches.branchInfo")}
-        >
-          <div className="flex flex-col gap-4">
-            <FormInputField
-              name="name"
-              control={control}
-              label={t("common.fields.name")}
-              isRequired
-            />
-            <FormInputField
-              name="addressLine"
-              control={control}
-              label={t("branches.addressLine")}
-              isRequired
-            />
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          {/* Branch info */}
+          <FormSection
+            icon={<Building2 className="h-4 w-4" />}
+            title={t("branches.branchInfo")}
+          >
+            <div className="flex flex-col gap-4">
+              <FormInputField
+                name="name"
+                control={control}
+                label={t("common.fields.name")}
+                isRequired
+              />
+              <FormInputField
+                name="addressLine"
+                control={control}
+                label={t("branches.addressLine")}
+                isRequired
+              />
+            </div>
+          </FormSection>
+
+          {/* Location + Phones side by side on larger screens */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormSection
+              icon={<MapPin className="h-4 w-4" />}
+              title={t("common.fields.address")}
+            >
+              <LocationSelector
+                form={form}
+                stateGeonameIdField="stateGeonameId"
+                cityGeonameIdField="cityGeonameId"
+              />
+            </FormSection>
+
+            <FormSection
+              icon={<Phone className="h-4 w-4" />}
+              title={t("common.fields.phoneNumber")}
+            >
+              <PhoneNumbersInput form={form} name="phoneNumbers" maxItems={3} />
+            </FormSection>
           </div>
-        </FormSection>
 
-        {/* Location + Phones side by side on larger screens */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormSection
-            icon={<MapPin className="h-4 w-4" />}
-            title={t("common.fields.address")}
-          >
-            <LocationSelector
-              form={{ watch, setValue, formState: { errors } } as any}
-              stateGeonameIdField="stateGeonameId"
-              cityGeonameIdField="cityGeonameId"
-            />
-          </FormSection>
-
-          <FormSection
-            icon={<Phone className="h-4 w-4" />}
-            title={t("common.fields.phoneNumber")}
-          >
-            <PhoneNumbersInput
-              form={{ control, watch, setValue, formState: { errors } } as any}
-              name="phoneNumbers"
-              maxItems={3}
-            />
-          </FormSection>
-        </div>
-
-        <div className="border-divider flex justify-end gap-2 border-t pt-4">
-          <Button type="button" variant="ghost" onPress={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            isPending={isPending}
-            isDisabled={isPending}
-          >
-            {isEditing ? t("common.update") : t("common.create")}
-          </Button>
-        </div>
-      </form>
+          <div className="border-divider flex justify-end gap-2 border-t pt-4">
+            <Button type="button" variant="ghost" onPress={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isPending={isPending}
+              isDisabled={isPending}
+            >
+              {isEditing ? t("common.update") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
     </Dialog>
   );
 }

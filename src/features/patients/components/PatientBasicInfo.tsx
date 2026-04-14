@@ -14,7 +14,7 @@ import {
 } from "@heroui/react";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
 import { I18nProvider } from "react-aria-components";
-import { type UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
   calculateAge,
@@ -35,14 +35,13 @@ function parseDateSafe(iso: string) {
 }
 
 interface PatientBasicInfoProps {
-  form: UseFormReturn<PatientFormData>;
-  resetKey?: number;
+  // React Aria's NumberField doesn't respond to controlled value resets,
+  // so we remount it by changing this key when the form is reset.
+  resetCount?: number;
 }
 
-export function PatientBasicInfo({
-  form,
-  resetKey = 0,
-}: PatientBasicInfoProps) {
+export function PatientBasicInfo({ resetCount = 0 }: PatientBasicInfoProps) {
+  const form = useFormContext<PatientFormData>();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const {
@@ -159,9 +158,10 @@ export function PatientBasicInfo({
           )}
         </div>
 
-        {/* Age - HeroUI NumberField — keyed on resetKey so it remounts on form reset */}
+        {/* Age - keyed on resetCount to force remount on reset,
+            because React Aria's NumberField ignores controlled value changes */}
         <NumberField
-          key={resetKey}
+          key={resetCount}
           isInvalid={!!errors.age}
           value={age ?? undefined}
           minValue={0}

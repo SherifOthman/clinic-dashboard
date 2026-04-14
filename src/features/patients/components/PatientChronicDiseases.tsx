@@ -10,8 +10,8 @@ import {
   SearchField,
 } from "@heroui/react";
 import { Plus, X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { type UseFormReturn } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useChronicDiseases } from "../patientsHooks";
 import type { PatientFormData } from "../schemas";
@@ -19,17 +19,14 @@ import type { ChronicDisease } from "../types";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface PatientChronicDiseasesProps {
-  form: UseFormReturn<PatientFormData>;
-}
-
-export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
+export function PatientChronicDiseases() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
-  const { data: diseases = [], isLoading, error } = useChronicDiseases();
+
   const { getMostUsed, increment } = useMostUsed("chronic_disease_usage");
 
-  const { watch, setValue } = form;
+  const { watch, setValue } = useFormContext<PatientFormData>();
+  const { data: diseases = [], isLoading, error } = useChronicDiseases();
   // Normalize to lowercase — patient detail returns uppercase GUIDs, disease list uses lowercase
   const selectedIds: string[] = (watch("chronicDiseaseIds") ?? []).map(
     (id: string) => id.toLowerCase(),
@@ -66,6 +63,60 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
     setSearch("");
     setIsOpen(false);
   };
+
+  // When inner modal opens, freeze every scrollable element EXCEPT the inner
+  // modal's own body, so React Aria's scrollIntoView can't move anything else.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      const innerBodies = Array.from(
+        document.querySelectorAll('[data-slot="modal-body"]'),
+      );
+
+      const handlers: { el: Element; handler: () => void }[] = [];
+      document.querySelectorAll("*").forEach((el) => {
+        // Skip the inner modal's own scroll containers
+        if (innerBodies.some((b) => b === el || b.contains(el))) return;
+
+        const {
+          scrollTop,
+          scrollLeft,
+          scrollHeight,
+          scrollWidth,
+          clientHeight,
+          clientWidth,
+        } = el as HTMLElement;
+        if (
+          scrollTop > 0 ||
+          scrollLeft > 0 ||
+          scrollHeight > clientHeight ||
+          scrollWidth > clientWidth
+        ) {
+          const top = scrollTop;
+          const left = scrollLeft;
+          const handler = () => {
+            (el as HTMLElement).scrollTop = top;
+            (el as HTMLElement).scrollLeft = left;
+          };
+          el.addEventListener("scroll", handler);
+          handlers.push({ el, handler });
+        }
+      });
+
+      (window as any).__chronicScrollHandlers = handlers;
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      const handlers: { el: Element; handler: () => void }[] =
+        (window as any).__chronicScrollHandlers ?? [];
+      handlers.forEach(({ el, handler }) =>
+        el.removeEventListener("scroll", handler),
+      );
+      delete (window as any).__chronicScrollHandlers;
+    };
+  }, [isOpen]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -114,8 +165,8 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
         isOpen={isOpen}
         onOpenChange={(open) => !open && handleClose()}
       >
-        <Modal.Container size="md">
-          <Modal.Dialog>
+        <Modal.Container size="md" scroll="inside" placement="top">
+          <Modal.Dialog className="flex flex-col">
             {({ close }) => (
               <>
                 <Modal.CloseTrigger />
@@ -167,14 +218,14 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
                         />
                       )}
 
-                      {/* All diseases — same pattern as original working popover */}
+                      {/* All diseases */}
                       <div className="flex flex-col gap-1">
                         {!search.trim() && mostUsedItems.length > 0 && (
                           <p className="text-default-500 text-xs font-semibold tracking-wide uppercase">
                             {t("patients.allDiseases")}
                           </p>
                         )}
-                        <div className="max-h-64 overflow-y-auto">
+                        <div>
                           {filtered.length === 0 ? (
                             <p className="text-default-400 py-6 text-center text-sm">
                               {t("common.noResults")}
@@ -192,6 +243,7 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
                                   <label
                                     key={d.id}
                                     className="hover:bg-default-100 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5"
+                                    onFocus={(e) => e.preventDefault()}
                                   >
                                     <Checkbox value={d.id}>
                                       <Checkbox.Control>
@@ -211,11 +263,11 @@ export function PatientChronicDiseases({ form }: PatientChronicDiseasesProps) {
                 </Modal.Body>
 
                 <Modal.Footer>
-                  {selectedIds.length > 0 && (
-                    <span className="text-default-500 me-auto text-sm">
-                      {selectedIds.length} {t("patients.conditions")}
-                    </span>
-                  )}
+                  <span className="text-default-500 me-auto text-sm">
+                    {selectedIds.length > 0
+                      ? `${selectedIds.length} ${t("patients.conditions")}`
+                      : ""}
+                  </span>
                   <Button
                     variant="primary"
                     onPress={() => {

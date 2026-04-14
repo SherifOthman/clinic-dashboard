@@ -22,14 +22,19 @@ export function BranchDetailDialog({
   const { t } = useTranslation();
   const toggleActive = useSetBranchActiveStatus();
 
+  const cityName = useGeonameLabel(
+    branch?.cityGeonameId ?? null,
+    "city",
+    branch?.stateGeonameId,
+  );
+  const stateName = useGeonameLabel(
+    branch?.stateGeonameId ?? null,
+    "state",
+    undefined,
+  );
+
   if (!branch) return null;
 
-  const cityName = useGeonameLabel(
-    branch.cityGeonameId,
-    "city",
-    branch.stateGeonameId,
-  );
-  const stateName = useGeonameLabel(branch.stateGeonameId, "state", undefined);
   const locationParts = [stateName, cityName].filter(Boolean);
 
   const footer = (

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -173,6 +174,8 @@ export function usePatientForm({
     ? { ...defaults, ...(draft as PatientFormData) }
     : defaults;
 
+  const [resetCount, setResetCount] = React.useState(0);
+
   const form = useForm<PatientFormData>({
     resolver: zodResolver(schema) as any,
     defaultValues: patient ? defaults : createDefaults,
@@ -197,8 +200,14 @@ export function usePatientForm({
   return {
     form,
     isEditing: !!patient,
+    resetCount,
     handleFormSubmit: onSubmit,
-    resetForm: () => !patient && form.reset(defaults),
+    resetForm: () => {
+      if (!patient) {
+        form.reset(defaults);
+        setResetCount((c) => c + 1);
+      }
+    },
   };
 }
 
