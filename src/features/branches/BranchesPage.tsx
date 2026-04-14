@@ -171,12 +171,7 @@ function BranchFormDialog({
     },
   });
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = form;
+  const { control, handleSubmit, reset } = form;
 
   // Populate form when opening in edit mode
   useEffect(() => {
