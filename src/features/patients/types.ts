@@ -44,9 +44,9 @@ export interface ChronicDisease {
 
 export interface PatientsSearchParams extends BaseSearchParams {
   gender?: "Male" | "Female";
+  countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  countryGeonameId?: number;
   clinicSearch?: string;
 }
 
@@ -63,27 +63,48 @@ export interface PatientApiRequest {
   chronicDiseaseIds: string[];
 }
 
-/** A resolved GeoNames ID → name pair returned by the backend. */
-export interface LocationNameItem {
+// ── Location filter types (used by patient list filter dropdowns) ─────────────
+
+/** A country item in the patient filter. */
+export interface FilterCountry {
   geonameId: number;
   name: string;
-  /** Present on states — the parent country's GeoNames ID. */
-  countryGeonameId?: number;
-  /** Present on cities — the parent state's GeoNames ID. */
-  stateGeonameId?: number;
 }
 
 /**
- * Combined location filter data — one backend call returns all three lists
- * with names already resolved (server-side GeoNames + caching).
+ * A state item in the patient filter.
+ * countryGeonameId links it to its parent country — used to show only
+ * states that belong to the selected country.
  */
-export interface PatientLocationFilter {
-  countries: LocationNameItem[];
-  states: LocationNameItem[];
-  cities: LocationNameItem[];
+export interface FilterState {
+  geonameId: number;
+  name: string;
+  countryGeonameId: number;
 }
 
-/** Maps blood type strings to their chip color. Used in table columns and detail dialog. */
+/**
+ * A city item in the patient filter.
+ * stateGeonameId links it to its parent state — used to show only
+ * cities that belong to the selected state.
+ */
+export interface FilterCity {
+  geonameId: number;
+  name: string;
+  stateGeonameId: number;
+}
+
+/**
+ * Response from GET /api/patients/location-filter.
+ * One call returns all three lists — the frontend filters them client-side
+ * based on what country/state the user has selected.
+ */
+export interface PatientLocationFilter {
+  countries: FilterCountry[];
+  states: FilterState[];
+  cities: FilterCity[];
+}
+
+/** Maps blood type strings to their chip color. */
 export const BLOOD_TYPE_COLORS: Record<
   string,
   "danger" | "warning" | "accent" | "success" | "default"

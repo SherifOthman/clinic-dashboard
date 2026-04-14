@@ -85,15 +85,22 @@ export function PatientForm({
 
         {/* ── Contact & Location ── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormSection
-            icon={<Phone className="h-4 w-4" />}
-            title={t("patients.contactInfo")}
-          >
-            <PhoneNumbersInput
+          <div className="flex flex-col gap-4">
+            <FormSection
+              icon={<Phone className="h-4 w-4" />}
+              title={t("patients.contactInfo")}
+            >
+              <PhoneNumbersInput
+                form={form as UseFormReturn<PatientFormData>}
+                name="phoneNumbers"
+              />
+            </FormSection>
+
+            {/* Chronic diseases sit under phone numbers — fills the space naturally */}
+            <PatientChronicDiseases
               form={form as UseFormReturn<PatientFormData>}
-              name="phoneNumbers"
             />
-          </FormSection>
+          </div>
 
           <FormSection
             icon={<MapPin className="h-4 w-4" />}
@@ -107,9 +114,6 @@ export function PatientForm({
             />
           </FormSection>
         </div>
-
-        {/* ── Chronic Diseases ── */}
-        <PatientChronicDiseases form={form as UseFormReturn<PatientFormData>} />
       </div>
 
       {/* ── Actions ── */}
