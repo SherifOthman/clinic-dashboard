@@ -36,8 +36,6 @@ export function PatientsList({
 
   const { patientsState, updatePatientsState } = usePatientsTableState();
 
-  // Debounce the URL-backed values before sending to the API.
-  // The input reads directly from the URL so refresh/back/forward all work.
   const debouncedSearch = useDebounce(patientsState.searchTerm ?? "", 400);
   const debouncedClinicSearch = useDebounce(
     patientsState.clinicSearch ?? "",
@@ -53,8 +51,7 @@ export function PatientsList({
     superAdmin,
   );
 
-  // Fetch location names eagerly — same cache used by the filter components.
-  // Builds a geonameId → name map for the city column.
+  // Eagerly fetch location filter — builds city name map for the table column
   const { data: locationFilter } = usePatientLocationFilter(true);
   const cityNameMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -62,7 +59,6 @@ export function PatientsList({
     return map;
   }, [locationFilter]);
 
-  // Key changes when names load so DataTable re-renders rows with resolved names
   const tableKey = `${i18n.language}-${cityNameMap.size}`;
 
   const columns = getPatientColumns({
@@ -85,7 +81,7 @@ export function PatientsList({
     <div className="flex flex-col gap-4 py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-wrap gap-3">
-          {/* Search — value comes from URL, writes back to URL on change */}
+          {/* Name / code / phone search */}
           <SearchField
             value={patientsState.searchTerm ?? ""}
             onChange={(v) => updatePatientsState({ searchTerm: v })}
@@ -102,26 +98,8 @@ export function PatientsList({
             </SearchField.Group>
           </SearchField>
 
-          {/* Clinic search — SuperAdmin only */}
-          {superAdmin && (
-            <SearchField
-              value={patientsState.clinicSearch ?? ""}
-              onChange={(v) =>
-                updatePatientsState({ clinicSearch: v || undefined })
-              }
-              aria-label={t("patients.filterByClinic")}
-              className="w-full sm:w-64"
-            >
-              <Label className="sr-only">{t("patients.filterByClinic")}</Label>
-              <SearchField.Group>
-                <SearchField.SearchIcon className="ms-3" />
-                <SearchField.Input placeholder={t("patients.filterByClinic")} />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
-          )}
-
           {/* Gender filter */}
+          <Select
             className="w-full sm:w-44"
             placeholder={t("patients.allGenders")}
             value={
@@ -159,33 +137,29 @@ export function PatientsList({
             </Select.Popover>
           </Select>
 
-          {/* Country filter — all users */}
+          {/* Country → State → City (dependent, all users) */}
           <PatientCountryFilter
             value={patientsState.countryGeonameId}
             onChange={(v) =>
               updatePatientsState({
                 countryGeonameId: v ?? undefined,
-                // Clear dependent filters when country changes
                 stateGeonameId: undefined,
                 cityGeonameId: undefined,
               })
             }
           />
 
-          {/* State filter — all users, filtered by selected country */}
           <PatientStateFilter
             value={patientsState.stateGeonameId}
             countryGeonameId={patientsState.countryGeonameId}
             onChange={(v) =>
               updatePatientsState({
                 stateGeonameId: v ?? undefined,
-                // Clear city when state changes
                 cityGeonameId: undefined,
               })
             }
           />
 
-          {/* City filter — all users, filtered by selected state */}
           <PatientCityFilter
             value={patientsState.cityGeonameId}
             stateGeonameId={patientsState.stateGeonameId}
