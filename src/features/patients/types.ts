@@ -15,11 +15,7 @@ export interface PatientListItem {
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  // Both language names — frontend picks based on current language, no re-fetch needed
-  countryNameEn?: string;
-  countryNameAr?: string;
-  stateNameEn?: string;
-  stateNameAr?: string;
+  // City name for the table column — country/state not shown in the list
   cityNameEn?: string;
   cityNameAr?: string;
 }
