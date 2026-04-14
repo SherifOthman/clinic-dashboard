@@ -122,7 +122,6 @@ export function PatientsList({
           )}
 
           {/* Gender filter */}
-          <Select
             className="w-full sm:w-44"
             placeholder={t("patients.allGenders")}
             value={
@@ -160,30 +159,58 @@ export function PatientsList({
             </Select.Popover>
           </Select>
 
-          {/* City filter — all users */}
+          {/* Country filter — all users */}
+          <PatientCountryFilter
+            value={patientsState.countryGeonameId}
+            onChange={(v) =>
+              updatePatientsState({
+                countryGeonameId: v ?? undefined,
+                // Clear dependent filters when country changes
+                stateGeonameId: undefined,
+                cityGeonameId: undefined,
+              })
+            }
+          />
+
+          {/* State filter — all users, filtered by selected country */}
+          <PatientStateFilter
+            value={patientsState.stateGeonameId}
+            countryGeonameId={patientsState.countryGeonameId}
+            onChange={(v) =>
+              updatePatientsState({
+                stateGeonameId: v ?? undefined,
+                // Clear city when state changes
+                cityGeonameId: undefined,
+              })
+            }
+          />
+
+          {/* City filter — all users, filtered by selected state */}
           <PatientCityFilter
             value={patientsState.cityGeonameId}
+            stateGeonameId={patientsState.stateGeonameId}
             onChange={(v) =>
               updatePatientsState({ cityGeonameId: v ?? undefined })
             }
           />
 
-          {/* State filter — all users */}
-          <PatientStateFilter
-            value={patientsState.stateGeonameId}
-            onChange={(v) =>
-              updatePatientsState({ stateGeonameId: v ?? undefined })
-            }
-          />
-
-          {/* Country filter — SuperAdmin only */}
+          {/* Clinic search — SuperAdmin only */}
           {superAdmin && (
-            <PatientCountryFilter
-              value={patientsState.countryGeonameId}
+            <SearchField
+              value={patientsState.clinicSearch ?? ""}
               onChange={(v) =>
-                updatePatientsState({ countryGeonameId: v ?? undefined })
+                updatePatientsState({ clinicSearch: v || undefined })
               }
-            />
+              aria-label={t("patients.filterByClinic")}
+              className="w-full sm:w-64"
+            >
+              <Label className="sr-only">{t("patients.filterByClinic")}</Label>
+              <SearchField.Group>
+                <SearchField.SearchIcon className="ms-3" />
+                <SearchField.Input placeholder={t("patients.filterByClinic")} />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
           )}
         </div>
 

@@ -67,6 +67,10 @@ export interface PatientApiRequest {
 export interface LocationNameItem {
   geonameId: number;
   name: string;
+  /** Present on states — the parent country's GeoNames ID. */
+  countryGeonameId?: number;
+  /** Present on cities — the parent state's GeoNames ID. */
+  stateGeonameId?: number;
 }
 
 /**

@@ -7,25 +7,32 @@ import { usePatientLocationFilter } from "../patientsHooks";
 
 interface PatientCityFilterProps {
   value: number | undefined;
+  /** When set, only cities belonging to this state are shown. */
+  stateGeonameId: number | undefined;
   onChange: (geonameId: number | null) => void;
 }
 
-/** Independent city filter — shows only cities that have patients. */
-export function PatientCityFilter({ value, onChange }: PatientCityFilterProps) {
+export function PatientCityFilter({
+  value,
+  stateGeonameId,
+  onChange,
+}: PatientCityFilterProps) {
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState(false);
   const { getMostUsed, increment } = useMostUsed("patient_city_usage");
-
   const { data, isLoading } = usePatientLocationFilter(enabled);
 
-  const items = useMemo(
-    () =>
-      (data?.cities ?? []).map((c) => ({
-        key: c.geonameId.toString(),
-        label: c.name,
-      })),
-    [data],
-  );
+  // Filter cities by selected state (client-side — data already loaded)
+  const items = useMemo(() => {
+    const cities = data?.cities ?? [];
+    const filtered = stateGeonameId
+      ? cities.filter((c) => c.stateGeonameId === stateGeonameId)
+      : cities;
+    return filtered.map((c) => ({
+      key: c.geonameId.toString(),
+      label: c.name,
+    }));
+  }, [data, stateGeonameId]);
 
   const mostUsedItems = useMemo(
     () => getMostUsed(items, (i) => i.key, 6),

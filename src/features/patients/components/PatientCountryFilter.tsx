@@ -10,7 +10,6 @@ interface PatientCountryFilterProps {
   onChange: (geonameId: number | null) => void;
 }
 
-/** SuperAdmin-only country filter — shows only countries that have patients. */
 export function PatientCountryFilter({
   value,
   onChange,
@@ -18,7 +17,6 @@ export function PatientCountryFilter({
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState(false);
   const { getMostUsed, increment } = useMostUsed("patient_country_usage");
-
   const { data, isLoading } = usePatientLocationFilter(enabled);
 
   const items = useMemo(
