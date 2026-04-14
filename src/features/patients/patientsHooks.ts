@@ -21,18 +21,22 @@ export function usePaginatedPatients(
   params: PatientsSearchParams = {},
   isSuperAdmin = false,
 ) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   return useQuery({
-    queryKey: ["patients", "paginated", params, isSuperAdmin],
-    queryFn: () => patientsApi.getPaginated(params, isSuperAdmin),
+    queryKey: ["patients", "paginated", params, isSuperAdmin, lang],
+    queryFn: () => patientsApi.getPaginated(params, isSuperAdmin, lang),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
   });
 }
 
 export function usePatientDetail(id: string | null, isSuperAdmin = false) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   return useQuery({
-    queryKey: ["patients", "detail", id, isSuperAdmin],
-    queryFn: () => patientsApi.getDetail(id!, isSuperAdmin),
+    queryKey: ["patients", "detail", id, isSuperAdmin, lang],
+    queryFn: () => patientsApi.getDetail(id!, isSuperAdmin, lang),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });

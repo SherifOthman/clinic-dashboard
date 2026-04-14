@@ -11,9 +11,14 @@ export interface PatientListItem {
   primaryPhone?: string;
   createdAt: string;
   clinicName?: string;
+  // IDs — kept for filtering
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
+  // Resolved names — returned directly by the backend, no extra API calls needed
+  countryName?: string;
+  stateName?: string;
+  cityName?: string;
 }
 
 export interface PatientDetail {
@@ -25,9 +30,14 @@ export interface PatientDetail {
   bloodType?: string;
   phoneNumbers: string[];
   chronicDiseases: { id: string; nameEn: string; nameAr: string }[];
+  // IDs — kept for the edit form (LocationSelector needs them)
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
+  // Resolved names — ready to display
+  countryName?: string;
+  stateName?: string;
+  cityName?: string;
   createdAt: string;
   updatedAt?: string;
   createdBy?: string;

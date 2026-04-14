@@ -6,13 +6,8 @@ import { isSuperAdmin } from "@/core/utils/roleUtils";
 import { useMe } from "@/features/auth/hooks";
 import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
 import { UserPlus } from "lucide-react";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  usePaginatedPatients,
-  usePatientLocationFilter,
-  usePatientsTableState,
-} from "../patientsHooks";
+import { usePaginatedPatients, usePatientsTableState } from "../patientsHooks";
 import type { PatientListItem } from "../types";
 import { PatientCityFilter } from "./PatientCityFilter";
 import { getPatientColumns } from "./patientColumns";
@@ -51,22 +46,13 @@ export function PatientsList({
     superAdmin,
   );
 
-  // Eagerly fetch location filter — builds city name map for the table column
-  const { data: locationFilter } = usePatientLocationFilter(true);
-  const cityNameMap = useMemo(() => {
-    const map = new Map<number, string>();
-    locationFilter?.cities.forEach((c) => map.set(c.geonameId, c.name));
-    return map;
-  }, [locationFilter]);
-
-  const tableKey = `${i18n.language}-${cityNameMap.size}`;
+  const tableKey = i18n.language;
 
   const columns = getPatientColumns({
     t,
     formatDate: formatDateShort,
     isAr: i18n.language === "ar",
     showClinic: superAdmin,
-    cityNameMap,
   });
 
   if (error) {

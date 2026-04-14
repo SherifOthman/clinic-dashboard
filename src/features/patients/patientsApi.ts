@@ -14,6 +14,7 @@ export const patientsApi = {
   async getPaginated(
     params: PatientsSearchParams = {},
     isSuperAdmin = false,
+    lang = "en",
   ): Promise<PagedResult<PatientListItem>> {
     const p = new URLSearchParams();
 
@@ -31,6 +32,7 @@ export const patientsApi = {
       p.append("countryGeonameId", params.countryGeonameId.toString());
     if (isSuperAdmin && params.clinicSearch)
       p.append("clinicSearch", params.clinicSearch);
+    p.append("lang", lang);
 
     const endpoint = isSuperAdmin
       ? `${API_ENDPOINTS.patients}/all`
@@ -42,11 +44,17 @@ export const patientsApi = {
     return response.data;
   },
 
-  async getDetail(id: string, isSuperAdmin = false): Promise<PatientDetail> {
+  async getDetail(
+    id: string,
+    isSuperAdmin = false,
+    lang = "en",
+  ): Promise<PatientDetail> {
     const endpoint = isSuperAdmin
       ? `${API_ENDPOINTS.patients}/all/${id}`
       : `${API_ENDPOINTS.patients}/${id}`;
-    const response = await apiClient.get<PatientDetail>(endpoint);
+    const response = await apiClient.get<PatientDetail>(endpoint, {
+      params: { lang },
+    });
     return response.data;
   },
 

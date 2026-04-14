@@ -16,7 +16,6 @@ interface PatientColumnsOptions {
   formatDate: (date: string) => string;
   isAr?: boolean;
   showClinic?: boolean;
-  cityNameMap?: Map<number, string>;
 }
 
 export function getPatientColumns({
@@ -24,7 +23,6 @@ export function getPatientColumns({
   formatDate,
   isAr = false,
   showClinic = false,
-  cityNameMap = new Map(),
 }: PatientColumnsOptions): Column<PatientListItem>[] {
   const columns: Column<PatientListItem>[] = [
     // 1. Name + code + blood type
@@ -99,20 +97,12 @@ export function getPatientColumns({
     {
       key: "cityGeonameId",
       label: t("location.city"),
-      render: (patient) => {
-        const name = patient.cityGeonameId
-          ? cityNameMap.get(patient.cityGeonameId)
-          : null;
-        return name ? (
-          <span className="text-sm">{name}</span>
-        ) : patient.cityGeonameId ? (
-          <span className="text-muted font-mono text-xs">
-            {patient.cityGeonameId}
-          </span>
+      render: (patient) =>
+        patient.cityName ? (
+          <span className="text-sm">{patient.cityName}</span>
         ) : (
           <span className="text-muted text-xs">—</span>
-        );
-      },
+        ),
     },
     // 5. Conditions
     {
