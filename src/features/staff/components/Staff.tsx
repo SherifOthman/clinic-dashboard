@@ -1,5 +1,6 @@
 import { DataTable } from "@/core/components/ui/DataTable";
 import { TablePagination } from "@/core/components/ui/TablePagination";
+import { USER_ROLES } from "@/core/constants";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { isClinicOwner, isDoctor } from "@/core/utils/roleUtils";
 import { useMe } from "@/features/auth/hooks";
@@ -25,11 +26,11 @@ export function Staff() {
 
   const { data, isLoading } = useStaffList(staffState);
 
-  // Filter out the clinic owner (current user) from the staff list —
-  // they already know they're the owner, no need to see themselves here.
+  // Filter out the clinic owner from the staff list — they don't need to see themselves.
   const filteredItems =
-    data?.items.filter((s) => !s.roles.some((r) => r.name === "ClinicOwner")) ??
-    [];
+    data?.items.filter(
+      (s) => !s.roles.some((r) => r.name === USER_ROLES.CLINIC_OWNER),
+    ) ?? [];
 
   const toggleActive = useSetStaffActiveStatus();
 
