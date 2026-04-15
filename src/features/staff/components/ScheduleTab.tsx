@@ -30,7 +30,6 @@ export function ScheduleTab({
     staffId,
     activeBranchId ?? undefined,
   );
-
   const readOnly = !isOwner && !canSelfManageSchedule;
 
   if (branches.length === 0) {
@@ -40,17 +39,15 @@ export function ScheduleTab({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Schedule lock toggle — owner only */}
       {isOwner && (
         <div className="bg-default-50 border-divider flex items-center justify-between rounded-xl border px-4 py-3">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">
-              {t("staff.allowSelfManage")}
-            </span>
-            <span className="text-default-400 text-xs">
+          <div>
+            <p className="text-sm font-medium">{t("staff.allowSelfManage")}</p>
+            <p className="text-default-400 mt-0.5 text-xs">
               {t("staff.allowSelfManageDesc")}
-            </span>
+            </p>
           </div>
           <Switch
             isSelected={canSelfManageSchedule}
@@ -66,7 +63,7 @@ export function ScheduleTab({
         </div>
       )}
 
-      {/* Locked banner for doctor */}
+      {/* Locked banner */}
       {!isOwner && !canSelfManageSchedule && (
         <div className="border-warning/30 bg-warning/10 text-warning flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium">
           <Lock className="h-4 w-4 shrink-0" />
@@ -97,10 +94,12 @@ export function ScheduleTab({
       {activeBranchId && (
         <>
           {/* Working days */}
-          <Section
-            title={t("staff.workingDays")}
-            action={
-              !readOnly ? (
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">
+                {t("staff.workingDays")}
+              </h3>
+              {!readOnly && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -109,20 +108,24 @@ export function ScheduleTab({
                   <Pencil className="h-3.5 w-3.5" />
                   {t("common.edit")}
                 </Button>
-              ) : undefined
-            }
-          >
+              )}
+            </div>
             <WorkingDaysList staffId={staffId} branchId={activeBranchId} />
-          </Section>
+          </div>
+
+          <div className="border-divider border-t" />
 
           {/* Visit types */}
-          <Section title={t("staff.visitTypes")}>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold">
+              {t("staff.visitTypes")}
+            </h3>
             <VisitTypesEditor
               staffId={staffId}
               branchId={activeBranchId}
               readOnly={readOnly}
             />
-          </Section>
+          </div>
         </>
       )}
 
@@ -141,26 +144,6 @@ export function ScheduleTab({
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-divider rounded-xl border">
-      <div className="border-divider flex items-center justify-between border-b px-4 py-3">
-        <span className="text-sm font-semibold">{title}</span>
-        {action}
-      </div>
-      <div className="p-4">{children}</div>
     </div>
   );
 }

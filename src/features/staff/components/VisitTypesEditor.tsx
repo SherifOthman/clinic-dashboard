@@ -1,4 +1,11 @@
-import { Button, Label, NumberField, Switch, TextField } from "@heroui/react";
+import {
+  Button,
+  Input,
+  Label,
+  NumberField,
+  Switch,
+  TextField,
+} from "@heroui/react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -70,7 +77,7 @@ export function VisitTypesEditor({
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="bg-default-100 h-14 animate-pulse rounded-xl"
+            className="bg-default-100 h-12 animate-pulse rounded-lg"
           />
         ))}
       </div>
@@ -78,76 +85,71 @@ export function VisitTypesEditor({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Visit type rows */}
-      {visitTypes.length === 0 && !form ? (
-        <p className="text-default-400 text-sm">{t("staff.noVisitTypes")}</p>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {visitTypes.map((vt) => (
-            <div
-              key={vt.id}
-              className={`bg-default-50 border-divider flex items-center gap-3 rounded-xl border px-4 py-3 ${!vt.isActive ? "opacity-50" : ""}`}
-            >
-              {/* Names */}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm leading-tight font-medium">{vt.nameAr}</p>
-                <p className="text-default-400 text-xs">{vt.nameEn}</p>
-              </div>
-              {/* Price */}
-              <span
-                className="text-accent shrink-0 text-sm font-semibold"
-                dir="ltr"
+    <div className="flex flex-col gap-2">
+      {/* Existing visit types */}
+      {visitTypes.map((vt) => (
+        <div
+          key={vt.id}
+          className={`border-divider flex items-center gap-3 rounded-lg border px-3 py-2.5 ${!vt.isActive ? "opacity-50" : ""}`}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm leading-tight font-medium">{vt.nameAr}</p>
+            <p className="text-default-400 text-xs">{vt.nameEn}</p>
+          </div>
+          <span
+            className="text-accent shrink-0 text-sm font-semibold tabular-nums"
+            dir="ltr"
+          >
+            {vt.price.toLocaleString()}
+          </span>
+          {!readOnly && (
+            <div className="flex shrink-0 gap-0.5">
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                aria-label={t("common.edit")}
+                onPress={() => openEdit(vt)}
               >
-                {vt.price.toLocaleString()}
-              </span>
-              {/* Actions */}
-              {!readOnly && (
-                <div className="flex shrink-0 gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    isIconOnly
-                    aria-label={t("common.edit")}
-                    onPress={() => openEdit(vt)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    color="danger"
-                    isIconOnly
-                    aria-label={t("common.delete")}
-                    isDisabled={remove.isPending}
-                    onPress={() => remove.mutate(vt.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )}
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                color="danger"
+                isIconOnly
+                aria-label={t("common.delete")}
+                isDisabled={remove.isPending}
+                onPress={() => remove.mutate(vt.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
-          ))}
+          )}
         </div>
+      ))}
+
+      {visitTypes.length === 0 && !form && (
+        <p className="text-default-400 text-sm">{t("staff.noVisitTypes")}</p>
       )}
 
-      {/* Inline form */}
+      {/* Inline add/edit form */}
       {form && (
-        <div className="border-accent-soft-hover bg-accent/5 flex flex-col gap-3 rounded-xl border p-4">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="border-accent-soft-hover bg-accent/5 mt-1 flex flex-col gap-3 rounded-lg border p-3">
+          <div className="grid grid-cols-2 gap-2">
             <TextField
               value={form.nameAr}
               onChange={(v) => setForm((f) => f && { ...f, nameAr: v })}
             >
-              <Label>{t("staff.visitTypeNameAr")}</Label>
-              <TextField.Input placeholder="كشف" dir="rtl" />
+              <Label className="text-xs">{t("staff.visitTypeNameAr")}</Label>
+              <Input placeholder="كشف" dir="rtl" variant="secondary" />
             </TextField>
             <TextField
               value={form.nameEn}
               onChange={(v) => setForm((f) => f && { ...f, nameEn: v })}
             >
-              <Label>{t("staff.visitTypeNameEn")}</Label>
-              <TextField.Input placeholder="Consultation" dir="ltr" />
+              <Label className="text-xs">{t("staff.visitTypeNameEn")}</Label>
+              <Input placeholder="Consultation" dir="ltr" variant="secondary" />
             </TextField>
           </div>
 
@@ -157,8 +159,9 @@ export function VisitTypesEditor({
               onChange={(v) => setForm((f) => f && { ...f, price: v ?? 0 })}
               minValue={0}
               className="flex-1"
+              variant="secondary"
             >
-              <Label>{t("staff.visitTypePrice")}</Label>
+              <Label className="text-xs">{t("staff.visitTypePrice")}</Label>
               <NumberField.Group>
                 <NumberField.DecrementButton />
                 <NumberField.Input />
@@ -166,21 +169,20 @@ export function VisitTypesEditor({
               </NumberField.Group>
             </NumberField>
 
-            <div className="flex items-center gap-2 pb-1">
-              <Switch
-                isSelected={form.isActive}
-                onChange={(v) => setForm((f) => f && { ...f, isActive: v })}
-                size="sm"
-                aria-label={t("common.status.active")}
-              >
-                <Switch.Control>
-                  <Switch.Thumb />
-                </Switch.Control>
-                <Switch.Content>
-                  <Label className="text-sm">{t("common.status.active")}</Label>
-                </Switch.Content>
-              </Switch>
-            </div>
+            <Switch
+              isSelected={form.isActive}
+              onChange={(v) => setForm((f) => f && { ...f, isActive: v })}
+              size="sm"
+              className="mb-0.5"
+              aria-label={t("common.status.active")}
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <Label className="text-xs">{t("common.status.active")}</Label>
+              </Switch.Content>
+            </Switch>
           </div>
 
           <div className="flex justify-end gap-2">
@@ -207,10 +209,10 @@ export function VisitTypesEditor({
         <Button
           variant="ghost"
           size="sm"
-          className="self-start"
+          className="mt-1 self-start"
           onPress={openAdd}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
           {t("staff.addVisitType")}
         </Button>
       )}
