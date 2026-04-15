@@ -6,6 +6,7 @@ import {
   FieldError,
   Label,
   ListBox,
+  SearchField,
   useFilter,
 } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
