@@ -131,6 +131,7 @@ export function StaffDetailDialog({
                   canSelfManageSchedule={
                     data.doctorProfile?.canSelfManageSchedule ?? true
                   }
+                  compact
                 />
               </Tabs.Panel>
             </Tabs>

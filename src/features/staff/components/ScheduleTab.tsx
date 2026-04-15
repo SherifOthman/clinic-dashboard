@@ -1,26 +1,31 @@
-import { Card, Switch } from "@heroui/react";
-import { Lock } from "lucide-react";
+import { Button, Card, Modal, Switch } from "@heroui/react";
+import { Lock, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBranches } from "../../branches/branchesHooks";
 import { useSetScheduleLock, useWorkingDays } from "../staffHooks";
 import { VisitTypesEditor } from "./VisitTypesEditor";
 import { WorkingDaysEditor } from "./WorkingDaysEditor";
+import { WorkingDaysList } from "./WorkingDaysList";
 
 interface ScheduleTabProps {
   staffId: string;
   isOwner: boolean;
   canSelfManageSchedule: boolean;
+  /** compact = inside a narrow dialog; default = full page with two columns */
+  compact?: boolean;
 }
 
 export function ScheduleTab({
   staffId,
   isOwner,
   canSelfManageSchedule,
+  compact = false,
 }: ScheduleTabProps) {
   const { t } = useTranslation();
   const { data: branches = [], isLoading: branchesLoading } = useBranches();
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const setLock = useSetScheduleLock();
 
   const activeBranchId = selectedBranchId ?? branches[0]?.id ?? null;
@@ -32,7 +37,7 @@ export function ScheduleTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Top row: lock toggle (owner) or locked banner (doctor) */}
+      {/* Lock toggle — owner only */}
       {isOwner && (
         <Card>
           <Card.Content className="py-3">
@@ -63,6 +68,7 @@ export function ScheduleTab({
         </Card>
       )}
 
+      {/* Locked banner */}
       {!isOwner && !canSelfManageSchedule && (
         <div className="border-warning/30 bg-warning/10 text-warning flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium">
           <Lock className="h-4 w-4 shrink-0" />
@@ -99,44 +105,100 @@ export function ScheduleTab({
         )}
       </div>
 
-      {/* Two-column layout: working days | visit types */}
-      {activeBranchId && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {/* Working days — inline editor */}
-          <Card>
-            <Card.Header>
-              <Card.Title className="text-base">
-                {t("staff.workingDays")}
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="pt-0">
+      {activeBranchId &&
+        (compact ? (
+          /* ── Compact (dialog): single column, working days via modal ── */
+          <div className="flex flex-col gap-4">
+            <Card>
+              <Card.Header className="pb-2">
+                <div className="flex w-full items-center justify-between">
+                  <Card.Title className="text-sm">
+                    {t("staff.workingDays")}
+                  </Card.Title>
+                  {!readOnly && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onPress={() => setIsEditOpen(true)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      {t("common.edit")}
+                    </Button>
+                  )}
+                </div>
+              </Card.Header>
+              <Card.Content className="pt-0">
+                <WorkingDaysList staffId={staffId} branchId={activeBranchId} />
+              </Card.Content>
+            </Card>
+
+            <Card>
+              <Card.Header className="pb-2">
+                <Card.Title className="text-sm">
+                  {t("staff.visitTypes")}
+                </Card.Title>
+              </Card.Header>
+              <Card.Content className="pt-0">
+                <VisitTypesEditor
+                  staffId={staffId}
+                  branchId={activeBranchId}
+                  readOnly={readOnly}
+                />
+              </Card.Content>
+            </Card>
+          </div>
+        ) : (
+          /* ── Full page: two columns, working days inline ── */
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Card>
+              <Card.Header>
+                <Card.Title className="text-base">
+                  {t("staff.workingDays")}
+                </Card.Title>
+              </Card.Header>
+              <Card.Content className="pt-0">
+                <WorkingDaysEditor
+                  staffId={staffId}
+                  branchId={activeBranchId}
+                  initialData={workingDays}
+                  inline
+                  readOnly={readOnly}
+                />
+              </Card.Content>
+            </Card>
+
+            <Card>
+              <Card.Header>
+                <Card.Title className="text-base">
+                  {t("staff.visitTypes")}
+                </Card.Title>
+              </Card.Header>
+              <Card.Content className="pt-0">
+                <VisitTypesEditor
+                  staffId={staffId}
+                  branchId={activeBranchId}
+                  readOnly={readOnly}
+                />
+              </Card.Content>
+            </Card>
+          </div>
+        ))}
+
+      {/* Working days modal — compact mode only */}
+      <Modal.Backdrop isOpen={isEditOpen} onOpenChange={setIsEditOpen}>
+        <Modal.Container size="sm">
+          <Modal.Dialog>
+            {({ close }) => (
               <WorkingDaysEditor
                 staffId={staffId}
-                branchId={activeBranchId}
+                branchId={activeBranchId!}
                 initialData={workingDays}
-                inline
-                readOnly={readOnly}
+                onClose={close}
               />
-            </Card.Content>
-          </Card>
-
-          {/* Visit types */}
-          <Card>
-            <Card.Header>
-              <Card.Title className="text-base">
-                {t("staff.visitTypes")}
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="pt-0">
-              <VisitTypesEditor
-                staffId={staffId}
-                branchId={activeBranchId}
-                readOnly={readOnly}
-              />
-            </Card.Content>
-          </Card>
-        </div>
-      )}
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </div>
   );
 }
