@@ -16,6 +16,7 @@ export interface User {
   specializationNameEn?: string;
   specializationNameAr?: string;
   gender: string;
+  staffId?: string;
 }
 
 export interface LoginResponse {

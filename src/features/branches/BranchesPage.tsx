@@ -236,8 +236,8 @@ function BranchFormDialog({
             </div>
           </FormSection>
 
-          {/* Location + Phones side by side on larger screens */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* Location + Phones stacked for full width */}
+          <div className="flex flex-col gap-4">
             <FormSection
               icon={<MapPin className="h-4 w-4" />}
               title={t("common.fields.address")}
@@ -249,12 +249,17 @@ function BranchFormDialog({
               />
             </FormSection>
 
-            <FormSection
-              icon={<Phone className="h-4 w-4" />}
-              title={t("common.fields.phoneNumber")}
-            >
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-accent">
+                  <Phone className="h-4 w-4" />
+                </span>
+                <p className="text-foreground text-sm font-semibold">
+                  {t("common.fields.phoneNumber")}
+                </p>
+              </div>
               <PhoneNumbersInput form={form} name="phoneNumbers" maxItems={3} />
-            </FormSection>
+            </div>
           </div>
 
           <div className="border-divider flex justify-end gap-2 border-t pt-4">

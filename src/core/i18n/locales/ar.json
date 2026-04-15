@@ -130,6 +130,10 @@
     "branchCreatedSuccessfully": "تم إنشاء الفرع بنجاح",
     "branchUpdatedSuccessfully": "تم تحديث الفرع بنجاح",
     "branchStatusUpdated": "تم تحديث حالة الفرع",
+    "visitTypeSaved": "تم حفظ نوع الزيارة",
+    "visitTypeRemoved": "تم حذف نوع الزيارة",
+    "scheduleLocked": "تم قفل الجدول — لا يمكن للطبيب إدارته بنفسه",
+    "scheduleUnlocked": "تم فتح الجدول — يمكن للطبيب إدارته بنفسه",
     "workingDaysSaved": "تم حفظ أيام العمل بنجاح"
   },
   "navigation": {
@@ -281,7 +285,8 @@
     "editBranch": "تعديل الفرع",
     "branchInfo": "معلومات الفرع",
     "main": "رئيسي",
-    "addressLine": "العنوان"
+    "addressLine": "العنوان",
+    "noBranches": "لا توجد فروع متاحة"
   },
   "patients": {
     "title": "المرضى",
@@ -413,6 +418,9 @@
   "profile": {
     "title": "الملف الشخصي",
     "subtitle": "إدارة معلومات حسابك وتفضيلاتك",
+    "tabs": "تبويبات الملف الشخصي",
+    "tabProfile": "الملف الشخصي",
+    "tabSchedule": "جدولي",
     "personalInfo": "المعلومات الشخصية",
     "accountSettings": "إعدادات الحساب",
     "changePassword": "تغيير كلمة المرور",
@@ -500,6 +508,20 @@
     "editWorkingDays": "تعديل أيام العمل",
     "noWorkingDays": "لم يتم تحديد أيام عمل",
     "dayOff": "يوم إجازة",
+    "visitTypes": "أنواع الزيارات",
+    "noVisitTypes": "لم تتم إضافة أنواع زيارات بعد",
+    "addVisitType": "إضافة نوع زيارة",
+    "visitTypeNameAr": "الاسم (عربي)",
+    "visitTypeNameEn": "الاسم (إنجليزي)",
+    "visitTypePrice": "السعر",
+    "maxAppointments": "الحد اليومي",
+    "allowSelfManage": "السماح للطبيب بإدارة جدوله",
+    "allowSelfManageDesc": "عند التعطيل، يمكن لمالك العيادة فقط تعديل جدول الطبيب وأنواع زياراته",
+    "scheduleLockedByOwner": "جدولك يُدار من قِبل مالك العيادة",
+    "tabInfo": "المعلومات",
+    "tabSchedule": "الجدول",
+    "tabs": "تبويبات الموظفين",
+    "noSchedule": "لا يوجد جدول متاح",
     "lastUpdated": "آخر تحديث",
     "noStaff": "لا يوجد موظفون",
     "noInvitations": "لا توجد دعوات",
@@ -676,6 +698,7 @@
     "enterPhoneNumber": "أدخل رقم الهاتف"
   },
   "forms": {
+    "save": "حفظ",
     "saveChanges": "حفظ التغييرات",
     "emailCannotBeChanged": "لا يمكن تغيير البريد الإلكتروني"
   },

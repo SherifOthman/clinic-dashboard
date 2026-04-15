@@ -90,15 +90,23 @@ function LocationAutocomplete({
         <Autocomplete.ClearButton />
         <Autocomplete.Indicator />
       </Autocomplete.Trigger>
-      <Autocomplete.Popover>
+      <Autocomplete.Popover className="!pt-0">
         <Autocomplete.Filter filter={contains}>
-          <SearchField variant="secondary">
-            <SearchField.Group>
-              <SearchField.SearchIcon className="ms-3" />
-              <SearchField.Input placeholder={t("common.search")} dir={dir} />
-              <SearchField.ClearButton />
-            </SearchField.Group>
-          </SearchField>
+          <div className="bg-overlay border-divider sticky top-0 z-10 -mx-2 border-b px-2 pt-2 pb-1">
+            <SearchField variant="secondary">
+              <SearchField.Group>
+                <SearchField.SearchIcon className="ms-3" />
+                <SearchField.Input
+                  placeholder={t("common.search")}
+                  dir={dir}
+                  onFocus={(e) =>
+                    (e.target as HTMLElement).focus({ preventScroll: true })
+                  }
+                />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+          </div>
           <ListBox
             renderEmptyState={() =>
               loadError ? (

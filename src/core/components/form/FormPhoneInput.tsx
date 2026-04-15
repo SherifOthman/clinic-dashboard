@@ -54,7 +54,7 @@ export function FormPhoneInput({
   const isArabic = i18n.language === "ar";
   const { contains } = useFilter({ sensitivity: "base" });
 
-  // Initialize from value prop once — use a ref to track the last external value
+  // Initialize from value prop once ï¿½ use a ref to track the last external value
   // so we only re-sync when the form resets (value changes to something different
   // from what we'd emit ourselves)
   const lastEmitted = useRef<string>("");
@@ -64,7 +64,7 @@ export function FormPhoneInput({
   const [localNumber, setLocalNumber] = useState(initial.local);
 
   // Only sync inward when value changes externally (form reset / edit load)
-  // — not when we caused the change ourselves
+  // ï¿½ not when we caused the change ourselves
   if (value !== undefined && value !== lastEmitted.current) {
     const s = parseE164(value);
     if (s.iso2 !== iso2 || s.local !== localNumber) {
@@ -137,16 +137,26 @@ export function FormPhoneInput({
             </Autocomplete.Indicator>
           </Autocomplete.Trigger>
 
-          <Autocomplete.Popover dir={isArabic ? "rtl" : "ltr"}>
+          <Autocomplete.Popover
+            dir={isArabic ? "rtl" : "ltr"}
+            className="!pt-0"
+          >
             <Autocomplete.Filter filter={contains}>
-              <SearchField>
-                <SearchField.Group>
-                  <SearchField.SearchIcon>
-                    <Search />
-                  </SearchField.SearchIcon>
-                  <SearchField.Input placeholder={t("common.search")} />
-                </SearchField.Group>
-              </SearchField>
+              <div className="bg-overlay sticky top-0 z-10 -mx-2 px-2 pt-2 pb-1">
+                <SearchField>
+                  <SearchField.Group>
+                    <SearchField.SearchIcon>
+                      <Search />
+                    </SearchField.SearchIcon>
+                    <SearchField.Input
+                      placeholder={t("common.search")}
+                      onFocus={(e) =>
+                        (e.target as HTMLElement).focus({ preventScroll: true })
+                      }
+                    />
+                  </SearchField.Group>
+                </SearchField>
+              </div>
               <ListBox className="max-h-60">
                 {defaultCountries.map((c) => {
                   const cd = parseCountry(c);
@@ -175,7 +185,7 @@ export function FormPhoneInput({
           </Autocomplete.Popover>
         </Autocomplete>
 
-        {/* Local number — digits only, no country code */}
+        {/* Local number ï¿½ digits only, no country code */}
         <Input
           type="tel"
           inputMode="numeric"
@@ -196,4 +206,3 @@ export function FormPhoneInput({
     </TextField>
   );
 }
-

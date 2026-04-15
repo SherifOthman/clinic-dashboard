@@ -33,6 +33,7 @@ export interface DoctorDetailDto {
   doctorProfileId: string;
   specializationNameEn: string;
   specializationNameAr: string;
+  canSelfManageSchedule: boolean;
 }
 
 // List DTO — minimal joins

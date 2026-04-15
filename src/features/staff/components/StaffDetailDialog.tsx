@@ -5,13 +5,12 @@ import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { getFileUrl } from "@/core/utils/fileUtils";
 import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { getGenderImageSrc } from "@/core/utils/patientImageUtils";
-import { Avatar, Chip } from "@heroui/react";
+import { useMe } from "@/features/auth/hooks";
+import { Avatar, Chip, Tabs } from "@heroui/react";
 import { Briefcase, Calendar, Mail, Phone } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useBranches } from "../../branches/branchesHooks";
 import { useStaffDetail } from "../staffHooks";
-import { WorkingDaysDisplay } from "./WorkingDaysDisplay";
+import { ScheduleTab } from "./ScheduleTab";
 
 const ROLE_COLORS: Record<string, "accent" | "success" | "default"> = {
   Doctor: "accent",
@@ -32,19 +31,13 @@ export function StaffDetailDialog({
   const isRTL = i18n.language === "ar";
   const { formatDateShort } = useDateFormat();
   const { data, isLoading } = useStaffDetail(staffId);
-  const { data: branches = [] } = useBranches();
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const { user } = useMe();
+  const isOwner = user?.roles.includes("ClinicOwner") ?? false;
 
   const isDoctor = !!data?.doctorProfile;
-  // Default to first branch when data loads
-  const activeBranchId = selectedBranchId ?? branches[0]?.id ?? null;
 
   return (
-    <Dialog
-      isOpen={!!staffId}
-      onClose={onClose}
-      size={isDoctor && branches.length > 0 ? "lg" : "md"}
-    >
+    <Dialog isOpen={!!staffId} onClose={onClose} size={isDoctor ? "lg" : "md"}>
       {isLoading ? (
         <Loading className="h-48" />
       ) : data ? (
@@ -106,87 +99,103 @@ export function StaffDetailDialog({
 
           <div className="border-divider border-t" />
 
-          {/* ── Body: contact left, working days right (doctors only) ── */}
-          <div
-            className={`grid grid-cols-1 gap-6 ${isDoctor && branches.length > 0 ? "sm:grid-cols-2 sm:gap-8" : ""}`}
-          >
-            {/* Contact info */}
-            <div className="divide-divider divide-y">
-              {data.email && (
-                <InfoRow
-                  icon={<Mail className="h-4 w-4" />}
-                  label={t("common.fields.email")}
-                >
-                  {data.email}
-                </InfoRow>
-              )}
-              {data.phoneNumber && (
-                <InfoRow
-                  icon={<Phone className="h-4 w-4" />}
-                  label={t("common.fields.phoneNumber")}
-                  dir="ltr"
-                >
-                  {data.phoneNumber}
-                </InfoRow>
-              )}
-              <InfoRow
-                icon={<Calendar className="h-4 w-4" />}
-                label={t("staff.joinDate")}
-              >
-                <span dir="ltr">{formatDateShort(data.joinDate)}</span>
-              </InfoRow>
-              {data.doctorProfile && (
-                <InfoRow
-                  icon={<Briefcase className="text-warning h-4 w-4" />}
-                  label={t("common.fields.specialization")}
-                >
-                  {getLocalizedValue(
-                    isRTL,
-                    data.doctorProfile.specializationNameAr,
-                    data.doctorProfile.specializationNameEn,
-                  )}
-                </InfoRow>
-              )}
-            </div>
+          {/* ── Tabs for doctors, plain info for non-doctors ── */}
+          {isDoctor && staffId ? (
+            <Tabs defaultSelectedKey="info">
+              <Tabs.ListContainer>
+                <Tabs.List aria-label={t("staff.tabs")}>
+                  <Tabs.Tab id="info">
+                    {t("staff.tabInfo")}
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab id="schedule">
+                    {t("staff.tabSchedule")}
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
 
-            {/* Working days per branch */}
-            {isDoctor && staffId && branches.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <p className="text-foreground text-sm font-semibold">
-                  {t("staff.workingDays")}
-                </p>
+              <Tabs.Panel id="info" className="pt-2">
+                <ContactInfo
+                  data={data}
+                  isRTL={isRTL}
+                  t={t}
+                  formatDateShort={formatDateShort}
+                />
+              </Tabs.Panel>
 
-                {/* Branch tabs */}
-                {branches.length > 1 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {branches.map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => setSelectedBranchId(b.id)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                          activeBranchId === b.id
-                            ? "bg-accent text-white"
-                            : "bg-default text-muted hover:text-foreground"
-                        }`}
-                      >
-                        {b.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {activeBranchId && (
-                  <WorkingDaysDisplay
-                    staffId={staffId}
-                    branchId={activeBranchId}
-                  />
-                )}
-              </div>
-            )}
-          </div>
+              <Tabs.Panel id="schedule" className="pt-2">
+                <ScheduleTab
+                  staffId={staffId}
+                  isOwner={isOwner}
+                  canSelfManageSchedule={
+                    data.doctorProfile?.canSelfManageSchedule ?? true
+                  }
+                />
+              </Tabs.Panel>
+            </Tabs>
+          ) : (
+            <ContactInfo
+              data={data}
+              isRTL={isRTL}
+              t={t}
+              formatDateShort={formatDateShort}
+            />
+          )}
         </div>
       ) : null}
     </Dialog>
+  );
+}
+
+function ContactInfo({
+  data,
+  isRTL,
+  t,
+  formatDateShort,
+}: {
+  data: NonNullable<ReturnType<typeof useStaffDetail>["data"]>;
+  isRTL: boolean;
+  t: (key: string) => string;
+  formatDateShort: (date: string) => string;
+}) {
+  return (
+    <div className="divide-divider divide-y">
+      {data.email && (
+        <InfoRow
+          icon={<Mail className="h-4 w-4" />}
+          label={t("common.fields.email")}
+        >
+          {data.email}
+        </InfoRow>
+      )}
+      {data.phoneNumber && (
+        <InfoRow
+          icon={<Phone className="h-4 w-4" />}
+          label={t("common.fields.phoneNumber")}
+          dir="ltr"
+        >
+          {data.phoneNumber}
+        </InfoRow>
+      )}
+      <InfoRow
+        icon={<Calendar className="h-4 w-4" />}
+        label={t("staff.joinDate")}
+      >
+        <span dir="ltr">{formatDateShort(data.joinDate)}</span>
+      </InfoRow>
+      {data.doctorProfile && (
+        <InfoRow
+          icon={<Briefcase className="text-warning h-4 w-4" />}
+          label={t("common.fields.specialization")}
+        >
+          {getLocalizedValue(
+            isRTL,
+            data.doctorProfile.specializationNameAr,
+            data.doctorProfile.specializationNameEn,
+          )}
+        </InfoRow>
+      )}
+    </div>
   );
 }

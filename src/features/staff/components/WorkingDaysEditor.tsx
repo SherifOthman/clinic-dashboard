@@ -1,4 +1,12 @@
-import { Button, Chip, Label, Modal, Switch, TimeField } from "@heroui/react";
+import {
+  Button,
+  Chip,
+  Label,
+  Modal,
+  NumberField,
+  Switch,
+  TimeField,
+} from "@heroui/react";
 import { Time, parseTime } from "@internationalized/date";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +34,7 @@ interface WorkingDaysEditorProps {
     startTime: string;
     endTime: string;
     isAvailable: boolean;
+    maxAppointmentsPerDay?: number | null;
   }[];
   onClose: () => void;
 }
@@ -49,12 +58,14 @@ export function WorkingDaysEditor({
             startTime: existing.startTime,
             endTime: existing.endTime,
             isAvailable: existing.isAvailable,
+            maxAppointmentsPerDay: existing.maxAppointmentsPerDay ?? null,
           }
         : {
             day: d,
             startTime: DEFAULT_START,
             endTime: DEFAULT_END,
             isAvailable: false,
+            maxAppointmentsPerDay: null,
           };
     });
 
@@ -81,6 +92,13 @@ export function WorkingDaysEditor({
       ),
     );
   };
+
+  const setMax = (day: number, val: number | undefined) =>
+    setSchedule((prev) =>
+      prev.map((s) =>
+        s.day === day ? { ...s, maxAppointmentsPerDay: val ?? null } : s,
+      ),
+    );
 
   const handleSave = async () => {
     await save.mutateAsync(schedule);
@@ -134,34 +152,52 @@ export function WorkingDaysEditor({
             </div>
 
             {s.isAvailable && (
-              <div className="flex items-center gap-2 ps-9" dir="ltr">
-                <TimeField
-                  value={parseTime(s.startTime)}
-                  onChange={(time) => setTime(s.day, "startTime", time)}
-                  aria-label={`${dayLabel(s.day, locale)} start`}
-                  granularity="minute"
-                  hourCycle={12}
+              <div className="flex flex-wrap items-center gap-3 ps-9">
+                <div className="flex items-center gap-2" dir="ltr">
+                  <TimeField
+                    value={parseTime(s.startTime)}
+                    onChange={(time) => setTime(s.day, "startTime", time)}
+                    aria-label={`${dayLabel(s.day, locale)} start`}
+                    granularity="minute"
+                    hourCycle={12}
+                  >
+                    <TimeField.Group>
+                      <TimeField.Input>
+                        {(seg) => <TimeField.Segment segment={seg} />}
+                      </TimeField.Input>
+                    </TimeField.Group>
+                  </TimeField>
+                  <span className="text-default-400 text-sm">—</span>
+                  <TimeField
+                    value={parseTime(s.endTime)}
+                    onChange={(time) => setTime(s.day, "endTime", time)}
+                    aria-label={`${dayLabel(s.day, locale)} end`}
+                    granularity="minute"
+                    hourCycle={12}
+                  >
+                    <TimeField.Group>
+                      <TimeField.Input>
+                        {(seg) => <TimeField.Segment segment={seg} />}
+                      </TimeField.Input>
+                    </TimeField.Group>
+                  </TimeField>
+                </div>
+                <NumberField
+                  value={s.maxAppointmentsPerDay ?? undefined}
+                  onChange={(v) => setMax(s.day, v)}
+                  minValue={1}
+                  className="w-36"
+                  aria-label={t("staff.maxAppointments")}
                 >
-                  <TimeField.Group>
-                    <TimeField.Input>
-                      {(seg) => <TimeField.Segment segment={seg} />}
-                    </TimeField.Input>
-                  </TimeField.Group>
-                </TimeField>
-                <span className="text-default-400 text-sm">—</span>
-                <TimeField
-                  value={parseTime(s.endTime)}
-                  onChange={(time) => setTime(s.day, "endTime", time)}
-                  aria-label={`${dayLabel(s.day, locale)} end`}
-                  granularity="minute"
-                  hourCycle={12}
-                >
-                  <TimeField.Group>
-                    <TimeField.Input>
-                      {(seg) => <TimeField.Segment segment={seg} />}
-                    </TimeField.Input>
-                  </TimeField.Group>
-                </TimeField>
+                  <Label className="text-xs">
+                    {t("staff.maxAppointments")}
+                  </Label>
+                  <NumberField.Group>
+                    <NumberField.DecrementButton />
+                    <NumberField.Input />
+                    <NumberField.IncrementButton />
+                  </NumberField.Group>
+                </NumberField>
               </div>
             )}
           </div>

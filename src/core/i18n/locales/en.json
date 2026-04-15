@@ -130,6 +130,10 @@
     "branchCreatedSuccessfully": "Branch created successfully",
     "branchUpdatedSuccessfully": "Branch updated successfully",
     "branchStatusUpdated": "Branch status updated",
+    "visitTypeSaved": "Visit type saved",
+    "visitTypeRemoved": "Visit type removed",
+    "scheduleLocked": "Schedule locked — doctor can no longer self-manage",
+    "scheduleUnlocked": "Schedule unlocked — doctor can now self-manage",
     "workingDaysSaved": "Working days saved successfully"
   },
   "navigation": {
@@ -281,7 +285,8 @@
     "editBranch": "Edit Branch",
     "branchInfo": "Branch Information",
     "main": "Main",
-    "addressLine": "Address"
+    "addressLine": "Address",
+    "noBranches": "No branches available"
   },
   "patients": {
     "title": "Patients",
@@ -402,6 +407,9 @@
   "profile": {
     "title": "Profile",
     "subtitle": "Manage your account information and preferences",
+    "tabs": "Profile tabs",
+    "tabProfile": "Profile",
+    "tabSchedule": "My Schedule",
     "personalInfo": "Personal Information",
     "emailStatus": "Email Status",
     "verified": "Verified",
@@ -469,6 +477,20 @@
     "editWorkingDays": "Edit Working Days",
     "noWorkingDays": "No working days set",
     "dayOff": "Day Off",
+    "visitTypes": "Visit Types",
+    "noVisitTypes": "No visit types added yet",
+    "addVisitType": "Add Visit Type",
+    "visitTypeNameAr": "Name (Arabic)",
+    "visitTypeNameEn": "Name (English)",
+    "visitTypePrice": "Price",
+    "maxAppointments": "Max / day",
+    "allowSelfManage": "Allow doctor to self-manage schedule",
+    "allowSelfManageDesc": "When disabled, only the clinic owner can edit this doctor's schedule and visit types",
+    "scheduleLockedByOwner": "Your schedule is managed by the clinic owner",
+    "tabInfo": "Info",
+    "tabSchedule": "Schedule",
+    "tabs": "Staff tabs",
+    "noSchedule": "No schedule available",
     "noStaff": "No staff members found",
     "noInvitations": "No invitations found",
     "invitedBy": "Invited By",
@@ -627,6 +649,7 @@
     "enterPhoneNumber": "Enter phone number"
   },
   "forms": {
+    "save": "Save",
     "saveChanges": "Save Changes",
     "emailCannotBeChanged": "Email cannot be changed"
   },

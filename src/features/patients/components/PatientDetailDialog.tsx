@@ -174,15 +174,6 @@ export function PatientDetailDialog({
             </InfoRow>
 
             {/* col 2 */}
-            <InfoRow
-              icon={<CalendarPlus className="h-3.5 w-3.5" />}
-              label={t("patients.age")}
-              className="border-divider border-b"
-            >
-              {formatDetailedAge(calculateDetailedAge(data.dateOfBirth), isRTL)}
-            </InfoRow>
-
-            {/* col 1 */}
             {locationParts.length > 0 && (
               <InfoRow
                 icon={<MapPin className="h-3.5 w-3.5" />}
@@ -193,17 +184,13 @@ export function PatientDetailDialog({
               </InfoRow>
             )}
 
-            {/* col 2 */}
+            {/* col 1 */}
             <InfoRow
               icon={<CalendarPlus className="h-3.5 w-3.5" />}
-              label={t("patients.registeredAt")}
+              label={t("patients.age")}
+              className="border-divider border-b"
             >
-              <span className="flex gap-3">
-                <span>{formatDateShort(data.createdAt)}</span>
-                <span className="text-accent text-xs">
-                  {formatTimeOnly(data.createdAt)}
-                </span>
-              </span>
+              {formatDetailedAge(calculateDetailedAge(data.dateOfBirth), isRTL)}
             </InfoRow>
           </div>
 

@@ -21,6 +21,7 @@ export interface WorkingDayDto {
   endTime: string;
   isAvailable: boolean;
   branchId: string;
+  maxAppointmentsPerDay?: number | null;
 }
 
 export interface WorkingDayInput {
@@ -28,6 +29,24 @@ export interface WorkingDayInput {
   startTime: string;
   endTime: string;
   isAvailable: boolean;
+  maxAppointmentsPerDay?: number | null;
+}
+
+export interface DoctorVisitTypeDto {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  price: number;
+  isActive: boolean;
+}
+
+export interface UpsertDoctorVisitTypeRequest {
+  branchId: string;
+  visitTypeId?: string | null;
+  nameAr: string;
+  nameEn: string;
+  price: number;
+  isActive: boolean;
 }
 
 // Public client for unauthenticated endpoints
@@ -158,6 +177,46 @@ export const staffApi = {
       branchId,
       staffId,
       days,
+    });
+  },
+
+  getVisitTypes: async (
+    staffId: string,
+    branchId: string,
+  ): Promise<DoctorVisitTypeDto[]> => {
+    const res = await apiClient.get<DoctorVisitTypeDto[]>(
+      `${API_ENDPOINTS.staff}/${staffId}/visit-types`,
+      { params: { branchId } },
+    );
+    return res.data;
+  },
+
+  upsertVisitType: async (
+    staffId: string,
+    data: UpsertDoctorVisitTypeRequest,
+  ): Promise<string> => {
+    const res = await apiClient.put<string>(
+      `${API_ENDPOINTS.staff}/${staffId}/visit-types`,
+      data,
+    );
+    return res.data;
+  },
+
+  removeVisitType: async (
+    staffId: string,
+    visitTypeId: string,
+  ): Promise<void> => {
+    await apiClient.delete(
+      `${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`,
+    );
+  },
+
+  setScheduleLock: async (
+    staffId: string,
+    canSelfManage: boolean,
+  ): Promise<void> => {
+    await apiClient.patch(`${API_ENDPOINTS.staff}/${staffId}/schedule-lock`, {
+      canSelfManage,
     });
   },
 };

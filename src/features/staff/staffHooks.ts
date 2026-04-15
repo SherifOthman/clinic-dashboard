@@ -172,3 +172,54 @@ export function useSaveWorkingDays(staffId: string, branchId: string) {
     invalidateKeys: [["staff", "working-days", staffId]],
   });
 }
+
+export function useVisitTypes(staffId: string | null, branchId: string | null) {
+  return useQuery({
+    queryKey: ["staff", "visit-types", staffId, branchId],
+    queryFn: () => staffApi.getVisitTypes(staffId!, branchId!),
+    enabled: !!staffId && !!branchId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUpsertVisitType(staffId: string) {
+  return useMutationWithToast<
+    string,
+    import("./staffApi").UpsertDoctorVisitTypeRequest
+  >({
+    mutationFn: (data) => staffApi.upsertVisitType(staffId, data),
+    successMessage: "toast.visitTypeSaved",
+    invalidateKeys: [["staff", "visit-types", staffId]],
+  });
+}
+
+export function useRemoveVisitType(staffId: string) {
+  return useMutationWithToast<void, string>({
+    mutationFn: (visitTypeId) => staffApi.removeVisitType(staffId, visitTypeId),
+    successMessage: "toast.visitTypeRemoved",
+    invalidateKeys: [["staff", "visit-types", staffId]],
+  });
+}
+
+export function useSetScheduleLock() {
+  const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      canSelfManage,
+    }: {
+      staffId: string;
+      canSelfManage: boolean;
+    }) => staffApi.setScheduleLock(staffId, canSelfManage),
+    onSuccess: (_, { canSelfManage }) => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      showSuccess(
+        canSelfManage ? "toast.scheduleUnlocked" : "toast.scheduleLocked",
+      );
+    },
+    onError: createErrorHandler(showError, t),
+  });
+}
