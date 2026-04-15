@@ -91,6 +91,18 @@ function LocationAutocomplete({
       </Autocomplete.Trigger>
       <Autocomplete.Popover>
         <Autocomplete.Filter filter={contains}>
+          <SearchField
+            autoFocus
+            name="search"
+            variant="secondary"
+            className="sticky top-0 z-10"
+          >
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input placeholder={t("common.search")} dir={dir} />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
           <ListBox
             renderEmptyState={() =>
               loadError ? (
