@@ -235,7 +235,7 @@ export function PatientBasicInfo({ resetCount = 0 }: PatientBasicInfoProps) {
             <Select.Indicator />
           </Select.Trigger>
           <Select.Popover>
-            <ListBox dir={isAr ? "rtl" : "ltr"}>
+            <ListBox dir="ltr">
               {BLOOD_TYPES.map((bt) => (
                 <ListBox.Item key={bt} id={bt} textValue={bt}>
                   {bt}

@@ -109,7 +109,7 @@ function LocationAutocomplete({
                 <EmptyState>{t("common.noResults")}</EmptyState>
               )
             }
-            dir={dir}
+            dir="ltr"
           >
             {items.map((item) => (
               <ListBox.Item

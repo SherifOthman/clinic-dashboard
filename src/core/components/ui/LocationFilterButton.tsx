@@ -200,6 +200,7 @@ export function LocationFilterButton({
                                 if (key) handleSelect(key, close);
                               }}
                               className="grid grid-cols-2 gap-0"
+                              dir="ltr"
                             >
                               {filtered.map((item) => (
                                 <ListBox.Item

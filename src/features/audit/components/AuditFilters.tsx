@@ -95,7 +95,7 @@ export function AuditFilters({
             <Select.Indicator />
           </Select.Trigger>
           <Select.Popover>
-            <ListBox dir={isRTL ? "rtl" : "ltr"}>
+            <ListBox dir="ltr">
               <ListBox.Item id="" textValue={t("audit.allEntities")}>
                 {t("audit.allEntities")}
                 <ListBox.ItemIndicator />
@@ -122,7 +122,7 @@ export function AuditFilters({
             <Select.Indicator />
           </Select.Trigger>
           <Select.Popover>
-            <ListBox dir={isRTL ? "rtl" : "ltr"}>
+            <ListBox dir="ltr">
               <ListBox.Item id="" textValue={t("audit.allActions")}>
                 {t("audit.allActions")}
                 <ListBox.ItemIndicator />

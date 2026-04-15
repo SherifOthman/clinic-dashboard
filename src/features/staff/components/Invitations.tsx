@@ -64,7 +64,7 @@ export function Invitations() {
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
-              <ListBox dir={isRTL ? "rtl" : "ltr"}>
+              <ListBox dir="ltr">
                 <ListBox.Item id="" textValue={t("staff.allStatuses")}>
                   {t("staff.allStatuses")}
                   <ListBox.ItemIndicator />
@@ -104,7 +104,7 @@ export function Invitations() {
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
-              <ListBox dir={isRTL ? "rtl" : "ltr"}>
+              <ListBox dir="ltr">
                 <ListBox.Item id="" textValue={t("staff.allRoles")}>
                   {t("staff.allRoles")}
                   <ListBox.ItemIndicator />

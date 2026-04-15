@@ -106,7 +106,7 @@ export function PatientsList({
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
-              <ListBox dir={isRTL ? "rtl" : "ltr"}>
+              <ListBox dir="ltr">
                 <ListBox.Item id="all" textValue={t("patients.allGenders")}>
                   {t("patients.allGenders")}
                   <ListBox.ItemIndicator />
