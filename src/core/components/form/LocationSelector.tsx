@@ -118,14 +118,16 @@ function LocationAutocomplete({
               )
             }
             dir="ltr"
+            className="overflow-x-hidden"
           >
             {items.map((item) => (
               <ListBox.Item
                 key={item.geonameId}
                 id={item.geonameId.toString()}
                 textValue={item.name}
+                className="truncate"
               >
-                {item.name}
+                <span className="truncate">{item.name}</span>
                 <ListBox.ItemIndicator />
               </ListBox.Item>
             ))}

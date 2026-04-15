@@ -23,7 +23,6 @@ export function WorkingDaysList({
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "ar" ? "ar-EG" : "en-GB";
   const { data, isLoading } = useWorkingDays(staffId, branchId);
-
   const activeDays = data?.filter((d) => d.isAvailable) ?? [];
 
   if (isLoading) {
@@ -53,16 +52,9 @@ export function WorkingDaysList({
           className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0"
         >
           <span className="text-sm font-medium">{dayLabel(d.day, locale)}</span>
-          <div className="flex items-center gap-3" dir="ltr">
-            <span className="text-default-500 text-xs">
-              {formatTime12h(d.startTime)} — {formatTime12h(d.endTime)}
-            </span>
-            {d.maxAppointmentsPerDay != null && (
-              <span className="bg-default-100 text-default-500 rounded-md px-2 py-0.5 text-xs">
-                {d.maxAppointmentsPerDay} {t("staff.maxAppointments")}
-              </span>
-            )}
-          </div>
+          <span className="text-default-500 text-xs" dir="ltr">
+            {formatTime12h(d.startTime)} — {formatTime12h(d.endTime)}
+          </span>
         </div>
       ))}
     </div>

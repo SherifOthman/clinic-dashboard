@@ -21,7 +21,6 @@ export interface WorkingDayDto {
   endTime: string;
   isAvailable: boolean;
   branchId: string;
-  maxAppointmentsPerDay?: number | null;
 }
 
 export interface WorkingDayInput {
@@ -29,7 +28,6 @@ export interface WorkingDayInput {
   startTime: string;
   endTime: string;
   isAvailable: boolean;
-  maxAppointmentsPerDay?: number | null;
 }
 
 export interface DoctorVisitTypeDto {
