@@ -6,7 +6,6 @@ import {
   FieldError,
   Label,
   ListBox,
-  SearchField,
   useFilter,
 } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
@@ -90,23 +89,8 @@ function LocationAutocomplete({
         <Autocomplete.ClearButton />
         <Autocomplete.Indicator />
       </Autocomplete.Trigger>
-      <Autocomplete.Popover className="!pt-0">
+      <Autocomplete.Popover>
         <Autocomplete.Filter filter={contains}>
-          <div className="bg-overlay border-divider sticky top-0 z-10 -mx-2 border-b px-2 pt-2 pb-1">
-            <SearchField variant="secondary">
-              <SearchField.Group>
-                <SearchField.SearchIcon className="ms-3" />
-                <SearchField.Input
-                  placeholder={t("common.search")}
-                  dir={dir}
-                  onFocus={(e) =>
-                    (e.target as HTMLElement).focus({ preventScroll: true })
-                  }
-                />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
-          </div>
           <ListBox
             renderEmptyState={() =>
               loadError ? (
@@ -118,16 +102,14 @@ function LocationAutocomplete({
               )
             }
             dir="ltr"
-            className="overflow-x-hidden"
           >
             {items.map((item) => (
               <ListBox.Item
                 key={item.geonameId}
                 id={item.geonameId.toString()}
                 textValue={item.name}
-                className="truncate"
               >
-                <span className="truncate">{item.name}</span>
+                {item.name}
                 <ListBox.ItemIndicator />
               </ListBox.Item>
             ))}
