@@ -27,13 +27,18 @@ interface WorkingDaysEditorProps {
     endTime: string;
     isAvailable: boolean;
   }[];
-  onClose: () => void;
+  /** When true, renders inline (no modal shell). When false/undefined, renders inside a Modal. */
+  inline?: boolean;
+  readOnly?: boolean;
+  onClose?: () => void;
 }
 
 export function WorkingDaysEditor({
   staffId,
   branchId,
   initialData,
+  inline = false,
+  readOnly = false,
   onClose,
 }: WorkingDaysEditorProps) {
   const { t, i18n } = useTranslation();
@@ -59,15 +64,19 @@ export function WorkingDaysEditor({
     });
 
   const [schedule, setSchedule] = useState<WorkingDayInput[]>(buildSchedule);
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     setSchedule(buildSchedule());
+    setDirty(false);
   }, [initialData]);
 
-  const toggle = (day: number, val: boolean) =>
+  const toggle = (day: number, val: boolean) => {
     setSchedule((prev) =>
       prev.map((s) => (s.day === day ? { ...s, isAvailable: val } : s)),
     );
+    setDirty(true);
+  };
 
   const setTime = (
     day: number,
@@ -80,93 +89,118 @@ export function WorkingDaysEditor({
         s.day === day ? { ...s, [field]: timeToString(time) } : s,
       ),
     );
+    setDirty(true);
   };
 
   const handleSave = async () => {
     await save.mutateAsync(schedule);
-    onClose();
+    setDirty(false);
+    onClose?.();
   };
 
+  const body = (
+    <div className="flex flex-col gap-1.5">
+      {schedule.map((s) => (
+        <div
+          key={s.day}
+          className={`flex flex-col gap-1.5 rounded-lg px-3 py-2 transition-colors ${
+            s.isAvailable ? "bg-accent/5" : "bg-default-50"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Switch
+              isSelected={s.isAvailable}
+              onChange={(val) => toggle(s.day, val)}
+              size="sm"
+              isDisabled={readOnly}
+              aria-label={dayLabel(s.day, locale)}
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>
+                <Label
+                  className={`text-sm font-medium ${s.isAvailable ? "" : "text-default-400"}`}
+                >
+                  {dayLabel(s.day, locale)}
+                </Label>
+              </Switch.Content>
+            </Switch>
+            {!s.isAvailable && (
+              <Chip
+                size="sm"
+                variant="soft"
+                color="default"
+                className="text-default-400 ms-auto"
+              >
+                {t("staff.dayOff")}
+              </Chip>
+            )}
+          </div>
+
+          {s.isAvailable && (
+            <div className="flex items-center gap-2 ps-8" dir="ltr">
+              <TimeField
+                value={parseTime(s.startTime)}
+                onChange={(time) => setTime(s.day, "startTime", time)}
+                aria-label={`${dayLabel(s.day, locale)} start`}
+                granularity="minute"
+                hourCycle={12}
+                isDisabled={readOnly}
+              >
+                <TimeField.Group>
+                  <TimeField.Input>
+                    {(seg) => <TimeField.Segment segment={seg} />}
+                  </TimeField.Input>
+                </TimeField.Group>
+              </TimeField>
+              <span className="text-default-400 text-sm">—</span>
+              <TimeField
+                value={parseTime(s.endTime)}
+                onChange={(time) => setTime(s.day, "endTime", time)}
+                aria-label={`${dayLabel(s.day, locale)} end`}
+                granularity="minute"
+                hourCycle={12}
+                isDisabled={readOnly}
+              >
+                <TimeField.Group>
+                  <TimeField.Input>
+                    {(seg) => <TimeField.Segment segment={seg} />}
+                  </TimeField.Input>
+                </TimeField.Group>
+              </TimeField>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {!readOnly && (
+        <div className="mt-2 flex justify-end">
+          <Button
+            variant="primary"
+            size="sm"
+            isPending={save.isPending}
+            isDisabled={save.isPending || !dirty}
+            onPress={handleSave}
+          >
+            {t("forms.saveChanges")}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  // Inline mode: just render the body directly
+  if (inline) return body;
+
+  // Modal mode: wrap in modal shell
   return (
     <>
       <Modal.CloseTrigger />
       <Modal.Header>
         <Modal.Heading>{t("staff.editWorkingDays")}</Modal.Heading>
       </Modal.Header>
-      <Modal.Body className="flex flex-col gap-2">
-        {schedule.map((s) => (
-          <div
-            key={s.day}
-            className={`flex flex-col gap-2 rounded-lg border p-3 transition-colors ${
-              s.isAvailable
-                ? "border-accent-soft-hover bg-accent/5"
-                : "border-divider"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Switch
-                isSelected={s.isAvailable}
-                onChange={(val) => toggle(s.day, val)}
-                size="sm"
-                aria-label={dayLabel(s.day, locale)}
-              >
-                <Switch.Control>
-                  <Switch.Thumb />
-                </Switch.Control>
-                <Switch.Content>
-                  <Label
-                    className={`text-sm font-medium ${s.isAvailable ? "" : "text-default-400"}`}
-                  >
-                    {dayLabel(s.day, locale)}
-                  </Label>
-                </Switch.Content>
-              </Switch>
-              {!s.isAvailable && (
-                <Chip
-                  size="sm"
-                  variant="soft"
-                  color="default"
-                  className="text-default-400 ms-auto"
-                >
-                  {t("staff.dayOff")}
-                </Chip>
-              )}
-            </div>
-
-            {s.isAvailable && (
-              <div className="flex items-center gap-2 ps-9" dir="ltr">
-                <TimeField
-                  value={parseTime(s.startTime)}
-                  onChange={(time) => setTime(s.day, "startTime", time)}
-                  aria-label={`${dayLabel(s.day, locale)} start`}
-                  granularity="minute"
-                  hourCycle={12}
-                >
-                  <TimeField.Group>
-                    <TimeField.Input>
-                      {(seg) => <TimeField.Segment segment={seg} />}
-                    </TimeField.Input>
-                  </TimeField.Group>
-                </TimeField>
-                <span className="text-default-400 text-sm">—</span>
-                <TimeField
-                  value={parseTime(s.endTime)}
-                  onChange={(time) => setTime(s.day, "endTime", time)}
-                  aria-label={`${dayLabel(s.day, locale)} end`}
-                  granularity="minute"
-                  hourCycle={12}
-                >
-                  <TimeField.Group>
-                    <TimeField.Input>
-                      {(seg) => <TimeField.Segment segment={seg} />}
-                    </TimeField.Input>
-                  </TimeField.Group>
-                </TimeField>
-              </div>
-            )}
-          </div>
-        ))}
-      </Modal.Body>
+      <Modal.Body className="flex flex-col gap-2">{body}</Modal.Body>
       <Modal.Footer>
         <Button variant="ghost" slot="close">
           {t("common.cancel")}
