@@ -64,11 +64,13 @@ function DoctorProfilePage({
       </Tabs.Panel>
 
       <Tabs.Panel id="schedule" className="pt-6">
-        <ScheduleTab
-          staffId={staffId}
-          isOwner={false}
-          canSelfManageSchedule={canSelfManage}
-        />
+        <div className="max-w-xl">
+          <ScheduleTab
+            staffId={staffId}
+            isOwner={false}
+            canSelfManageSchedule={canSelfManage}
+          />
+        </div>
       </Tabs.Panel>
     </Tabs>
   );
