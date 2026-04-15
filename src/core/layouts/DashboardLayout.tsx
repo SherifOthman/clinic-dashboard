@@ -30,7 +30,7 @@ export function DashboardLayout() {
       {/* Desktop Sidebar */}
       {!isMobile && (
         <div
-          className="border-divider bg-surface shrink-0 overflow-auto border-r transition-all duration-300"
+          className="border-divider bg-surface shrink-0 overflow-auto border-e transition-all duration-300"
           style={{ width: sidebarWidth }}
         >
           <Sidebar

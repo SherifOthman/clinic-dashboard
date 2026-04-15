@@ -113,12 +113,14 @@ export function WorkingDaysEditor({
                 <Switch.Control>
                   <Switch.Thumb />
                 </Switch.Control>
+                <Switch.Content>
+                  <Label
+                    className={`text-sm font-medium ${s.isAvailable ? "" : "text-default-400"}`}
+                  >
+                    {dayLabel(s.day, locale)}
+                  </Label>
+                </Switch.Content>
               </Switch>
-              <Label
-                className={`text-sm font-medium ${s.isAvailable ? "" : "text-default-400"}`}
-              >
-                {dayLabel(s.day, locale)}
-              </Label>
               {!s.isAvailable && (
                 <Chip
                   size="sm"

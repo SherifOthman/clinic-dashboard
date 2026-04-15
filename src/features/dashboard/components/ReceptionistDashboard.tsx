@@ -7,7 +7,7 @@ export function ReceptionistDashboard() {
 
   return (
     <Card className="p-12 text-center">
-      <div className="flex flex-col items-center gap-4">
+      <Card.Content className="flex flex-col items-center gap-4">
         <div className="bg-default-100 flex h-16 w-16 items-center justify-center rounded-full">
           <Clock className="text-default-400 h-8 w-8" />
         </div>
@@ -15,8 +15,7 @@ export function ReceptionistDashboard() {
         <p className="text-default-500 max-w-sm text-sm">
           {t("dashboard.receptionistComingSoon")}
         </p>
-      </div>
+      </Card.Content>
     </Card>
   );
 }
-

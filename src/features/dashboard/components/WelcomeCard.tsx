@@ -6,12 +6,13 @@ export function WelcomeCard() {
 
   return (
     <Card className="p-12 text-center">
-      <div className="text-6xl mb-4">🏥</div>
-      <h2 className="text-2xl font-semibold mb-2">
-        {t("dashboard.comingSoon")}
-      </h2>
-      <p className="text-default-600">{t("dashboard.featuresImplemented")}</p>
+      <Card.Content>
+        <div className="mb-4 text-6xl">🏥</div>
+        <h2 className="mb-2 text-2xl font-semibold">
+          {t("dashboard.comingSoon")}
+        </h2>
+        <p className="text-default-600">{t("dashboard.featuresImplemented")}</p>
+      </Card.Content>
     </Card>
   );
 }
-

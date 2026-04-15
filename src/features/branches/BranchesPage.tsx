@@ -103,7 +103,7 @@ function BranchCard({
   return (
     <Card
       className="cursor-pointer transition-shadow hover:shadow-md"
-      onClick={onView}
+      render={(props) => <button {...props} type="button" onClick={onView} />}
     >
       <Card.Content className="p-5">
         <div className="flex items-start justify-between gap-3">

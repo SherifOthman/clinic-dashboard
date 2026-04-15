@@ -70,8 +70,8 @@ export function Sidebar({
                     collapsed ? "justify-center" : ""
                   } ${
                     isActive
-                      ? "bg-accent text-accent-foreground font-semibold"
-                      : "text-foreground hover:bg-default-100"
+                      ? "bg-surface-tertiary text-foreground font-semibold"
+                      : "text-muted hover:bg-surface-secondary hover:text-foreground"
                   }`
                 }
               >
@@ -102,4 +102,3 @@ export function Sidebar({
     </div>
   );
 }
-

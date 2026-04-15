@@ -59,9 +59,7 @@ export function ChangePasswordForm() {
               isPending={changePassword.isPending}
             >
               <Lock className="h-4 w-4" />
-              {changePassword.isPending
-                ? "Loading..."
-                : t("auth.changePassword.changePassword")}
+              {t("auth.changePassword.changePassword")}
             </Button>
           </div>
         </form>

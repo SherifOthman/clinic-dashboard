@@ -117,9 +117,7 @@ export function InviteStaffModal({ trigger }: InviteStaffModalProps) {
                 isPending={inviteStaff.isPending}
                 isDisabled={inviteStaff.isPending}
               >
-                {inviteStaff.isPending
-                  ? t("staff.invite.sending")
-                  : t("staff.invite.send")}
+                {t("staff.invite.send")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

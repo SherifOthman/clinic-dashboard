@@ -86,7 +86,7 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
             </Dropdown.Item>
           </Dropdown.Section>
 
-          <Separator />
+          <Separator variant="default" />
 
           {/* Actions Section */}
           <Dropdown.Section>

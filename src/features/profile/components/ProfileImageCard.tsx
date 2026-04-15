@@ -55,9 +55,7 @@ export function ProfileImageCard({ user }: ProfileImageCardProps) {
           isPending={updateProfileImage.isPending}
         >
           <Camera className="h-4 w-4" />
-          {updateProfileImage.isPending
-            ? "Loading..."
-            : t("profile.changePhoto")}
+          {t("profile.changePhoto")}
         </Button>
 
         {user.profileImageUrl && <DeleteProfileImageButton />}
@@ -94,7 +92,7 @@ function DeleteProfileImageButton() {
         isDisabled={deleteProfileImage.isPending}
         className="text-danger"
       >
-        {deleteProfileImage.isPending ? "Loading..." : t("profile.deletePhoto")}
+        {t("profile.deletePhoto")}
       </Button>
 
       <ConfirmDialog

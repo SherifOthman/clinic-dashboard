@@ -105,7 +105,7 @@ export function LocationFilterButton({
         onClick={openModal}
         className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ${
           value
-            ? "bg-accent text-white"
+            ? "bg-accent/15 text-accent border-accent/30 border"
             : "border-input bg-background hover:bg-surface-secondary border"
         }`}
       >
@@ -118,7 +118,7 @@ export function LocationFilterButton({
               e.stopPropagation();
               onChange(null);
             }}
-            className="hover:bg-accent/60 ms-0.5 flex h-4 w-4 items-center justify-center rounded-full"
+            className="hover:bg-accent/20 ms-0.5 flex h-4 w-4 items-center justify-center rounded-full"
           >
             <X className="h-2.5 w-2.5" />
           </span>
