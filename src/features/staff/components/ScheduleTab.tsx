@@ -71,34 +71,32 @@ export function ScheduleTab({
       )}
 
       {/* Branch selector */}
-      <div>
-        <p className="text-default-500 mb-2 text-xs font-medium tracking-wider uppercase">
-          {t("branches.title")}
-        </p>
-        <div className="bg-default flex flex-wrap gap-1 rounded-xl p-1">
-          {branchesLoading ? (
-            <div className="bg-default-200 h-9 w-32 animate-pulse rounded-lg" />
-          ) : branches.length === 0 ? (
-            <span className="text-default-400 px-3 py-2 text-sm">
-              {t("branches.noBranches")}
-            </span>
-          ) : (
-            branches.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => setSelectedBranchId(b.id)}
-                className={`rounded-lg px-5 py-2 text-sm font-semibold transition-all ${
-                  activeBranchId === b.id
-                    ? "text-foreground dark:bg-overlay bg-white shadow-sm"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {b.name}
-              </button>
-            ))
-          )}
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-default-500 text-sm font-medium">
+          {t("branches.title")}:
+        </span>
+        {branchesLoading ? (
+          <div className="bg-default-100 h-7 w-28 animate-pulse rounded-lg" />
+        ) : branches.length === 0 ? (
+          <span className="text-default-400 text-sm">
+            {t("branches.noBranches")}
+          </span>
+        ) : (
+          branches.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => setSelectedBranchId(b.id)}
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
+                activeBranchId === b.id
+                  ? "bg-accent text-white shadow-sm"
+                  : "bg-default text-muted hover:text-foreground"
+              }`}
+            >
+              {b.name}
+            </button>
+          ))
+        )}
       </div>
 
       {/* Two-column layout: working days | visit types */}
