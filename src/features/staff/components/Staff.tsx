@@ -25,6 +25,12 @@ export function Staff() {
 
   const { data, isLoading } = useStaffList(staffState);
 
+  // Filter out the clinic owner (current user) from the staff list —
+  // they already know they're the owner, no need to see themselves here.
+  const filteredItems =
+    data?.items.filter((s) => !s.roles.some((r) => r.name === "ClinicOwner")) ??
+    [];
+
   const toggleActive = useSetStaffActiveStatus();
 
   const handleToggleActive = (staff: StaffDto) => {
@@ -134,7 +140,7 @@ export function Staff() {
       <DataTable
         key={i18n.language}
         columns={columns}
-        data={data?.items ?? []}
+        data={filteredItems}
         keyExtractor={(item) => item.id}
         isLoading={isLoading}
         emptyMessage={t("staff.noStaff")}
