@@ -174,7 +174,7 @@ export function WorkingDaysEditor({
         </div>
       ))}
 
-      {!readOnly && !inline && (
+      {!readOnly && inline && (
         <div className="mt-2 flex justify-end">
           <Button
             variant="primary"
