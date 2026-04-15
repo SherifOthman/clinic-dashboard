@@ -67,6 +67,7 @@ export function PatientBasicInfo({ resetCount = 0 }: PatientBasicInfoProps) {
         label={t("patients.fullName")}
         isRequired
         noNumbers
+        autoFocus
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

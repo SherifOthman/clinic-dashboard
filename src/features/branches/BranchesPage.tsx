@@ -224,6 +224,7 @@ function BranchFormDialog({
                 control={control}
                 label={t("common.fields.name")}
                 isRequired
+                autoFocus
               />
               <FormInputField
                 name="addressLine"

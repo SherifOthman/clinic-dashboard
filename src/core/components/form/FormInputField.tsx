@@ -16,6 +16,7 @@ interface FormInputFieldProps<T extends FieldValues> {
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
 }
 
 /**
@@ -37,6 +38,7 @@ export function FormInputField<T extends FieldValues>({
   type,
   placeholder,
   disabled,
+  autoFocus,
 }: FormInputFieldProps<T>) {
   return (
     <Controller
@@ -52,6 +54,7 @@ export function FormInputField<T extends FieldValues>({
           type={type}
           placeholder={placeholder}
           disabled={disabled}
+          autoFocus={autoFocus}
         />
       )}
     />
