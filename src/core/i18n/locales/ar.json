@@ -286,7 +286,8 @@
     "branchInfo": "معلومات الفرع",
     "main": "رئيسي",
     "addressLine": "العنوان",
-    "noBranches": "لا توجد فروع متاحة"
+    "noBranches": "لا توجد فروع متاحة",
+    "loadError": "فشل تحميل الفروع"
   },
   "patients": {
     "title": "المرضى",

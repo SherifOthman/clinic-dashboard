@@ -286,7 +286,8 @@
     "branchInfo": "Branch Information",
     "main": "Main",
     "addressLine": "Address",
-    "noBranches": "No branches available"
+    "noBranches": "No branches available",
+    "loadError": "Failed to load branches"
   },
   "patients": {
     "title": "Patients",

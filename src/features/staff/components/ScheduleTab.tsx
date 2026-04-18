@@ -23,7 +23,11 @@ export function ScheduleTab({
   compact = false,
 }: ScheduleTabProps) {
   const { t } = useTranslation();
-  const { data: branches = [], isLoading: branchesLoading } = useBranches();
+  const {
+    data: branches = [],
+    isLoading: branchesLoading,
+    isError: branchesError,
+  } = useBranches();
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const setLock = useSetScheduleLock();
@@ -83,6 +87,8 @@ export function ScheduleTab({
         </span>
         {branchesLoading ? (
           <div className="bg-default-100 h-7 w-28 animate-pulse rounded-lg" />
+        ) : branchesError ? (
+          <span className="text-danger text-sm">{t("branches.loadError")}</span>
         ) : branches.length === 0 ? (
           <span className="text-default-400 text-sm">
             {t("branches.noBranches")}

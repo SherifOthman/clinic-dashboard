@@ -88,7 +88,13 @@ apiClient.interceptors.response.use(
     }
 
     if (status === 403) {
-      redirectToUnauthorized();
+      // Only redirect to /unauthorized for page-level navigation requests,
+      // not for background data fetches (which should fail gracefully in the component)
+      const url = originalRequest.url ?? "";
+      const isPageLevelRequest = url.includes("/auth/me");
+      if (isPageLevelRequest) {
+        redirectToUnauthorized();
+      }
     }
 
     return Promise.reject(error);
