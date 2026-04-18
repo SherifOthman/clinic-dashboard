@@ -23,6 +23,8 @@ export interface PatientListItem {
 export interface PatientDetail {
   id: string;
   patientCode: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
   dateOfBirth: string;
   gender: string;
@@ -64,7 +66,8 @@ export interface PatientsSearchParams extends BaseSearchParams {
 
 /** Single request shape for both create and update. */
 export interface PatientApiRequest {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   dateOfBirth: string;
   gender: string;
   countryGeonameId?: number;

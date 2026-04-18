@@ -6,15 +6,18 @@ import { z } from "zod";
 export const createPatientSchema = (t: TFunction) => {
   const v = createValidators(t);
 
+  const nameField = z
+    .string()
+    .min(1, t("validation.required"))
+    .max(100, t("validation.maxLength", { max: 100 }))
+    .regex(
+      /^[\u0600-\u06FFa-zA-Z\s'\-\.]+$/,
+      t("validation.nameInvalidCharacters"),
+    );
+
   return z.object({
-    fullName: z
-      .string()
-      .min(1, t("validation.required"))
-      .max(200, t("validation.maxLength", { max: 200 }))
-      .regex(
-        /^[\u0600-\u06FFa-zA-Z\s'\-\.]+$/,
-        t("validation.nameInvalidCharacters"),
-      ),
+    firstName: nameField,
+    lastName: nameField,
 
     dateOfBirth: z
       .string()
@@ -38,7 +41,6 @@ export const createPatientSchema = (t: TFunction) => {
     stateGeonameId: z.number().int().nullable().optional(),
     cityGeonameId: z.number().int().nullable().optional(),
 
-    // Phone numbers are optional — empty entries are ignored on submit
     phoneNumbers: z
       .array(
         z
