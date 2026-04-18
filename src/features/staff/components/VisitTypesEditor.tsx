@@ -116,11 +116,11 @@ export function VisitTypesEditor({
               <Button
                 size="sm"
                 variant="ghost"
-                color="danger"
                 isIconOnly
                 aria-label={t("common.delete")}
                 isDisabled={remove.isPending}
                 onPress={() => remove.mutate(vt.id)}
+                className="text-danger hover:bg-danger/10"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
