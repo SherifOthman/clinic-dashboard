@@ -334,7 +334,8 @@
     "filterByClinic": "Search by clinic name or ID",
     "clinic": "Clinic",
     "personalInfo": "Personal Information",
-    "contactInfo": "Contact Information"
+    "contactInfo": "Contact Information",
+    "noPatients": "No patients yet"
   },
   "userMenu": {
     "profileSettings": "Profile Settings",

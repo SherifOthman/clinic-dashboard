@@ -334,7 +334,8 @@
     "filterByClinic": "البحث باسم العيادة أو المعرف",
     "clinic": "العيادة",
     "personalInfo": "المعلومات الشخصية",
-    "contactInfo": "معلومات التواصل"
+    "contactInfo": "معلومات التواصل",
+    "noPatients": "لا يوجد مرضى حتي الان"
   },
   "userMenu": {
     "profileSettings": "إعدادات الملف الشخصي",
