@@ -34,8 +34,8 @@ import { GenderChip } from "./GenderChip";
 interface PatientDetailDialogProps {
   patientId: string | null;
   onClose: () => void;
-  onEdit: (patientId: string) => void;
-  onDelete: (patientId: string, patientName: string) => void;
+  onEdit?: (patientId: string) => void;
+  onDelete?: (patientId: string, patientName: string) => void;
   isSuperAdmin?: boolean;
 }
 
@@ -60,8 +60,8 @@ export function PatientDetailDialog({
     isAr ? data?.countryNameAr : data?.countryNameEn,
   ].filter(Boolean);
 
-  const showEdit = canEditPatient(user);
-  const showDelete = canDeletePatient(user);
+  const showEdit = canEditPatient(user) && !!onEdit;
+  const showDelete = canDeletePatient(user) && !!onDelete;
   const showAudit = canViewAuditTrail(user);
 
   const footer =
@@ -71,7 +71,7 @@ export function PatientDetailDialog({
           <Button
             variant="outline"
             size="sm"
-            onPress={() => onDelete(data.id, data.fullName)}
+            onPress={() => onDelete!(data.id, data.fullName)}
             className="text-danger border-danger/30 hover:bg-danger/10 flex-1"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -82,7 +82,7 @@ export function PatientDetailDialog({
           <Button
             variant="primary"
             size="sm"
-            onPress={() => onEdit(data.id)}
+            onPress={() => onEdit!(data.id)}
             className="flex-1"
           >
             <Edit className="h-3.5 w-3.5" />
