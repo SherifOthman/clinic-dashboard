@@ -1,9 +1,8 @@
-import { PERMISSIONS, type Permission } from "@/core/constants";
-import { Checkbox } from "@heroui/react";
+﻿import { PERMISSIONS, type Permission } from "@/core/constants";
+import { Chip } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { useGetPermissions, useSetPermissions } from "../staffHooks";
 
-// Permission groups for display
 const PERMISSION_GROUPS: { labelKey: string; permissions: Permission[] }[] = [
   {
     labelKey: "staff.permissions.groups.patients",
@@ -61,35 +60,41 @@ export function PermissionsTab({ staffId }: PermissionsTabProps) {
 
   if (isLoading) {
     return (
-      <div className="text-muted py-8 text-center text-sm">
+      <div className="text-muted py-6 text-center text-sm">
         {t("common.loading")}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5 py-2">
+    <div className="flex flex-col gap-4 py-1">
       {PERMISSION_GROUPS.map((group) => (
-        <div key={group.labelKey} className="flex flex-col gap-2">
-          <p className="text-muted text-xs font-semibold tracking-wide uppercase">
+        <div key={group.labelKey}>
+          <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
             {t(group.labelKey)}
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            {group.permissions.map((permission) => (
-              <Checkbox
-                key={permission}
-                isSelected={current.includes(permission)}
-                onPress={() => toggle(permission)}
-                isDisabled={isPending}
-              >
-                {t(`staff.permissions.${permission}`, {
-                  defaultValue: permission,
-                })}
-              </Checkbox>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {group.permissions.map((permission) => {
+              const active = current.includes(permission);
+              return (
+                <Chip
+                  key={permission}
+                  variant={active ? "primary" : "tertiary"}
+                  color={active ? "accent" : "default"}
+                  className={`cursor-pointer transition-opacity select-none ${isPending ? "pointer-events-none opacity-50" : ""}`}
+                  onClick={() => toggle(permission)}
+                >
+                  {t(`staff.permissions.${permission}`, {
+                    defaultValue: permission,
+                  })}
+                </Chip>
+              );
+            })}
           </div>
         </div>
       ))}
     </div>
   );
 }
+
+

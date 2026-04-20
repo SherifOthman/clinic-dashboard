@@ -524,6 +524,7 @@
     "tabSchedule": "الجدول",
     "tabPermissions": "الصلاحيات",
     "tabs": "تبويبات الموظفين",
+    "scheduleTabs": "تبويبات الجدول",
     "noSchedule": "لا يوجد جدول متاح",
     "permissions": {
       "ViewPatients": "عرض المرضى",

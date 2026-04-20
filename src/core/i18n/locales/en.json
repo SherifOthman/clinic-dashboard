@@ -493,6 +493,7 @@
     "tabSchedule": "Schedule",
     "tabPermissions": "Permissions",
     "tabs": "Staff tabs",
+    "scheduleTabs": "Schedule tabs",
     "noSchedule": "No schedule available",
     "permissions": {
       "ViewPatients": "View Patients",
