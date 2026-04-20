@@ -134,7 +134,8 @@
     "visitTypeRemoved": "تم حذف نوع الزيارة",
     "scheduleLocked": "تم قفل الجدول — لا يمكن للطبيب إدارته بنفسه",
     "scheduleUnlocked": "تم فتح الجدول — يمكن للطبيب إدارته بنفسه",
-    "workingDaysSaved": "تم حفظ أيام العمل بنجاح"
+    "workingDaysSaved": "تم حفظ أيام العمل بنجاح",
+    "permissionsUpdated": "تم تحديث الصلاحيات بنجاح"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",

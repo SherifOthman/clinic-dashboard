@@ -1,5 +1,5 @@
 ﻿import { PERMISSIONS, type Permission } from "@/core/constants";
-import { Chip } from "@heroui/react";
+import { Checkbox, Label } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { useGetPermissions, useSetPermissions } from "../staffHooks";
 
@@ -51,13 +51,6 @@ export function PermissionsTab({ staffId }: PermissionsTabProps) {
   const { data: current = [], isLoading } = useGetPermissions(staffId);
   const { mutate: setPermissions, isPending } = useSetPermissions(staffId);
 
-  const toggle = (permission: Permission) => {
-    const next = current.includes(permission)
-      ? current.filter((p) => p !== permission)
-      : [...current, permission];
-    setPermissions(next);
-  };
-
   if (isLoading) {
     return (
       <div className="text-muted py-6 text-center text-sm">
@@ -67,34 +60,41 @@ export function PermissionsTab({ staffId }: PermissionsTabProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 py-1">
+    <div className="flex flex-col gap-5 py-1">
       {PERMISSION_GROUPS.map((group) => (
         <div key={group.labelKey}>
           <p className="text-muted mb-2 text-xs font-semibold tracking-wide uppercase">
             {t(group.labelKey)}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {group.permissions.map((permission) => {
-              const active = current.includes(permission);
-              return (
-                <Chip
-                  key={permission}
-                  variant={active ? "primary" : "tertiary"}
-                  color={active ? "accent" : "default"}
-                  className={`cursor-pointer transition-opacity select-none ${isPending ? "pointer-events-none opacity-50" : ""}`}
-                  onClick={() => toggle(permission)}
-                >
-                  {t(`staff.permissions.${permission}`, {
-                    defaultValue: permission,
-                  })}
-                </Chip>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {group.permissions.map((permission) => (
+              <Checkbox
+                key={permission}
+                isSelected={current.includes(permission)}
+                onChange={(checked) => {
+                  const next = checked
+                    ? [...current, permission]
+                    : current.filter((p) => p !== permission);
+                  setPermissions(next);
+                }}
+                isDisabled={isPending}
+                variant="secondary"
+              >
+                <Checkbox.Control>
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+                <Checkbox.Content>
+                  <Label className="cursor-pointer text-sm">
+                    {t(`staff.permissions.${permission}`, {
+                      defaultValue: permission,
+                    })}
+                  </Label>
+                </Checkbox.Content>
+              </Checkbox>
+            ))}
           </div>
         </div>
       ))}
     </div>
   );
 }
-
-

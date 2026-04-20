@@ -134,7 +134,8 @@
     "visitTypeRemoved": "Visit type removed",
     "scheduleLocked": "Schedule locked — doctor can no longer self-manage",
     "scheduleUnlocked": "Schedule unlocked — doctor can now self-manage",
-    "workingDaysSaved": "Working days saved successfully"
+    "workingDaysSaved": "Working days saved successfully",
+    "permissionsUpdated": "Permissions updated successfully"
   },
   "navigation": {
     "dashboard": "Dashboard",
