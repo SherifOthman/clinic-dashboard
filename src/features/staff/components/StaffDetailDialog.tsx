@@ -10,6 +10,7 @@ import { Avatar, Chip, Tabs } from "@heroui/react";
 import { Briefcase, Calendar, Mail, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStaffDetail } from "../staffHooks";
+import { PermissionsTab } from "./PermissionsTab";
 import { ScheduleTab } from "./ScheduleTab";
 
 const ROLE_COLORS: Record<string, "accent" | "success" | "default"> = {
@@ -33,11 +34,17 @@ export function StaffDetailDialog({
   const { data, isLoading } = useStaffDetail(staffId);
   const { user } = useMe();
   const isOwner = user?.roles.includes("ClinicOwner") ?? false;
-
   const isDoctor = !!data?.doctorProfile;
+  // Owner can manage permissions for non-owner staff
+  const canManagePermissions =
+    isOwner && data && !data.roles.some((r) => r.name === "ClinicOwner");
 
   return (
-    <Dialog isOpen={!!staffId} onClose={onClose} size={isDoctor ? "lg" : "md"}>
+    <Dialog
+      isOpen={!!staffId}
+      onClose={onClose}
+      size={isDoctor || canManagePermissions ? "lg" : "md"}
+    >
       {isLoading ? (
         <Loading className="h-48" />
       ) : data ? (
@@ -99,8 +106,8 @@ export function StaffDetailDialog({
 
           <div className="border-divider border-t" />
 
-          {/* ── Tabs for doctors, plain info for non-doctors ── */}
-          {isDoctor && staffId ? (
+          {/* ── Tabs for doctors or when owner can manage permissions ── */}
+          {(isDoctor || canManagePermissions) && staffId ? (
             <Tabs defaultSelectedKey="info">
               <Tabs.ListContainer>
                 <Tabs.List aria-label={t("staff.tabs")}>
@@ -108,10 +115,18 @@ export function StaffDetailDialog({
                     {t("staff.tabInfo")}
                     <Tabs.Indicator />
                   </Tabs.Tab>
-                  <Tabs.Tab id="schedule">
-                    {t("staff.tabSchedule")}
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
+                  {isDoctor && (
+                    <Tabs.Tab id="schedule">
+                      {t("staff.tabSchedule")}
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  )}
+                  {canManagePermissions && (
+                    <Tabs.Tab id="permissions">
+                      {t("staff.tabPermissions")}
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  )}
                 </Tabs.List>
               </Tabs.ListContainer>
 
@@ -124,16 +139,24 @@ export function StaffDetailDialog({
                 />
               </Tabs.Panel>
 
-              <Tabs.Panel id="schedule" className="pt-2">
-                <ScheduleTab
-                  staffId={staffId}
-                  isOwner={isOwner}
-                  canSelfManageSchedule={
-                    data.doctorProfile?.canSelfManageSchedule ?? true
-                  }
-                  compact
-                />
-              </Tabs.Panel>
+              {isDoctor && (
+                <Tabs.Panel id="schedule" className="pt-2">
+                  <ScheduleTab
+                    staffId={staffId}
+                    isOwner={isOwner}
+                    canSelfManageSchedule={
+                      data.doctorProfile?.canSelfManageSchedule ?? true
+                    }
+                    compact
+                  />
+                </Tabs.Panel>
+              )}
+
+              {canManagePermissions && (
+                <Tabs.Panel id="permissions" className="pt-2">
+                  <PermissionsTab staffId={staffId} />
+                </Tabs.Panel>
+              )}
             </Tabs>
           ) : (
             <ContactInfo
