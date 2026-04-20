@@ -11,6 +11,7 @@ export interface User {
   phoneNumber?: string;
   profileImageUrl?: string;
   roles: string[];
+  permissions: string[];
   emailConfirmed: boolean;
   onboardingCompleted?: boolean;
   specializationNameEn?: string;

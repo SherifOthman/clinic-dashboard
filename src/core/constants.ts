@@ -44,6 +44,35 @@ export const USER_ROLES = {
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
 /**
+ * Permission constants — must match backend Permission enum exactly
+ */
+export const PERMISSIONS = {
+  // Patients
+  VIEW_PATIENTS: "ViewPatients",
+  CREATE_PATIENT: "CreatePatient",
+  EDIT_PATIENT: "EditPatient",
+  DELETE_PATIENT: "DeletePatient",
+  // Staff
+  VIEW_STAFF: "ViewStaff",
+  INVITE_STAFF: "InviteStaff",
+  MANAGE_STAFF_STATUS: "ManageStaffStatus",
+  // Branches
+  VIEW_BRANCHES: "ViewBranches",
+  MANAGE_BRANCHES: "ManageBranches",
+  // Schedule & Visit Types
+  MANAGE_SCHEDULE: "ManageSchedule",
+  MANAGE_VISIT_TYPES: "ManageVisitTypes",
+  // Appointments
+  VIEW_APPOINTMENTS: "ViewAppointments",
+  MANAGE_APPOINTMENTS: "ManageAppointments",
+  // Invoices
+  VIEW_INVOICES: "ViewInvoices",
+  MANAGE_INVOICES: "ManageInvoices",
+} as const;
+
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+
+/**
  * Route access configuration
  * Defines which roles can access which routes
  */

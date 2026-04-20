@@ -1,4 +1,5 @@
 import { tokenManager } from "@/core/api";
+import type { Permission } from "@/core/constants";
 import { useToast } from "@/core/hooks/useToast";
 import { createErrorHandler } from "@/core/utils/apiErrorHandler";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,6 +34,12 @@ export function useMe() {
     ...query,
     user: query.data,
     isAuthenticated: !!query.data,
+    /** Check if the current user has a specific permission */
+    hasPermission: (permission: Permission): boolean =>
+      query.data?.permissions?.includes(permission) ?? false,
+    /** Check if the current user has any of the given permissions */
+    hasAnyPermission: (...permissions: Permission[]): boolean =>
+      permissions.some((p) => query.data?.permissions?.includes(p) ?? false),
   };
 }
 
