@@ -3,6 +3,7 @@ import { InfoRow } from "@/core/components/ui/InfoRow";
 import { Loading } from "@/core/components/ui/Loading";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { getPatientImageSrc } from "@/core/utils/patientImageUtils";
+import { formatPatientCode } from "@/core/utils/patientUtils";
 import {
   canDeletePatient,
   canEditPatient,
@@ -123,7 +124,7 @@ export function PatientDetailDialog({
                 </h2>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <code className="bg-surface-secondary text-muted rounded px-1.5 py-0.5 text-xs tracking-widest">
-                    {data.patientCode}
+                    {formatPatientCode(data.patientCode)}
                   </code>
                   <GenderChip gender={data.gender} size="sm" />
                   {data.bloodType && (

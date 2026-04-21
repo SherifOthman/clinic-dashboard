@@ -7,6 +7,7 @@ export * from "./fileUtils";
 export * from "./formUtils";
 export * from "./i18nUtils";
 export * from "./patientImageUtils";
+export * from "./patientUtils";
 export * from "./permissions";
 export * from "./phoneFormat";
 export * from "./phoneValidation";

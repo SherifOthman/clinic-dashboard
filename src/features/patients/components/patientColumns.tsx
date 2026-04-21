@@ -1,5 +1,6 @@
 import type { Column } from "@/core/components/ui/DataTable";
 import { getPatientImageSrc } from "@/core/utils/patientImageUtils";
+import { formatPatientCode } from "@/core/utils/patientUtils";
 import { formatPhoneNational } from "@/core/utils/phoneFormat";
 import { Avatar, Chip } from "@heroui/react";
 import type { TFunction } from "i18next";
@@ -50,7 +51,9 @@ export function getPatientColumns({
               {patient.fullName}
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="text-muted text-xs">{patient.patientCode}</span>
+              <span className="text-muted text-xs">
+                {formatPatientCode(patient.patientCode)}
+              </span>
               {patient.bloodType && (
                 <Chip
                   size="sm"
