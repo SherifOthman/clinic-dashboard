@@ -115,6 +115,21 @@ export function canAccessRoute(
   return hasAnyRole(user, allowed as UserRole[]);
 }
 
+/**
+ * Full route access check: role gate AND permission gate.
+ * Used by the sidebar and RequireRole to hide/block routes the user
+ * has no role or no permission for.
+ */
+export function canAccessRouteWithPermissions(
+  user: User | null | undefined,
+  route: string,
+  requiredPermission: Permission | null,
+): boolean {
+  if (!canAccessRoute(user, route)) return false;
+  if (requiredPermission === null) return true;
+  return hasPermission(user, requiredPermission);
+}
+
 // ── Audit visibility (role-based — SuperAdmin or ClinicOwner only) ────────────
 
 export function canViewAuditTrail(user: User | null | undefined): boolean {

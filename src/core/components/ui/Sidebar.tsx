@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
 import { siteConfig } from "@/core/config";
-import { canAccessRoute } from "@/core/utils/permissions";
+import { canAccessRouteWithPermissions } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 
 interface SidebarProps {
@@ -22,7 +22,9 @@ export function Sidebar({
   const { user } = useMe();
 
   const navigationItems = siteConfig.sidebarItems
-    .filter((item) => canAccessRoute(user, item.href))
+    .filter((item) =>
+      canAccessRouteWithPermissions(user, item.href, item.requiredPermission),
+    )
     .map((item) => ({
       ...item,
       label: t(`navigation.${item.key}`),
