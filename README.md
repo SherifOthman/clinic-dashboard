@@ -1,6 +1,6 @@
 # Clinic Dashboard
 
-The admin interface for the Clinic Management platform — a multi-tenant SaaS product for medical clinics. Built with React 19 and TypeScript, demonstrating real-world patterns: feature-based architecture, server state management, full bilingual support with RTL, and role-based access control.
+The admin interface for the Clinic Management platform — a multi-tenant SaaS product for medical clinics. Built with React 19 and TypeScript, demonstrating real-world patterns: feature-based architecture, server state management, full bilingual support with RTL, and permission-based access control.
 
 **Live Demo**: https://clinic-dashboard-ecru.vercel.app  
 **API Docs**: http://clinic-api.runasp.net/scalar/v1  
@@ -12,7 +12,7 @@ The admin interface for the Clinic Management platform — a multi-tenant SaaS p
 
 ## The Problem It Solves
 
-Clinic staff need a fast, intuitive interface to manage patients, track staff, and monitor clinic activity — in both English and Arabic. The dashboard adapts to each user's role: clinic owners manage their team and settings, doctors and receptionists manage patients, and the SuperAdmin has a cross-clinic view of everything including a full audit trail.
+Clinic staff need a fast, intuitive interface to manage patients, track staff, and monitor clinic activity — in both English and Arabic. The dashboard adapts to each user's permissions: clinic owners manage their team and settings, doctors and receptionists see only what they're allowed to, and the SuperAdmin has a cross-clinic view of everything including a full audit trail.
 
 ---
 
@@ -22,27 +22,38 @@ Clinic staff need a fast, intuitive interface to manage patients, track staff, a
 
 A complete auth flow: registration with email verification, login, forgot password, reset password, and change password. The Axios client handles token refresh automatically using an interceptor — when a 401 is returned, it fires a single refresh request (deduplicating concurrent calls with a shared promise), retries the original request with the new token, and redirects to login only if the refresh itself fails.
 
+### Permission-Based Access Control
+
+Fine-grained access control using permissions from the backend JWT. The `useMe` hook exposes `hasPermission()` and `hasAnyPermission()` helpers. All UI guards use `permissions.ts` utility functions (`canViewPatients`, `canInviteStaff`, `canManageBranches`, etc.) — no hardcoded role strings in components.
+
+Route visibility is enforced at two levels:
+
+- **Role gate** (`ROUTE_ACCESS`) — coarse-grained, e.g. only `ClinicOwner` can access `/staff`
+- **Permission gate** (`requiredPermission` in `siteConfig`) — fine-grained, e.g. user must have `ViewPatients` to see `/patients`
+
+Both checks run in `RequireRole`. The sidebar filters items using `canAccessRouteWithPermissions()` — users without `ViewPatients` never see the Patients link and get the 403 page if they navigate directly.
+
+Clinic owners can manage per-staff permissions via a checkbox grid in the staff detail dialog (grouped by category: Patients, Staff, Branches, Schedule, Appointments, Invoices).
+
 ### Onboarding Wizard
 
 New clinic owners are guided through a multi-step setup: clinic name, branch details, location (country → state → city), and subscription plan selection. The wizard validates each step before proceeding and submits everything in a single API call at the end.
 
 ### Patient Management
 
-The patients list is paginated and sortable, with a live search that debounces input and ranks results by relevance (exact code match first, then name, then partial). Filters include gender and cascading location filters (country → state → city) that query only the locations where patients are actually registered — selecting a country shows only states that have patients in that country, and so on.
+The patients list is paginated and sortable, with a live search that debounces input and ranks results by relevance (exact code match first, then name, then partial). Filters include gender and cascading location filters (country → state → city) that query only the locations where patients are actually registered.
 
-Creating or editing a patient uses a multi-section form: basic info (name, DOB, age input, gender, blood type), contact info (phone numbers with international format validation via libphonenumber-js), chronic diseases (multi-select, placed directly under phone numbers), and address (cascading country/state/city selectors backed by the seeded GeoNames database). For countries with no administrative divisions (city-states like Singapore), the selector automatically fills the state and city fields and hides the empty dropdowns.
+Patient codes are stored as zero-padded strings (`"0042"`) for `StartsWith` search but displayed as plain numbers (`42`) using `formatPatientCode()`.
 
-Patient names are resolved server-side in the current UI language — the table and detail dialog show city/state/country names directly without any extra API calls.
-
-Soft-deleted patients are hidden from the list but retained in the database. The SuperAdmin can restore them.
+Creating or editing a patient uses a multi-section form: basic info, contact info (phone numbers with international format validation), chronic diseases, and address (cascading country/state/city selectors). Patient names and location names are resolved server-side — no extra frontend calls needed when switching language.
 
 ### Staff Management
 
-Clinic owners can view their active staff with role and status filters, invite new members by email (Doctor or Receptionist), resend or cancel pending invitations, and activate or deactivate existing staff. Doctors have a working schedule per branch (day, start time, end time, availability). The invitation flow is handled entirely by the API — the invitee receives an email with a registration link that pre-fills their role and links them to the clinic on completion.
+Clinic owners can view their active staff, invite new members by email, resend or cancel pending invitations, and activate or deactivate existing staff. Doctors have a working schedule per branch with sub-tabs for working days and visit types. The staff detail dialog has three tabs: Info, Schedule (doctors only), and Permissions (owner only, non-owner staff only).
 
 ### Branches
 
-Clinic owners can view, create, edit, and toggle branches. Each branch has a name, address, phone numbers, and a location (state + city). Branch detail shows all this information in a dialog.
+Clinic owners can view, create, edit, and toggle branches. The Add Branch button is hidden unless the user has `ManageBranches` permission.
 
 ### Audit Log Viewer
 
@@ -77,12 +88,12 @@ src/
 │   ├── i18n/                # i18next setup, EN/AR translation files
 │   ├── location/            # locationApi, useCountries/useStates/useCities hooks
 │   ├── routes/              # RequireAuth, RequireGuest, RequireRole guards
-│   └── utils/               # roleUtils, ageUtils, phoneFormat, phoneValidation,
-│                            # permissions, apiErrorHandler, patientImageUtils, etc.
+│   └── utils/               # permissions, ageUtils, phoneFormat, phoneValidation,
+│                            # patientUtils, patientImageUtils, apiErrorHandler, etc.
 └── features/
     ├── auth/                # Login, register, password reset, email verification
     ├── patients/            # List, detail dialog, create/edit form, location filters
-    ├── staff/               # Staff list, invitations, accept invitation, working days
+    ├── staff/               # Staff list, invitations, accept invitation, schedule, permissions
     ├── branches/            # Branch list, create/edit, detail dialog
     ├── audit/               # Audit log viewer (SuperAdmin only)
     ├── onboarding/          # Clinic setup wizard
@@ -90,15 +101,15 @@ src/
     └── dashboard/           # Overview stats
 ```
 
-**Server state** is managed entirely by TanStack Query. Queries are keyed by feature and parameters, stale after 30 seconds for lists and 5 minutes for detail views. Mutations use a shared `useMutationWithToast` hook that handles success toasts, error toasts (with translated messages from the API's error codes), and query invalidation — eliminating the boilerplate from every mutation hook.
+**Server state** is managed entirely by TanStack Query. Queries are keyed by feature and parameters, stale after 30 seconds for lists and 5 minutes for detail views. Mutations use a shared `useMutationWithToast` hook that handles success toasts, error toasts (with translated messages from the API's error codes), and query invalidation.
 
 **Form state** is managed by React Hook Form with Zod schemas for validation. Schemas are built with a shared `useValidation` hook that takes the translation function, so all error messages are automatically translated to the current language.
 
-**Role-based access** is enforced at the route level by a `RequireRole` guard that checks the user's role against a route access map. Unauthorized access redirects to `/unauthorized`. Individual UI elements (edit buttons, delete buttons, admin-only sections) are conditionally rendered using permission utility functions from `core/utils/permissions.ts`.
+**Permissions** are resolved from the backend on login via `/auth/me` and stored in the `user` object. The `permissions.ts` utility provides typed helper functions for every permission. `roleUtils.ts` is merged into `permissions.ts` — one file for all role and permission checks. A shared `roleColors.ts` constant provides chip colors for role badges.
 
 **i18n** uses i18next with browser language detection and localStorage persistence. The direction (`ltr`/`rtl`), `lang` attribute, and theme class are all applied to the `<html>` element reactively when the language changes. Toast notifications are positioned on the correct side based on direction.
 
-**Location data** is served from the backend's seeded GeoNames database. The `core/location/` layer provides `useCountries`, `useStates`, and `useCities` hooks with 24-hour stale time — data is fetched once and reused across the `LocationSelector` form component and the patient location filter dropdowns. Patient list rows and detail dialogs receive location names directly from the API (resolved server-side in the current language) — no extra frontend calls needed.
+**Location data** is served from the backend's seeded GeoNames database. The `core/location/` layer provides `useCountries`, `useStates`, and `useCities` hooks with 24-hour stale time. Patient list rows and detail dialogs receive location names directly from the API (resolved server-side in the current language) — no extra frontend calls needed.
 
 ---
 
@@ -134,41 +145,49 @@ src/
 | Profile — name, username, phone, image | ✅     |                        |
 | In-app notifications                   | ❌     | Backend entity modeled |
 
+### Permissions & Access Control
+
+| Feature                          | Status | Notes                                          |
+| -------------------------------- | ------ | ---------------------------------------------- |
+| Permission-based UI guards       | ✅     | All CRUD actions gated by permissions          |
+| Sidebar visibility by permission | ✅     | Links hidden if user lacks required permission |
+| Route guard (role + permission)  | ✅     | 403 page on direct URL access                  |
+| Staff permissions management UI  | ✅     | Checkbox grid in staff detail dialog           |
+
 ### Clinic Setup & Branches
 
-| Feature                                | Status | Notes                     |
-| -------------------------------------- | ------ | ------------------------- |
-| Onboarding wizard                      | ✅     |                           |
-| View / create / edit / toggle branches | ✅     |                           |
-| Branch phone numbers                   | ✅     |                           |
-| Branch appointment pricing             | ❌     | Backend entity modeled    |
-| Subscription management UI             | ❌     | Backend entity modeled    |
-| Usage metrics dashboard                | ❌     | Backend aggregates hourly |
+| Feature                                | Status | Notes                       |
+| -------------------------------------- | ------ | --------------------------- |
+| Onboarding wizard                      | ✅     |                             |
+| View / create / edit / toggle branches | ✅     | Add button permission-gated |
+| Branch phone numbers                   | ✅     |                             |
+| Subscription management UI             | ❌     | Backend entity modeled      |
+| Usage metrics dashboard                | ❌     | Backend aggregates daily    |
 
 ### Patients
 
-| Feature                                          | Status | Notes                                        |
-| ------------------------------------------------ | ------ | -------------------------------------------- |
-| Paginated list — search, sort                    | ✅     | Search ranked by relevance                   |
-| Filter by gender                                 | ✅     |                                              |
-| Filter by location (country → state → city)      | ✅     | Cascading, queries actual patient data       |
-| Create / edit / view / soft-delete / restore     | ✅     | Restore is SuperAdmin only                   |
-| Phone numbers, blood type, DOB, chronic diseases | ✅     |                                              |
-| Bilingual location (country / state / city)      | ✅     | Names resolved server-side, no extra calls   |
-| Age input (synced with date of birth)            | ✅     |                                              |
-| Patient detail dialog                            | ✅     | Shows location, phones, diseases, audit info |
-| Medical visit history                            | ❌     | Backend entity modeled                       |
-| Medical files / documents                        | ❌     | Backend entity modeled                       |
+| Feature                                          | Status | Notes                                      |
+| ------------------------------------------------ | ------ | ------------------------------------------ |
+| Paginated list — search, sort                    | ✅     | Search ranked by relevance                 |
+| Filter by gender                                 | ✅     |                                            |
+| Filter by location (country → state → city)      | ✅     | Cascading, queries actual patient data     |
+| Create / edit / view / soft-delete / restore     | ✅     | All actions permission-gated               |
+| Phone numbers, blood type, DOB, chronic diseases | ✅     |                                            |
+| Bilingual location (country / state / city)      | ✅     | Names resolved server-side, no extra calls |
+| Patient code display (strip leading zeros)       | ✅     | "0042" stored, "42" displayed              |
+| Medical visit history                            | ❌     | Backend entity modeled                     |
+| Medical files / documents                        | ❌     | Backend entity modeled                     |
 
 ### Staff
 
-| Feature                               | Status | Notes |
-| ------------------------------------- | ------ | ----- |
-| Staff list with role / status filters | ✅     |       |
-| Invite / resend / cancel invitations  | ✅     |       |
-| Accept invitation                     | ✅     |       |
-| Activate / deactivate staff           | ✅     |       |
-| Doctor working schedule               | ✅     |       |
+| Feature                               | Status | Notes                                |
+| ------------------------------------- | ------ | ------------------------------------ |
+| Staff list with role / status filters | ✅     |                                      |
+| Invite / resend / cancel invitations  | ✅     | Invite button permission-gated       |
+| Accept invitation                     | ✅     |                                      |
+| Activate / deactivate staff           | ✅     | Permission-gated                     |
+| Doctor working schedule               | ✅     | Sub-tabs: working days + visit types |
+| Staff permissions management          | ✅     | Checkbox grid, owner only            |
 
 ### Appointments
 
@@ -181,14 +200,14 @@ src/
 
 ### Medical Visits
 
-| Feature                     | Status | Notes                        |
-| --------------------------- | ------ | ---------------------------- |
-| Visit record with diagnosis | ❌     | Backend entity modeled       |
-| Prescriptions               | ❌     | Backend entity modeled       |
-| Lab test orders             | ❌     | Backend entity modeled       |
-| Radiology orders            | ❌     | Backend entity modeled       |
-| Vital measurements          | ❌     | Backend entity modeled (EAV) |
-| Medical file uploads        | ❌     | Backend entity modeled       |
+| Feature                     | Status | Notes                  |
+| --------------------------- | ------ | ---------------------- |
+| Visit record with diagnosis | ❌     | Backend entity modeled |
+| Prescriptions               | ❌     | Backend entity modeled |
+| Lab test orders             | ❌     | Backend entity modeled |
+| Radiology orders            | ❌     | Backend entity modeled |
+| Vital measurements          | ❌     | Backend entity modeled |
+| Medical file uploads        | ❌     | Backend entity modeled |
 
 ### Inventory
 
