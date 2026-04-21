@@ -2,8 +2,7 @@
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { useDebounce } from "@/core/hooks/useDebounce";
-import { canCreatePatient } from "@/core/utils/permissions";
-import { isSuperAdmin } from "@/core/utils/roleUtils";
+import { canCreatePatient, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
 import { UserPlus } from "lucide-react";

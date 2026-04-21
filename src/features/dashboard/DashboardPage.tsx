@@ -3,7 +3,7 @@ import {
   isDoctor,
   isReceptionist,
   isSuperAdmin,
-} from "@/core/utils/roleUtils";
+} from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useTranslation } from "react-i18next";
 import { ClinicDashboard } from "./components/ClinicDashboard";

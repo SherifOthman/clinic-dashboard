@@ -1,23 +1,20 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { InfoRow } from "@/core/components/ui/InfoRow";
 import { Loading } from "@/core/components/ui/Loading";
+import { USER_ROLES } from "@/core/constants";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { getFileUrl } from "@/core/utils/fileUtils";
 import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { getGenderImageSrc } from "@/core/utils/patientImageUtils";
+import { isClinicOwner } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Avatar, Chip, Tabs } from "@heroui/react";
 import { Briefcase, Calendar, Mail, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStaffDetail } from "../staffHooks";
 import { PermissionsTab } from "./PermissionsTab";
+import { ROLE_COLORS } from "./roleColors";
 import { ScheduleTab } from "./ScheduleTab";
-
-const ROLE_COLORS: Record<string, "accent" | "success" | "default"> = {
-  Doctor: "accent",
-  ClinicOwner: "success",
-  Receptionist: "default",
-};
 
 interface StaffDetailDialogProps {
   staffId: string | null;
@@ -33,11 +30,13 @@ export function StaffDetailDialog({
   const { formatDateShort } = useDateFormat();
   const { data, isLoading } = useStaffDetail(staffId);
   const { user } = useMe();
-  const isOwner = user?.roles.includes("ClinicOwner") ?? false;
+  const isOwner = isClinicOwner(user);
   const isDoctor = !!data?.doctorProfile;
   // Owner can manage permissions for non-owner staff
   const canManagePermissions =
-    isOwner && data && !data.roles.some((r) => r.name === "ClinicOwner");
+    isOwner &&
+    data &&
+    !data.roles.some((r) => r.name === USER_ROLES.CLINIC_OWNER);
 
   return (
     <Dialog

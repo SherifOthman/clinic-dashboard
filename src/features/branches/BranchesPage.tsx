@@ -6,6 +6,8 @@ import { Dialog } from "@/core/components/ui/Dialog";
 import { Loading } from "@/core/components/ui/Loading";
 import { useGeonameLabel } from "@/core/location/hooks";
 import type { DialogState } from "@/core/types";
+import { canManageBranches } from "@/core/utils/permissions";
+import { useMe } from "@/features/auth/hooks";
 import { Button, Card, Chip } from "@heroui/react";
 import { Building2, MapPin, Phone, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,6 +19,7 @@ import { useBranches, useCreateBranch, useUpdateBranch } from "./branchesHooks";
 
 export default function BranchesPage() {
   const { t } = useTranslation();
+  const { user } = useMe();
   const { data: branches, isLoading } = useBranches();
 
   // Which branch's detail dialog is open (null = closed)
@@ -41,13 +44,15 @@ export default function BranchesPage() {
           <h1 className="text-2xl font-bold">{t("branches.title")}</h1>
           <p className="text-default-500 text-sm">{t("branches.subtitle")}</p>
         </div>
-        <Button
-          variant="primary"
-          onPress={() => setBranchForm({ mode: "create" })}
-        >
-          <Plus className="h-4 w-4" />
-          {t("branches.addBranch")}
-        </Button>
+        {canManageBranches(user) && (
+          <Button
+            variant="primary"
+            onPress={() => setBranchForm({ mode: "create" })}
+          >
+            <Plus className="h-4 w-4" />
+            {t("branches.addBranch")}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (

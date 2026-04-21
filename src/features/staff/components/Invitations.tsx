@@ -1,6 +1,8 @@
 import { DataTable } from "@/core/components/ui/DataTable";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
+import { canInviteStaff } from "@/core/utils/permissions";
+import { useMe } from "@/features/auth/hooks";
 import { Button, ListBox, Select } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -17,6 +19,7 @@ import { InviteStaffModal } from "./InviteStaffModal";
 export function Invitations() {
   const { t, i18n } = useTranslation();
   const { formatDateShort } = useDateFormat();
+  const { user } = useMe();
   const isRTL = i18n.language === "ar";
 
   // Which invitation is pending cancellation (null = dialog closed)
@@ -125,14 +128,16 @@ export function Invitations() {
           </Select>
         </div>
 
-        <InviteStaffModal
-          trigger={
-            <Button variant="primary" className="w-full sm:w-auto">
-              <UserPlus className="h-4 w-4" />
-              {t("staff.inviteStaffMember")}
-            </Button>
-          }
-        />
+        {canInviteStaff(user) && (
+          <InviteStaffModal
+            trigger={
+              <Button variant="primary" className="w-full sm:w-auto">
+                <UserPlus className="h-4 w-4" />
+                {t("staff.inviteStaffMember")}
+              </Button>
+            }
+          />
+        )}
       </div>
 
       <DataTable

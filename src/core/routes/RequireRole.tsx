@@ -1,5 +1,5 @@
 import { Loading } from "@/core/components/ui/Loading";
-import { canAccessRoute } from "@/core/utils/roleUtils";
+import { canAccessRoute } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -25,4 +25,3 @@ export function RequireRole() {
 
   return <Outlet />;
 }
-

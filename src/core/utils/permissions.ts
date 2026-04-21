@@ -1,5 +1,6 @@
 import {
   PERMISSIONS,
+  ROUTE_ACCESS,
   USER_ROLES,
   type Permission,
   type UserRole,
@@ -7,14 +8,15 @@ import {
 import type { User } from "@/features/auth/types";
 
 /**
- * Centralized permission checks.
+ * Centralized permission and role checks.
  *
- * Prefer hasPermission() for fine-grained checks — permissions come from the
- * backend and are stored in the JWT. Role checks are kept for coarse-grained
- * access control (e.g. route guards) where a permission isn't needed.
+ * Use hasPermission() for fine-grained feature access — permissions come from
+ * the backend and are stored in the JWT.
+ * Use hasRole() / isClinicOwner() etc. only for coarse-grained structural
+ * checks (e.g. route guards, showing owner-only UI sections).
  */
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Role helpers ──────────────────────────────────────────────────────────────
 
 export function hasRole(
   user: User | null | undefined,
@@ -29,6 +31,24 @@ export function hasAnyRole(
 ): boolean {
   return roles.some((r) => hasRole(user, r));
 }
+
+export function isClinicOwner(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.CLINIC_OWNER);
+}
+
+export function isDoctor(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.DOCTOR);
+}
+
+export function isReceptionist(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.RECEPTIONIST);
+}
+
+export function isSuperAdmin(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.SUPER_ADMIN);
+}
+
+// ── Permission helpers ────────────────────────────────────────────────────────
 
 export function hasPermission(
   user: User | null | undefined,
@@ -78,45 +98,24 @@ export function canToggleStaffStatus(user: User | null | undefined): boolean {
 
 // ── Branch permissions ────────────────────────────────────────────────────────
 
-export function canViewBranches(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.VIEW_BRANCHES);
-}
-
 export function canManageBranches(user: User | null | undefined): boolean {
   return hasPermission(user, PERMISSIONS.MANAGE_BRANCHES);
 }
 
-// ── Schedule permissions ──────────────────────────────────────────────────────
+// ── Route access (role-based — used by route guards and sidebar) ──────────────
 
-export function canManageSchedule(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_SCHEDULE);
+export function canAccessRoute(
+  user: User | null | undefined,
+  route: string,
+): boolean {
+  if (!user) return false;
+  const allowed = ROUTE_ACCESS[route];
+  if (allowed === "*") return true;
+  if (!allowed) return false;
+  return hasAnyRole(user, allowed as UserRole[]);
 }
 
-export function canManageVisitTypes(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_VISIT_TYPES);
-}
-
-// ── Appointment permissions ───────────────────────────────────────────────────
-
-export function canViewAppointments(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.VIEW_APPOINTMENTS);
-}
-
-export function canManageAppointments(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_APPOINTMENTS);
-}
-
-// ── Invoice permissions ───────────────────────────────────────────────────────
-
-export function canViewInvoices(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.VIEW_INVOICES);
-}
-
-export function canManageInvoices(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_INVOICES);
-}
-
-// ── Audit visibility (role-based — SuperAdmin only) ───────────────────────────
+// ── Audit visibility (role-based — SuperAdmin or ClinicOwner only) ────────────
 
 export function canViewAuditTrail(user: User | null | undefined): boolean {
   return hasAnyRole(user, [USER_ROLES.SUPER_ADMIN, USER_ROLES.CLINIC_OWNER]);
