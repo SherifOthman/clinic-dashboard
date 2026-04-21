@@ -6,15 +6,7 @@ import type { User } from "@/features/auth/types";
 import { Avatar, Button, Chip } from "@heroui/react";
 import type { TFunction } from "i18next";
 import type { StaffDto } from "../types";
-
-const ROLE_COLORS: Record<
-  string,
-  "accent" | "success" | "warning" | "default"
-> = {
-  Doctor: "accent",
-  ClinicOwner: "success",
-  Receptionist: "default",
-};
+import { ROLE_COLORS } from "./roleColors";
 
 interface StaffColumnsOptions {
   t: TFunction;

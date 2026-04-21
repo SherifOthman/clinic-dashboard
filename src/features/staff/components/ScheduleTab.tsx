@@ -1,4 +1,4 @@
-import { Button, Card, Modal, Switch } from "@heroui/react";
+import { Button, Card, Modal, Switch, Tabs } from "@heroui/react";
 import { Lock, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -113,46 +113,45 @@ export function ScheduleTab({
 
       {activeBranchId &&
         (compact ? (
-          /* ── Compact (dialog): single column, working days via modal ── */
-          <div className="flex flex-col gap-4">
-            <Card>
-              <Card.Header className="pb-2">
-                <div className="flex w-full items-center justify-between">
-                  <Card.Title className="text-sm">
-                    {t("staff.workingDays")}
-                  </Card.Title>
-                  {!readOnly && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onPress={() => setIsEditOpen(true)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                      {t("common.edit")}
-                    </Button>
-                  )}
-                </div>
-              </Card.Header>
-              <Card.Content className="pt-0">
-                <WorkingDaysList staffId={staffId} branchId={activeBranchId} />
-              </Card.Content>
-            </Card>
-
-            <Card>
-              <Card.Header className="pb-2">
-                <Card.Title className="text-sm">
+          /* ── Compact (dialog): sub-tabs for working days and visit types ── */
+          <Tabs defaultSelectedKey="working-days">
+            <Tabs.ListContainer>
+              <Tabs.List aria-label={t("staff.scheduleTabs")}>
+                <Tabs.Tab id="working-days">
+                  {t("staff.workingDays")}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="visit-types">
                   {t("staff.visitTypes")}
-                </Card.Title>
-              </Card.Header>
-              <Card.Content className="pt-0">
-                <VisitTypesEditor
-                  staffId={staffId}
-                  branchId={activeBranchId}
-                  readOnly={readOnly}
-                />
-              </Card.Content>
-            </Card>
-          </div>
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
+
+            <Tabs.Panel id="working-days" className="pt-3">
+              <div className="flex justify-end pb-2">
+                {!readOnly && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => setIsEditOpen(true)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    {t("common.edit")}
+                  </Button>
+                )}
+              </div>
+              <WorkingDaysList staffId={staffId} branchId={activeBranchId} />
+            </Tabs.Panel>
+
+            <Tabs.Panel id="visit-types" className="pt-3">
+              <VisitTypesEditor
+                staffId={staffId}
+                branchId={activeBranchId}
+                readOnly={readOnly}
+              />
+            </Tabs.Panel>
+          </Tabs>
         ) : (
           /* ── Full page: two columns, working days inline ── */
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

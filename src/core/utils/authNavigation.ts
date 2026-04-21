@@ -1,5 +1,5 @@
 import type { User } from "@/features/auth/types";
-import { isClinicOwner } from "./roleUtils";
+import { isClinicOwner } from "./permissions";
 
 /**
  * Determines the appropriate route for an authenticated user based on their state

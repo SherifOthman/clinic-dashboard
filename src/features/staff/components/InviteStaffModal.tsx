@@ -1,5 +1,6 @@
 import { FormInput } from "@/core/components/form/FormInput";
 import { FormSelect } from "@/core/components/form/FormSelect";
+import { USER_ROLES } from "@/core/constants";
 import { useValidation } from "@/core/hooks/useValidation";
 import { getLocalizedValue } from "@/core/utils/i18nUtils";
 import { useSpecializations } from "@/features/onboarding/onboardingHooks";
@@ -17,8 +18,8 @@ interface InviteStaffModalProps {
 }
 
 const ROLE_OPTIONS = (t: TFunction) => [
-  { value: "Doctor", label: t("staff.roles.Doctor") },
-  { value: "Receptionist", label: t("staff.roles.Receptionist") },
+  { value: USER_ROLES.DOCTOR, label: t("staff.roles.Doctor") },
+  { value: USER_ROLES.RECEPTIONIST, label: t("staff.roles.Receptionist") },
 ];
 
 export function InviteStaffModal({ trigger }: InviteStaffModalProps) {
@@ -94,7 +95,7 @@ export function InviteStaffModal({ trigger }: InviteStaffModalProps) {
                   isRequired
                 />
 
-                {selectedRole === "Doctor" && (
+                {selectedRole === USER_ROLES.DOCTOR && (
                   <FormSelect
                     name="specializationId"
                     control={control}

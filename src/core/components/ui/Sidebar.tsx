@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
 import { siteConfig } from "@/core/config";
-import { canAccessRoute } from "@/core/utils/roleUtils";
+import { canAccessRoute } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 
 interface SidebarProps {

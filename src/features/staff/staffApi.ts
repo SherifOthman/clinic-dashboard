@@ -217,4 +217,21 @@ export const staffApi = {
       canSelfManage,
     });
   },
+
+  getPermissions: async (staffId: string): Promise<string[]> => {
+    const res = await apiClient.get<string[]>(
+      `${API_ENDPOINTS.staff}/${staffId}/permissions`,
+    );
+    return res.data;
+  },
+
+  setPermissions: async (
+    staffId: string,
+    permissions: string[],
+  ): Promise<void> => {
+    await apiClient.put(
+      `${API_ENDPOINTS.staff}/${staffId}/permissions`,
+      permissions,
+    );
+  },
 };

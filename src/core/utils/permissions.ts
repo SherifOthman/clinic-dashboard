@@ -1,55 +1,122 @@
-import { USER_ROLES, type UserRole } from "@/core/constants";
+import {
+  PERMISSIONS,
+  ROUTE_ACCESS,
+  USER_ROLES,
+  type Permission,
+  type UserRole,
+} from "@/core/constants";
 import type { User } from "@/features/auth/types";
 
 /**
- * Centralized permission checks for the clinic management system.
+ * Centralized permission and role checks.
  *
- * Roles and their responsibilities:
- *  - SuperAdmin   : system-level, manages all clinics on the platform
- *  - ClinicOwner  : manages their own clinic (staff, settings, billing)
- *  - Doctor       : clinical work (patients, visits, prescriptions)
- *  - Receptionist : front-desk operations (patients, appointments, invoices)
- *
- * Why functions instead of inline role checks?
- * Centralizing permission logic here means:
- *   - One place to update when business rules change
- *   - Readable names (canEditPatient) instead of scattered role comparisons
- *   - Easy to test in isolation
+ * Use hasPermission() for fine-grained feature access — permissions come from
+ * the backend and are stored in the JWT.
+ * Use hasRole() / isClinicOwner() etc. only for coarse-grained structural
+ * checks (e.g. route guards, showing owner-only UI sections).
  */
 
-function hasRole(user: User | null | undefined, role: UserRole): boolean {
+// ── Role helpers ──────────────────────────────────────────────────────────────
+
+export function hasRole(
+  user: User | null | undefined,
+  role: UserRole,
+): boolean {
   return !!user?.roles?.includes(role);
 }
 
-function hasAnyRole(user: User | null | undefined, roles: UserRole[]): boolean {
+export function hasAnyRole(
+  user: User | null | undefined,
+  roles: UserRole[],
+): boolean {
   return roles.some((r) => hasRole(user, r));
 }
 
-// ─── Patient permissions ────────────────────────────────────────────────────
+export function isClinicOwner(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.CLINIC_OWNER);
+}
 
-/** Receptionist and Owner can edit patient registration data */
+export function isDoctor(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.DOCTOR);
+}
+
+export function isReceptionist(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.RECEPTIONIST);
+}
+
+export function isSuperAdmin(user: User | null | undefined): boolean {
+  return hasRole(user, USER_ROLES.SUPER_ADMIN);
+}
+
+// ── Permission helpers ────────────────────────────────────────────────────────
+
+export function hasPermission(
+  user: User | null | undefined,
+  permission: Permission,
+): boolean {
+  return !!user?.permissions?.includes(permission);
+}
+
+export function hasAnyPermission(
+  user: User | null | undefined,
+  permissions: Permission[],
+): boolean {
+  return permissions.some((p) => hasPermission(user, p));
+}
+
+// ── Patient permissions ───────────────────────────────────────────────────────
+
+export function canViewPatients(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.VIEW_PATIENTS);
+}
+
+export function canCreatePatient(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.CREATE_PATIENT);
+}
+
 export function canEditPatient(user: User | null | undefined): boolean {
-  return hasAnyRole(user, [USER_ROLES.CLINIC_OWNER, USER_ROLES.RECEPTIONIST]);
+  return hasPermission(user, PERMISSIONS.EDIT_PATIENT);
 }
 
-/** Only Owner can delete patients */
 export function canDeletePatient(user: User | null | undefined): boolean {
-  return hasRole(user, USER_ROLES.CLINIC_OWNER);
+  return hasPermission(user, PERMISSIONS.DELETE_PATIENT);
 }
 
-// ─── Staff permissions ──────────────────────────────────────────────────────
+// ── Staff permissions ─────────────────────────────────────────────────────────
 
-/** Only clinic owner can activate/deactivate staff */
+export function canViewStaff(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.VIEW_STAFF);
+}
+
+export function canInviteStaff(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.INVITE_STAFF);
+}
+
 export function canToggleStaffStatus(user: User | null | undefined): boolean {
-  return hasRole(user, USER_ROLES.CLINIC_OWNER);
+  return hasPermission(user, PERMISSIONS.MANAGE_STAFF_STATUS);
 }
 
-// ─── Audit visibility ───────────────────────────────────────────────────────
+// ── Branch permissions ────────────────────────────────────────────────────────
 
-/**
- * Show audit trail (createdBy/updatedBy) only to Owner and SuperAdmin.
- * Doctors and Receptionists only see createdAt — not who made the change.
- */
+export function canManageBranches(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.MANAGE_BRANCHES);
+}
+
+// ── Route access (role-based — used by route guards and sidebar) ──────────────
+
+export function canAccessRoute(
+  user: User | null | undefined,
+  route: string,
+): boolean {
+  if (!user) return false;
+  const allowed = ROUTE_ACCESS[route];
+  if (allowed === "*") return true;
+  if (!allowed) return false;
+  return hasAnyRole(user, allowed as UserRole[]);
+}
+
+// ── Audit visibility (role-based — SuperAdmin or ClinicOwner only) ────────────
+
 export function canViewAuditTrail(user: User | null | undefined): boolean {
   return hasAnyRole(user, [USER_ROLES.SUPER_ADMIN, USER_ROLES.CLINIC_OWNER]);
 }

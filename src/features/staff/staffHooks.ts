@@ -223,3 +223,30 @@ export function useSetScheduleLock() {
     onError: createErrorHandler(showError, t),
   });
 }
+
+export function useGetPermissions(staffId: string | undefined) {
+  return useQuery({
+    queryKey: ["staff", "permissions", staffId],
+    queryFn: () => staffApi.getPermissions(staffId!),
+    enabled: !!staffId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSetPermissions(staffId: string) {
+  const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: (permissions: string[]) =>
+      staffApi.setPermissions(staffId, permissions),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["staff", "permissions", staffId],
+      });
+      showSuccess("toast.permissionsUpdated");
+    },
+    onError: createErrorHandler(showError, t),
+  });
+}

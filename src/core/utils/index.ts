@@ -10,4 +10,3 @@ export * from "./patientImageUtils";
 export * from "./permissions";
 export * from "./phoneFormat";
 export * from "./phoneValidation";
-export * from "./roleUtils";

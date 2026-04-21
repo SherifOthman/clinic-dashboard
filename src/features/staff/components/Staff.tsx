@@ -2,7 +2,7 @@ import { DataTable } from "@/core/components/ui/DataTable";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { USER_ROLES } from "@/core/constants";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
-import { isClinicOwner, isDoctor } from "@/core/utils/roleUtils";
+import { isClinicOwner, isDoctor } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Button, ListBox, Select } from "@heroui/react";
 import { useState } from "react";

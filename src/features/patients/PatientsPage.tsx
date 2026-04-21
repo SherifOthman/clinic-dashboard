@@ -1,6 +1,10 @@
 import { ConfirmDialog } from "@/core/components/ui/ConfirmDialog";
 import type { DeleteState, DialogState } from "@/core/types";
-import { isSuperAdmin } from "@/core/utils/roleUtils";
+import {
+  canDeletePatient,
+  canEditPatient,
+  isSuperAdmin,
+} from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,8 +57,16 @@ export default function PatientsPage() {
         patientId={detailPatientId}
         isSuperAdmin={superAdmin}
         onClose={() => setDetailPatientId(null)}
-        onEdit={(id) => setPatientForm({ mode: "edit", id })}
-        onDelete={(id, name) => setDeleteConfirm({ mode: "confirm", id, name })}
+        onEdit={
+          canEditPatient(user)
+            ? (id) => setPatientForm({ mode: "edit", id })
+            : undefined
+        }
+        onDelete={
+          canDeletePatient(user)
+            ? (id, name) => setDeleteConfirm({ mode: "confirm", id, name })
+            : undefined
+        }
       />
 
       <PatientDialog

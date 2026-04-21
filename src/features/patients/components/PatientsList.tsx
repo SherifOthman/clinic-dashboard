@@ -1,8 +1,8 @@
-import { DataTable } from "@/core/components/ui/DataTable";
+﻿import { DataTable } from "@/core/components/ui/DataTable";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { useDebounce } from "@/core/hooks/useDebounce";
-import { isSuperAdmin } from "@/core/utils/roleUtils";
+import { canCreatePatient, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
 import { UserPlus } from "lucide-react";
@@ -123,7 +123,7 @@ export function PatientsList({
             </Select.Popover>
           </Select>
 
-          {/* Country → State → City: each step only appears after the previous is selected */}
+          {/* Country â†’ State â†’ City: each step only appears after the previous is selected */}
           <PatientCountryFilter
             value={patientsState.countryGeonameId}
             onChange={(v) =>
@@ -158,7 +158,7 @@ export function PatientsList({
             />
           )}
 
-          {/* Clinic search — SuperAdmin only */}
+          {/* Clinic search â€” SuperAdmin only */}
           {superAdmin && (
             <SearchField
               value={patientsState.clinicSearch ?? ""}
@@ -178,7 +178,7 @@ export function PatientsList({
           )}
         </div>
 
-        {!superAdmin && (
+        {!superAdmin && canCreatePatient(user) && (
           <Button
             variant="primary"
             onPress={onPatientCreate}
