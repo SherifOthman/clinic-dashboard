@@ -61,7 +61,7 @@ SuperAdmin-only. Shows every action taken across all clinics: who did what, to w
 
 ### Profile
 
-Users can update their name, username, phone number, and upload a profile image. Password change is a separate form that requires the current password.
+Users can update their full name, username, phone number, and upload a profile image. Password change is a separate form that requires the current password.
 
 ### Dashboard
 
@@ -240,7 +240,7 @@ src/
 | Feature                                                 | Status | Notes           |
 | ------------------------------------------------------- | ------ | --------------- |
 | Audit log viewer (filter by entity, action, user, date) | ✅     | SuperAdmin only |
-| Field-level diff display                                | ✅     |                 |
+| Security & business event display                       | ✅     | Login, password, staff, permissions |
 | Patient restore from audit                              | ✅     | SuperAdmin only |
 
 ---
