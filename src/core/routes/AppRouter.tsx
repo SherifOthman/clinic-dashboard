@@ -39,7 +39,6 @@ const StaffPage = lazy(() => import("@/features/staff/StaffPage"));
 const InvitationsPage = lazy(() => import("@/features/staff/InvitationsPage"));
 const AuditPage = lazy(() => import("@/features/audit/AuditPage"));
 const BranchesPage = lazy(() => import("@/features/branches/BranchesPage"));
-const RoleDefaultsPage = lazy(() => import("@/features/permissions/RoleDefaultsPage"));
 const AcceptInvitationPage = lazy(
   () => import("@/features/staff/AcceptInvitationPage"),
 );
@@ -100,7 +99,6 @@ export function AppRouter() {
               <Route path="/invitations" element={<InvitationsPage />} />
               <Route path="/audit" element={<AuditPage />} />
               <Route path="/branches" element={<BranchesPage />} />
-              <Route path="/role-defaults" element={<RoleDefaultsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Route>
