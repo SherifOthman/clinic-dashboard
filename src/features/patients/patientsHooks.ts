@@ -132,8 +132,7 @@ export function useDeletePatient() {
 /** Maps form data to the flat API request shape. */
 export function toPatientApiRequest(data: PatientFormData): PatientApiRequest {
   return {
-    firstName: data.firstName,
-    lastName: data.lastName,
+    fullName: data.fullName,
     dateOfBirth: data.dateOfBirth,
     gender: data.gender,
     bloodType: data.bloodType || undefined,
@@ -159,8 +158,7 @@ export function usePatientForm({
   const schema = useValidation(createPatientSchema);
 
   const defaults: PatientFormData = {
-    firstName: "",
-    lastName: "",
+    fullName: "",
     dateOfBirth: "",
     age: undefined,
     gender: "Male",
@@ -183,8 +181,7 @@ export function usePatientForm({
     defaultValues: patient ? defaults : createDefaults,
     values: patient
       ? {
-          firstName: patient.firstName,
-          lastName: patient.lastName,
+          fullName: patient.fullName,
           dateOfBirth: patient.dateOfBirth || "",
           age: patient.dateOfBirth
             ? calculateAge(patient.dateOfBirth)

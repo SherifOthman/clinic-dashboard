@@ -21,8 +21,7 @@ export const createAuthSchemas = (t: TFunction) => {
     }),
 
     register: z.object({
-      firstName: v.name(),
-      lastName: v.name(),
+      fullName: v.name(),
       userName: v.username(),
       email: v.email(),
       password: v.password(),
@@ -46,8 +45,7 @@ export const createAuthSchemas = (t: TFunction) => {
     }),
 
     updateProfile: z.object({
-      firstName: v.name(),
-      lastName: v.name(),
+      fullName: v.name(),
       userName: v.username(),
       phoneNumber: v.phoneNumber(),
       gender: z.enum(["Male", "Female"], { message: t("validation.required") }),

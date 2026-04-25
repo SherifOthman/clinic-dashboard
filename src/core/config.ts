@@ -5,6 +5,7 @@
 import { PERMISSIONS } from "@/core/constants";
 import {
   Building2,
+  KeyRound,
   LayoutDashboard,
   Mail,
   ShieldCheck,
@@ -67,6 +68,13 @@ export const siteConfig = {
       label: "Audit Logs",
       href: "/audit",
       icon: ShieldCheck,
+      requiredPermission: null, // role-guarded (SuperAdmin only) via ROUTE_ACCESS
+    },
+    {
+      key: "role-defaults",
+      label: "Role Permissions",
+      href: "/role-defaults",
+      icon: KeyRound,
       requiredPermission: null, // role-guarded (SuperAdmin only) via ROUTE_ACCESS
     },
   ],

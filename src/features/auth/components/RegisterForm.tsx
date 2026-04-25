@@ -61,18 +61,11 @@ export function RegisterForm() {
         onSubmit={handleSubmit((data) => registerAsync(data))}
         className="flex flex-col gap-4"
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4">
           <FormInput
-            {...register("firstName")}
-            label={t("common.fields.firstName")}
-            error={errors.firstName}
-            isRequired
-            noNumbers
-          />
-          <FormInput
-            {...register("lastName")}
-            label={t("common.fields.lastName")}
-            error={errors.lastName}
+            {...register("fullName")}
+            label={t("common.fields.fullName")}
+            error={errors.fullName}
             isRequired
             noNumbers
           />

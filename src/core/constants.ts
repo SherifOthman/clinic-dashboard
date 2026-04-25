@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
   audit: "/audit",
   dashboard: "/dashboard",
   branches: "/branches",
+  permissions: "/permissions",
 } as const;
 
 /**
@@ -88,6 +89,7 @@ export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
   "/invitations": [USER_ROLES.CLINIC_OWNER],
   "/branches": [USER_ROLES.CLINIC_OWNER],
   "/audit": [USER_ROLES.SUPER_ADMIN],
+  "/role-defaults": [USER_ROLES.SUPER_ADMIN],
   "/profile": "*", // All authenticated users
   "/onboarding": [USER_ROLES.CLINIC_OWNER],
 } as const;

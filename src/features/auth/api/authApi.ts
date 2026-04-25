@@ -74,8 +74,7 @@ export const authApi = {
 
   // Profile management
   async updateProfile(data: {
-    firstName: string;
-    lastName: string;
+    fullName: string;
     userName: string;
     phoneNumber?: string;
     gender: string;

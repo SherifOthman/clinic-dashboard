@@ -82,8 +82,7 @@ export interface InviteStaffResponse {
 }
 
 export interface AcceptInvitationWithRegistration {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   userName: string;
   password: string;
   phoneNumber: string;

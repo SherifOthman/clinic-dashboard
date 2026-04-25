@@ -23,19 +23,15 @@ export interface PatientListItem {
 export interface PatientDetail {
   id: string;
   patientCode: string;
-  firstName: string;
-  lastName: string;
   fullName: string;
   dateOfBirth: string;
   gender: string;
   bloodType?: string;
   phoneNumbers: string[];
   chronicDiseases: { id: string; nameEn: string; nameAr: string }[];
-  // IDs — kept for the edit form (LocationSelector needs them)
   countryGeonameId?: number;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  // Both language names
   countryNameEn?: string;
   countryNameAr?: string;
   stateNameEn?: string;
@@ -66,8 +62,7 @@ export interface PatientsSearchParams extends BaseSearchParams {
 
 /** Single request shape for both create and update. */
 export interface PatientApiRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   dateOfBirth: string;
   gender: string;
   countryGeonameId?: number;

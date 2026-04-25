@@ -60,22 +60,15 @@ export function PatientBasicInfo({ resetCount = 0 }: PatientBasicInfoProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* First Name + Last Name */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Full Name */}
+      <div className="grid grid-cols-1 gap-4">
         <FormInputField
-          name="firstName"
+          name="fullName"
           control={form.control}
-          label={t("common.fields.firstName")}
+          label={t("common.fields.fullName")}
           isRequired
           noNumbers
           autoFocus
-        />
-        <FormInputField
-          name="lastName"
-          control={form.control}
-          label={t("common.fields.lastName")}
-          isRequired
-          noNumbers
         />
       </div>
 

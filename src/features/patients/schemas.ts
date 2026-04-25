@@ -16,8 +16,7 @@ export const createPatientSchema = (t: TFunction) => {
     );
 
   return z.object({
-    firstName: nameField,
-    lastName: nameField,
+    fullName: nameField,
 
     dateOfBirth: z
       .string()

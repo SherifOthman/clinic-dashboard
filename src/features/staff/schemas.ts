@@ -25,8 +25,7 @@ export const createStaffSchemas = (t: TFunction) => {
       }),
 
     acceptInvitation: z.object({
-      firstName: v.name(),
-      lastName: v.name(),
+      fullName: v.name(),
       userName: v.username(),
       password: v.password(),
       phoneNumber: v.phoneNumber(),

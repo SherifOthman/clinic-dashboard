@@ -58,7 +58,13 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
     ? getFileUrl(user.profileImageUrl)
     : getGenderImageSrc(user.gender);
 
-  const initials = `${user.firstName[0]}${user.lastName[0]}`;
+  const initials = user.fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <Dropdown>
@@ -67,7 +73,7 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
           <Avatar.Image
             className="object-cover"
             src={avatarSrc}
-            alt={`${user.firstName} ${user.lastName}`}
+            alt={user.fullName}
           />
           <Avatar.Fallback>{initials}</Avatar.Fallback>
         </Avatar>
@@ -78,9 +84,7 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
           <Dropdown.Section>
             <Dropdown.Item id="user-info" textValue="User info">
               <div className="flex flex-col">
-                <span className="font-semibold">
-                  {user.firstName} {user.lastName}
-                </span>
+                <span className="font-semibold">{user.fullName}</span>
                 <span className="text-default-500 text-sm">{user.email}</span>
               </div>
             </Dropdown.Item>

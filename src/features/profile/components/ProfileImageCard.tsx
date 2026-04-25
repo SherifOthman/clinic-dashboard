@@ -40,7 +40,7 @@ export function ProfileImageCard({ user }: ProfileImageCardProps) {
           <Avatar.Image
             className="object-cover"
             src={imageUrl}
-            alt={`${user.firstName} ${user.lastName}`}
+            alt={user.fullName}
           />
           <Avatar.Fallback>
             <User className="h-12 w-12" />

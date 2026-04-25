@@ -30,8 +30,7 @@ export function AcceptInvitationForm({ token }: AcceptInvitationFormProps) {
   } = useForm<AcceptInvitationFormType>({
     resolver: zodResolver(schemas.acceptInvitation),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      fullName: "",
       userName: "",
       password: "",
       phoneNumber: "",
@@ -50,22 +49,13 @@ export function AcceptInvitationForm({ token }: AcceptInvitationFormProps) {
       className="max-w-md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormInputField
-            name="firstName"
-            control={control}
-            label={t("staff.acceptInvitation.firstName")}
-            isRequired
-            noNumbers
-          />
-          <FormInputField
-            name="lastName"
-            control={control}
-            label={t("staff.acceptInvitation.lastName")}
-            isRequired
-            noNumbers
-          />
-        </div>
+        <FormInputField
+          name="fullName"
+          control={control}
+          label={t("common.fields.fullName")}
+          isRequired
+          noNumbers
+        />
 
         <FormInputField
           name="userName"

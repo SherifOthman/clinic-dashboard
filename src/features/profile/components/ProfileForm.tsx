@@ -33,8 +33,7 @@ export function ProfileForm({ user }: { user: User }) {
   } = useForm<UpdateProfile>({
     resolver: zodResolver(schemas.updateProfile),
     values: {
-      firstName: user.firstName,
-      lastName: user.lastName,
+      fullName: user.fullName,
       userName: user.userName,
       phoneNumber: user.phoneNumber || "",
       gender: (user.gender as "Male" | "Female") ?? "Male",
@@ -55,16 +54,11 @@ export function ProfileForm({ user }: { user: User }) {
           )}
           className="flex flex-col gap-4"
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4">
             <FormInputField
-              name="firstName"
+              name="fullName"
               control={control}
-              label={t("common.fields.firstName")}
-            />
-            <FormInputField
-              name="lastName"
-              control={control}
-              label={t("common.fields.lastName")}
+              label={t("common.fields.fullName")}
             />
           </div>
 
