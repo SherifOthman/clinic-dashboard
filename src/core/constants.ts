@@ -2,17 +2,6 @@
  * Application-wide constants
  */
 
-export const APP_CONFIG = {
-  name: "ClinicManagement",
-  version: "1.0.0",
-  description: "Modern clinic management system",
-} as const;
-
-export const PAGINATION_DEFAULTS = {
-  pageSize: 10,
-  pageSizeOptions: [5, 10, 20, 50],
-} as const;
-
 export const API_ENDPOINTS = {
   auth: "/auth",
   admin: "/admin",
