@@ -1,10 +1,11 @@
 import { DataTable } from "@/core/components/ui/DataTable";
+import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { USER_ROLES } from "@/core/constants";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { isClinicOwner, isDoctor } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
-import { Button, ListBox, Select } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSetStaffActiveStatus, useStaffList } from "../staffHooks";
@@ -19,28 +20,21 @@ export function Staff() {
   const { user } = useMe();
   const { formatDateShort } = useDateFormat();
   const [detailStaffId, setDetailStaffId] = useState<string | null>(null);
-  const isRTL = i18n.language === "ar";
 
-  const { staffState, updateStaffState, roleFilter, activeFilter } =
-    useStaffTableState();
-
+  const { staffState, updateStaffState, roleFilter, activeFilter } = useStaffTableState();
   const { data, isLoading } = useStaffList(staffState);
 
-  // Filter out the clinic owner from the staff list — they don't need to see themselves.
+  // Filter out the clinic owner — they don't need to see themselves in the list
   const filteredItems =
-    data?.items.filter(
-      (s) => !s.roles.some((r) => r.name === USER_ROLES.CLINIC_OWNER),
-    ) ?? [];
+    data?.items.filter((s) => !s.roles.some((r) => r.name === USER_ROLES.CLINIC_OWNER)) ?? [];
 
   const toggleActive = useSetStaffActiveStatus();
-
-  const handleToggleActive = (staff: StaffDto) => {
+  const handleToggleActive = (staff: StaffDto) =>
     toggleActive.mutate({ id: staff.id, isActive: !staff.isActive });
-  };
 
   const columns = getStaffColumns({
     t,
-    isRTL,
+    isRTL: i18n.language === "ar",
     formatDate: formatDateShort,
     currentUser: user,
     onToggleActive: handleToggleActive,
@@ -49,14 +43,12 @@ export function Staff() {
 
   return (
     <div className="flex flex-col gap-4 py-4">
-      {/* Owner banner */}
+      {/* Owner banner — shown when owner hasn't set up their doctor profile yet */}
       {isClinicOwner(user) && !isDoctor(user) && (
         <div className="border-accent/10 bg-accent/5 flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">{t("staff.ownerDoctor.title")}</p>
-            <p className="text-default-500 text-sm">
-              {t("staff.ownerDoctor.subtitle")}
-            </p>
+            <p className="text-default-500 text-sm">{t("staff.ownerDoctor.subtitle")}</p>
           </div>
           <SetOwnerAsDoctorModal
             trigger={
@@ -68,74 +60,29 @@ export function Staff() {
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <Select
-          className="w-full sm:w-48"
-          placeholder={t("staff.allRoles")}
+        <FilterSelect
           value={roleFilter}
-          onChange={(v) =>
-            updateStaffState({ role: v ? String(v) : undefined })
-          }
-          aria-label={t("staff.filterByRole")}
-        >
-          <Select.Trigger>
-            <Select.Value className={isRTL ? "text-right" : ""} />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox dir="ltr">
-              <ListBox.Item id="" textValue={t("staff.allRoles")}>
-                {t("staff.allRoles")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-              <ListBox.Item id="Doctor" textValue={t("staff.roles.Doctor")}>
-                {t("staff.roles.Doctor")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-              <ListBox.Item
-                id="Receptionist"
-                textValue={t("staff.roles.Receptionist")}
-              >
-                {t("staff.roles.Receptionist")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-            </ListBox>
-          </Select.Popover>
-        </Select>
-
-        <Select
-          className="w-full sm:w-48"
-          placeholder={t("staff.allStatuses")}
+          onChange={(v) => updateStaffState({ role: v })}
+          placeholder={t("staff.allRoles")}
+          ariaLabel={t("staff.filterByRole")}
+          options={[
+            { id: "Doctor", label: t("staff.roles.Doctor") },
+            { id: "Receptionist", label: t("staff.roles.Receptionist") },
+          ]}
+        />
+        <FilterSelect
           value={activeFilter}
           onChange={(v) =>
-            updateStaffState({
-              isActive: v === "true" ? true : v === "false" ? false : undefined,
-            })
+            updateStaffState({ isActive: v === "true" ? true : v === "false" ? false : undefined })
           }
-          aria-label={t("staff.filterByStatus")}
-        >
-          <Select.Trigger>
-            <Select.Value className={isRTL ? "text-right" : ""} />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox dir="ltr">
-              <ListBox.Item id="" textValue={t("staff.allStatuses")}>
-                {t("staff.allStatuses")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-              <ListBox.Item id="true" textValue={t("common.status.active")}>
-                {t("common.status.active")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-              <ListBox.Item id="false" textValue={t("common.status.inactive")}>
-                {t("common.status.inactive")}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-            </ListBox>
-          </Select.Popover>
-        </Select>
+          placeholder={t("staff.allStatuses")}
+          ariaLabel={t("staff.filterByStatus")}
+          options={[
+            { id: "true", label: t("common.status.active") },
+            { id: "false", label: t("common.status.inactive") },
+          ]}
+        />
       </div>
 
       <DataTable
@@ -157,15 +104,10 @@ export function Staff() {
         data={data}
         currentPage={staffState.pageNumber ?? 1}
         onPageChange={(p) => updateStaffState({ pageNumber: p })}
-        onPageSizeChange={(s) =>
-          updateStaffState({ pageSize: s, pageNumber: 1 })
-        }
+        onPageSizeChange={(s) => updateStaffState({ pageSize: s, pageNumber: 1 })}
       />
 
-      <StaffDetailDialog
-        staffId={detailStaffId}
-        onClose={() => setDetailStaffId(null)}
-      />
+      <StaffDetailDialog staffId={detailStaffId} onClose={() => setDetailStaffId(null)} />
     </div>
   );
 }

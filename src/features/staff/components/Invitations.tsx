@@ -1,9 +1,10 @@
 import { DataTable } from "@/core/components/ui/DataTable";
+import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { canInviteStaff } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
-import { Button, ListBox, Select } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,16 +21,9 @@ export function Invitations() {
   const { t, i18n } = useTranslation();
   const { formatDateShort } = useDateFormat();
   const { user } = useMe();
-  const isRTL = i18n.language === "ar";
 
-  // Which invitation is pending cancellation (null = dialog closed)
-  const [cancellingInvitation, setCancellingInvitation] =
-    useState<InvitationDto | null>(null);
-
-  // Which invitation's detail dialog is open (null = closed)
-  const [detailInvitationId, setDetailInvitationId] = useState<string | null>(
-    null,
-  );
+  const [cancellingInvitation, setCancellingInvitation] = useState<InvitationDto | null>(null);
+  const [detailInvitationId, setDetailInvitationId] = useState<string | null>(null);
 
   const { invitationsState, updateInvitationsState, statusParam, roleFilter } =
     useInvitationsTableState();
@@ -39,93 +33,46 @@ export function Invitations() {
 
   const columns = getInvitationColumns({
     t,
-    isRTL,
+    isRTL: i18n.language === "ar",
     formatDate: formatDateShort,
     onCancel: (inv) => setCancellingInvitation(inv),
     onResend: (inv) => resendInvitation.mutate(inv.id),
-    pendingId: resendInvitation.isPending
-      ? resendInvitation.variables
-      : undefined,
+    pendingId: resendInvitation.isPending ? resendInvitation.variables : undefined,
   });
+
+  const statusOptions = [
+    InvitationStatus.Pending,
+    InvitationStatus.Accepted,
+    InvitationStatus.Canceled,
+    InvitationStatus.Expired,
+  ].map((s) => ({
+    id: String(s),
+    label: t(`staff.invitationStatus.${InvitationStatus[s]}`),
+  }));
 
   return (
     <div className="flex flex-col gap-4 py-4">
-      {/* Filters + invite button */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
-          <Select
-            className="flex-1 sm:w-48 sm:flex-none"
-            placeholder={t("staff.allStatuses")}
+          <FilterSelect
             value={statusParam}
-            onChange={(v) =>
-              updateInvitationsState({ status: v ? String(v) : undefined })
-            }
-            aria-label={t("staff.filterByStatus")}
-          >
-            <Select.Trigger>
-              <Select.Value className={isRTL ? "text-right" : ""} />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox dir="ltr">
-                <ListBox.Item id="" textValue={t("staff.allStatuses")}>
-                  {t("staff.allStatuses")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                {[
-                  InvitationStatus.Pending,
-                  InvitationStatus.Accepted,
-                  InvitationStatus.Canceled,
-                  InvitationStatus.Expired,
-                ].map((s) => (
-                  <ListBox.Item
-                    key={s}
-                    id={String(s)}
-                    textValue={t(
-                      `staff.invitationStatus.${InvitationStatus[s]}`,
-                    )}
-                  >
-                    {t(`staff.invitationStatus.${InvitationStatus[s]}`)}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-
-          <Select
+            onChange={(v) => updateInvitationsState({ status: v })}
+            placeholder={t("staff.allStatuses")}
+            ariaLabel={t("staff.filterByStatus")}
+            options={statusOptions}
             className="flex-1 sm:w-48 sm:flex-none"
-            placeholder={t("staff.allRoles")}
+          />
+          <FilterSelect
             value={roleFilter}
-            onChange={(v) =>
-              updateInvitationsState({ invRole: v ? String(v) : undefined })
-            }
-            aria-label={t("staff.filterByRole")}
-          >
-            <Select.Trigger>
-              <Select.Value className={isRTL ? "text-right" : ""} />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox dir="ltr">
-                <ListBox.Item id="" textValue={t("staff.allRoles")}>
-                  {t("staff.allRoles")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="Doctor" textValue={t("staff.roles.Doctor")}>
-                  {t("staff.roles.Doctor")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item
-                  id="Receptionist"
-                  textValue={t("staff.roles.Receptionist")}
-                >
-                  {t("staff.roles.Receptionist")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
+            onChange={(v) => updateInvitationsState({ invRole: v })}
+            placeholder={t("staff.allRoles")}
+            ariaLabel={t("staff.filterByRole")}
+            options={[
+              { id: "Doctor", label: t("staff.roles.Doctor") },
+              { id: "Receptionist", label: t("staff.roles.Receptionist") },
+            ]}
+            className="flex-1 sm:w-48 sm:flex-none"
+          />
         </div>
 
         {canInviteStaff(user) && (
@@ -159,9 +106,7 @@ export function Invitations() {
         data={data}
         currentPage={invitationsState.pageNumber ?? 1}
         onPageChange={(p) => updateInvitationsState({ pageNumber: p })}
-        onPageSizeChange={(s) =>
-          updateInvitationsState({ pageSize: s, pageNumber: 1 })
-        }
+        onPageSizeChange={(s) => updateInvitationsState({ pageSize: s, pageNumber: 1 })}
       />
 
       <InvitationDetailDialog
