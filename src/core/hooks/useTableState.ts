@@ -8,6 +8,8 @@ export interface BaseTableState {
   sortDirection: "asc" | "desc";
 }
 
+type ParamUpdates = Record<string, string | number | null | undefined>;
+
 /**
  * Manages table filter/sort/pagination state in the URL query string.
  *
@@ -24,44 +26,53 @@ export interface BaseTableState {
  *   sortDirection → "desc" only (omitted when "asc" to keep URLs clean)
  *
  * Feature-specific params (gender, city, etc.) are managed by the feature's
- * own hook using the `updateParam` helper returned here.
+ * own hook using the `buildFilterParams` + `updateParams` helpers returned here.
  */
 export function useBaseTableState(defaults?: Partial<BaseTableState>) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const baseState: BaseTableState = {
-    pageNumber: parseInt(searchParams.get("page") || "1"),
-    pageSize: parseInt(
-      searchParams.get("size") || String(defaults?.pageSize ?? 10),
-    ),
-    searchTerm: searchParams.get("search") || "",
-    sortBy: searchParams.get("sortBy") || defaults?.sortBy || "",
-    sortDirection:
-      (searchParams.get("sortDirection") as "asc" | "desc") || "asc",
+    pageNumber:    parseInt(searchParams.get("page") || "1"),
+    pageSize:      parseInt(searchParams.get("size") || String(defaults?.pageSize ?? 10)),
+    searchTerm:    searchParams.get("search") || "",
+    sortBy:        searchParams.get("sortBy") || defaults?.sortBy || "",
+    sortDirection: (searchParams.get("sortDirection") as "asc" | "desc") || "asc",
   };
 
-  const updateParams = (
-    updates: Record<string, string | number | null | undefined>,
-    options?: { replace?: boolean },
-  ) => {
+  const updateParams = (updates: ParamUpdates, options?: { replace?: boolean }) => {
     setSearchParams((prev) => {
       const p = new URLSearchParams(prev);
-
       Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === undefined || value === "") {
-          p.delete(key);
-        } else {
-          p.set(key, String(value));
-        }
+        if (value === null || value === undefined || value === "") p.delete(key);
+        else p.set(key, String(value));
       });
-
       return p;
     }, options);
   };
 
-  return {
-    baseState,
-    searchParams,
-    updateParams,
+  /**
+   * Builds the base URL params from common table updates (page, size, sort).
+   * Feature hooks call this first, then add their own filter params on top.
+   *
+   * Usage in a feature hook:
+   *   const params = buildFilterParams(updates);
+   *   if ("role" in updates) { params.role = updates.role; params.page = 1; }
+   *   updateParams(params);
+   */
+  const buildFilterParams = (updates: {
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortDirection?: "asc" | "desc";
+  }): ParamUpdates => {
+    const params: ParamUpdates = {};
+    if ("pageNumber" in updates) params.page = updates.pageNumber;
+    if ("pageSize" in updates) params.size = updates.pageSize;
+    if ("sortBy" in updates) params.sortBy = updates.sortBy;
+    if ("sortDirection" in updates)
+      params.sortDirection = updates.sortDirection === "asc" ? null : updates.sortDirection;
+    return params;
   };
+
+  return { baseState, searchParams, updateParams, buildFilterParams };
 }
