@@ -3,6 +3,12 @@ import { useTranslation } from "react-i18next";
 import { patientsApi } from "./patientsApi";
 import type { PatientsSearchParams } from "./types";
 
+// ── Shared helper ─────────────────────────────────────────────────────────────
+
+function pickName(lang: string, nameEn: string, nameAr: string) {
+  return lang === "ar" ? nameAr : nameEn;
+}
+
 export function usePaginatedPatients(
   params: PatientsSearchParams = {},
   isSuperAdmin = false,
@@ -34,7 +40,6 @@ export function useChronicDiseases() {
 
 // ── Location filter options (from actual patient data) ────────────────────────
 
-/** Countries that have at least one patient in this clinic. Lazy — fetches on first open. */
 export function usePatientCountryOptions(enabled = false) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
@@ -44,14 +49,10 @@ export function usePatientCountryOptions(enabled = false) {
     enabled,
     staleTime: 2 * 60 * 1000,
   });
-  const data = raw.map((r) => ({
-    geonameId: r.geonameId,
-    name: lang === "ar" ? r.nameAr : r.nameEn,
-  }));
+  const data = raw.map((r) => ({ geonameId: r.geonameId, name: pickName(lang, r.nameEn, r.nameAr) }));
   return { data, ...rest };
 }
 
-/** States in a country that have at least one patient. Fetches when countryGeonameId is set. */
 export function usePatientStateOptions(countryGeonameId: number | undefined) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
@@ -61,14 +62,10 @@ export function usePatientStateOptions(countryGeonameId: number | undefined) {
     enabled: !!countryGeonameId,
     staleTime: 2 * 60 * 1000,
   });
-  const data = raw.map((r) => ({
-    geonameId: r.geonameId,
-    name: lang === "ar" ? r.nameAr : r.nameEn,
-  }));
+  const data = raw.map((r) => ({ geonameId: r.geonameId, name: pickName(lang, r.nameEn, r.nameAr) }));
   return { data, ...rest };
 }
 
-/** Cities in a state that have at least one patient. Fetches when stateGeonameId is set. */
 export function usePatientCityOptions(stateGeonameId: number | undefined) {
   const { i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
@@ -78,9 +75,6 @@ export function usePatientCityOptions(stateGeonameId: number | undefined) {
     enabled: !!stateGeonameId,
     staleTime: 2 * 60 * 1000,
   });
-  const data = raw.map((r) => ({
-    geonameId: r.geonameId,
-    name: lang === "ar" ? r.nameAr : r.nameEn,
-  }));
+  const data = raw.map((r) => ({ geonameId: r.geonameId, name: pickName(lang, r.nameEn, r.nameAr) }));
   return { data, ...rest };
 }

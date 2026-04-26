@@ -1,7 +1,7 @@
 import { useValidation } from "@/core/hooks/useValidation";
 import { calculateAge } from "@/core/utils/ageUtils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { createPatientSchema, type PatientFormData } from "./schemas";
 import type { PatientApiRequest, PatientDetail } from "./types";
@@ -45,13 +45,14 @@ const emptyDefaults: PatientFormData = {
 
 export function usePatientForm({ patient, draft, onSubmit }: UsePatientFormOptions) {
   const schema = useValidation(createPatientSchema);
-  const [resetCount, setResetCount] = React.useState(0);
+  const [resetCount, setResetCount] = useState(0);
 
   const createDefaults: PatientFormData = draft
     ? { ...emptyDefaults, ...(draft as PatientFormData) }
     : emptyDefaults;
 
   const form = useForm<PatientFormData>({
+    // zod v4 resolver type is not yet fully compatible with react-hook-form's Resolver type
     resolver: zodResolver(schema) as any,
     defaultValues: patient ? emptyDefaults : createDefaults,
     values: patient

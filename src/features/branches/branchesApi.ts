@@ -1,4 +1,7 @@
 import { apiClient } from "@/core/api";
+import { API_ENDPOINTS } from "@/core/constants";
+
+const BASE = API_ENDPOINTS.branches;
 
 export interface BranchPhoneDto {
   phoneNumber: string;
@@ -26,17 +29,17 @@ export interface CreateBranchRequest {
 
 export const branchesApi = {
   async getAll(): Promise<BranchDto[]> {
-    const res = await apiClient.get<BranchDto[]>("/branches");
+    const res = await apiClient.get<BranchDto[]>(BASE);
     return res.data;
   },
   async create(data: CreateBranchRequest): Promise<string> {
-    const res = await apiClient.post<string>("/branches", data);
+    const res = await apiClient.post<string>(BASE, data);
     return res.data;
   },
   async update(id: string, data: CreateBranchRequest): Promise<void> {
-    await apiClient.put(`/branches/${id}`, data);
+    await apiClient.put(`${BASE}/${id}`, data);
   },
   async setActiveStatus(id: string, isActive: boolean): Promise<void> {
-    await apiClient.patch(`/branches/${id}/active-status`, { id, isActive });
+    await apiClient.patch(`${BASE}/${id}/active-status`, { id, isActive });
   },
 };
