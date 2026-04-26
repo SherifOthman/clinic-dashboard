@@ -1,3 +1,4 @@
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,9 +33,7 @@ export default function AuditPage() {
 
   return (
     <div className="flex flex-col gap-4 py-4">
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold sm:text-3xl">{t("audit.title")}</h1>
-        <p className="text-default-500 text-sm">{t("audit.subtitle")}</p>
+      <PageHeader title={t("audit.title")} subtitle={t("audit.subtitle")}>
         {data && (
           <p className="text-default-400 mt-1 text-xs">
             {isRTL
@@ -42,7 +41,7 @@ export default function AuditPage() {
               : `${data.totalCount} records`}
           </p>
         )}
-      </div>
+      </PageHeader>
 
       <AuditFilters
         isRTL={isRTL}

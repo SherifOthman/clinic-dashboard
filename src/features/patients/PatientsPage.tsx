@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@/core/components/ui/ConfirmDialog";
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDeleteDialogState, useDialogState } from "@/core/hooks/useDialogState";
 import { canDeletePatient, canEditPatient, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
@@ -32,10 +33,7 @@ export default function PatientsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">{t("patients.title")}</h1>
-        <p className="text-default-500 text-sm">{t("patients.subtitle")}</p>
-      </div>
+      <PageHeader title={t("patients.title")} subtitle={t("patients.subtitle")} />
 
       <PatientsList
         onPatientCreate={patientForm.openCreate}

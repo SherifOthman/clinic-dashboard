@@ -1,41 +1,40 @@
-import { FormInputField } from "@/core/components/form/FormInputField";
-import { FormSection } from "@/core/components/form/FormSection";
-import { LocationSelector } from "@/core/components/form/LocationSelector";
-import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
-import { Dialog } from "@/core/components/ui/Dialog";
 import { Loading } from "@/core/components/ui/Loading";
+import { useDialogState } from "@/core/hooks/useDialogState";
 import { useGeonameLabel } from "@/core/location/hooks";
-import type { DialogState } from "@/core/types";
 import { canManageBranches } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Button, Card, Chip } from "@heroui/react";
-import { Building2, MapPin, Phone, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { Building2, MapPin, Plus } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BranchDetailDialog } from "./BranchDetailDialog";
-import type { BranchDto, CreateBranchRequest } from "./branchesApi";
-import { useBranches, useCreateBranch, useUpdateBranch } from "./branchesHooks";
+import { BranchFormDialog } from "./BranchFormDialog";
+import type { BranchDto } from "./branchesApi";
+import { useBranches } from "./branchesHooks";
 
 export default function BranchesPage() {
   const { t } = useTranslation();
   const { user } = useMe();
   const { data: branches, isLoading } = useBranches();
 
-  // Which branch's detail dialog is open (null = closed)
   const [detailBranchId, setDetailBranchId] = useState<string | null>(null);
+  const [editBranch, setEditBranch] = useState<BranchDto | undefined>();
+  const branchForm = useDialogState();
 
-  // Create / edit form dialog
-  const [branchForm, setBranchForm] = useState<
-    DialogState & { branch?: BranchDto }
-  >({
-    mode: "closed",
-  });
+  const detailBranch = detailBranchId
+    ? (branches?.find((b) => b.id === detailBranchId) ?? null)
+    : null;
 
-  const detailBranch =
-    detailBranchId != null
-      ? (branches?.find((b) => b.id === detailBranchId) ?? null)
-      : null;
+  const openEdit = (branch: BranchDto) => {
+    setDetailBranchId(null);
+    setEditBranch(branch);
+    branchForm.openEdit(branch.id);
+  };
+
+  const handleClose = () => {
+    branchForm.close();
+    setEditBranch(undefined);
+  };
 
   return (
     <div className="flex flex-col gap-6 py-4">
@@ -45,10 +44,7 @@ export default function BranchesPage() {
           <p className="text-default-500 text-sm">{t("branches.subtitle")}</p>
         </div>
         {canManageBranches(user) && (
-          <Button
-            variant="primary"
-            onPress={() => setBranchForm({ mode: "create" })}
-          >
+          <Button variant="primary" onPress={branchForm.openCreate}>
             <Plus className="h-4 w-4" />
             {t("branches.addBranch")}
           </Button>
@@ -60,48 +56,23 @@ export default function BranchesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {branches?.map((branch) => (
-            <BranchCard
-              key={branch.id}
-              branch={branch}
-              onView={() => setDetailBranchId(branch.id)}
-            />
+            <BranchCard key={branch.id} branch={branch} onView={() => setDetailBranchId(branch.id)} />
           ))}
         </div>
       )}
 
-      <BranchDetailDialog
-        branch={detailBranch}
-        onClose={() => setDetailBranchId(null)}
-        onEdit={(b) => {
-          setDetailBranchId(null);
-          setBranchForm({ mode: "edit", id: b.id, branch: b });
-        }}
-      />
+      <BranchDetailDialog branch={detailBranch} onClose={() => setDetailBranchId(null)} onEdit={openEdit} />
 
-      <BranchFormDialog
-        state={branchForm}
-        onClose={() => setBranchForm({ mode: "closed" })}
-      />
+      <BranchFormDialog state={{ ...branchForm.state, branch: editBranch }} onClose={handleClose} />
     </div>
   );
 }
 
 // ── Branch Card ───────────────────────────────────────────────────────────────
 
-function BranchCard({
-  branch,
-  onView,
-}: {
-  branch: BranchDto;
-  onView: () => void;
-}) {
+function BranchCard({ branch, onView }: { branch: BranchDto; onView: () => void }) {
   const { t } = useTranslation();
-
-  const cityName = useGeonameLabel(
-    branch.cityGeonameId,
-    "city",
-    branch.stateGeonameId,
-  );
+  const cityName = useGeonameLabel(branch.cityGeonameId, "city", branch.stateGeonameId);
   const stateName = useGeonameLabel(branch.stateGeonameId, "state", undefined);
   const locationLabel = [stateName, cityName].filter(Boolean).join(", ");
 
@@ -118,15 +89,11 @@ function BranchCard({
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{branch.name}</span>
                   {branch.isMainBranch && (
-                    <Chip size="sm" variant="soft" color="accent">
-                      {t("branches.main")}
-                    </Chip>
+                    <Chip size="sm" variant="soft" color="accent">{t("branches.main")}</Chip>
                   )}
                 </div>
                 {branch.addressLine && (
-                  <p className="text-default-500 text-xs">
-                    {branch.addressLine}
-                  </p>
+                  <p className="text-default-500 text-xs">{branch.addressLine}</p>
                 )}
                 {locationLabel && (
                   <p className="text-default-400 flex items-center gap-1 text-xs">
@@ -136,152 +103,12 @@ function BranchCard({
                 )}
               </div>
             </div>
-            <Chip
-              size="sm"
-              variant="soft"
-              color={branch.isActive ? "success" : "danger"}
-            >
-              {branch.isActive
-                ? t("common.status.active")
-                : t("common.status.inactive")}
+            <Chip size="sm" variant="soft" color={branch.isActive ? "success" : "danger"}>
+              {branch.isActive ? t("common.status.active") : t("common.status.inactive")}
             </Chip>
           </div>
         </Card.Content>
       </Card>
     </button>
-  );
-}
-
-// ── Branch Form Dialog ────────────────────────────────────────────────────────
-
-function BranchFormDialog({
-  state,
-  onClose,
-}: {
-  state: DialogState & { branch?: BranchDto };
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  const branch = state.mode === "edit" ? (state.branch ?? null) : null;
-  const isEditing = !!branch;
-  const createBranch = useCreateBranch();
-  const updateBranch = useUpdateBranch();
-
-  const form = useForm<CreateBranchRequest>({
-    defaultValues: {
-      name: "",
-      addressLine: "",
-      stateGeonameId: undefined,
-      cityGeonameId: undefined,
-      phoneNumbers: [""],
-    },
-  });
-
-  const { control, handleSubmit, reset } = form;
-
-  // Populate form when opening in edit mode
-  useEffect(() => {
-    if (branch) {
-      reset({
-        name: branch.name,
-        addressLine: branch.addressLine ?? "",
-        stateGeonameId: branch.stateGeonameId,
-        cityGeonameId: branch.cityGeonameId,
-        phoneNumbers: branch.phoneNumbers.map((p) => p.phoneNumber),
-      });
-    } else {
-      reset({
-        name: "",
-        addressLine: "",
-        stateGeonameId: undefined,
-        cityGeonameId: undefined,
-        phoneNumbers: [""],
-      });
-    }
-  }, [branch?.id]);
-
-  const onSubmit = (data: CreateBranchRequest) => {
-    if (isEditing) {
-      updateBranch.mutate({ id: branch.id, data }, { onSuccess: onClose });
-    } else {
-      createBranch.mutate(data, { onSuccess: onClose });
-    }
-  };
-
-  const isPending = createBranch.isPending || updateBranch.isPending;
-
-  return (
-    <Dialog
-      isOpen={state.mode !== "closed"}
-      onClose={onClose}
-      title={isEditing ? t("branches.editBranch") : t("branches.addBranch")}
-      size="lg"
-    >
-      <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-          {/* Branch info */}
-          <FormSection
-            icon={<Building2 className="h-4 w-4" />}
-            title={t("branches.branchInfo")}
-          >
-            <div className="flex flex-col gap-4">
-              <FormInputField
-                name="name"
-                control={control}
-                label={t("common.fields.name")}
-                isRequired
-                autoFocus
-              />
-              <FormInputField
-                name="addressLine"
-                control={control}
-                label={t("branches.addressLine")}
-                isRequired
-              />
-            </div>
-          </FormSection>
-
-          {/* Location + Phones stacked for full width */}
-          <div className="flex flex-col gap-4">
-            <FormSection
-              icon={<MapPin className="h-4 w-4" />}
-              title={t("common.fields.address")}
-            >
-              <LocationSelector
-                form={form}
-                stateGeonameIdField="stateGeonameId"
-                cityGeonameIdField="cityGeonameId"
-              />
-            </FormSection>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-accent">
-                  <Phone className="h-4 w-4" />
-                </span>
-                <p className="text-foreground text-sm font-semibold">
-                  {t("common.fields.phoneNumber")}
-                </p>
-              </div>
-              <PhoneNumbersInput form={form} name="phoneNumbers" maxItems={3} />
-            </div>
-          </div>
-
-          <div className="border-divider flex justify-end gap-2 border-t pt-4">
-            <Button type="button" variant="ghost" onPress={onClose}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isPending={isPending}
-              isDisabled={isPending}
-            >
-              {isEditing ? t("common.update") : t("common.create")}
-            </Button>
-          </div>
-        </form>
-      </FormProvider>
-    </Dialog>
   );
 }
