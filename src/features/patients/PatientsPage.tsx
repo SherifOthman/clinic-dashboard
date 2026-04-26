@@ -1,10 +1,6 @@
 import { ConfirmDialog } from "@/core/components/ui/ConfirmDialog";
-import type { DeleteState, DialogState } from "@/core/types";
-import {
-  canDeletePatient,
-  canEditPatient,
-  isSuperAdmin,
-} from "@/core/utils/permissions";
+import { useDeleteDialogState, useDialogState } from "@/core/hooks/useDialogState";
+import { canDeletePatient, canEditPatient, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,20 +16,15 @@ export default function PatientsPage() {
   const superAdmin = isSuperAdmin(user);
 
   const [detailPatientId, setDetailPatientId] = useState<string | null>(null);
-  const [patientForm, setPatientForm] = useState<DialogState>({
-    mode: "closed",
-  });
-  const [deleteConfirm, setDeleteConfirm] = useState<DeleteState>({
-    mode: "closed",
-  });
-
+  const patientForm = useDialogState();
+  const deleteDialog = useDeleteDialogState();
   const deletePatient = useDeletePatient();
 
   const handleDeleteConfirm = () => {
-    if (deleteConfirm.mode !== "confirm") return;
-    deletePatient.mutate(deleteConfirm.id, {
+    if (deleteDialog.state.mode !== "confirm") return;
+    deletePatient.mutate(deleteDialog.state.id, {
       onSuccess: () => {
-        setDeleteConfirm({ mode: "closed" });
+        deleteDialog.close();
         setDetailPatientId(null);
       },
     });
@@ -42,14 +33,12 @@ export default function PatientsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
-          {t("patients.title")}
-        </h1>
+        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">{t("patients.title")}</h1>
         <p className="text-default-500 text-sm">{t("patients.subtitle")}</p>
       </div>
 
       <PatientsList
-        onPatientCreate={() => setPatientForm({ mode: "create" })}
+        onPatientCreate={patientForm.openCreate}
         onPatientView={(p: PatientListItem) => setDetailPatientId(p.id)}
       />
 
@@ -57,34 +46,26 @@ export default function PatientsPage() {
         patientId={detailPatientId}
         isSuperAdmin={superAdmin}
         onClose={() => setDetailPatientId(null)}
-        onEdit={
-          canEditPatient(user)
-            ? (id) => setPatientForm({ mode: "edit", id })
-            : undefined
-        }
-        onDelete={
-          canDeletePatient(user)
-            ? (id, name) => setDeleteConfirm({ mode: "confirm", id, name })
-            : undefined
-        }
+        onEdit={canEditPatient(user) ? patientForm.openEdit : undefined}
+        onDelete={canDeletePatient(user) ? deleteDialog.open : undefined}
       />
 
       <PatientDialog
-        state={patientForm}
+        state={patientForm.state}
         isSuperAdmin={superAdmin}
-        onClose={() => setPatientForm({ mode: "closed" })}
+        onClose={patientForm.close}
       />
 
       <ConfirmDialog
-        isOpen={deleteConfirm.mode === "confirm"}
-        onClose={() => setDeleteConfirm({ mode: "closed" })}
+        isOpen={deleteDialog.state.mode === "confirm"}
+        onClose={deleteDialog.close}
         onConfirm={handleDeleteConfirm}
         title={t("patients.deletePatient")}
         message={
           <p className="py-2 leading-relaxed">
             {t("patients.deleteConfirmationBefore")}{" "}
             <span className="text-danger/80 font-semibold">
-              {deleteConfirm.mode === "confirm" ? deleteConfirm.name : ""}
+              {deleteDialog.state.mode === "confirm" ? deleteDialog.state.name : ""}
             </span>
             {"? "}
             {t("patients.deleteConfirmationAfter")}
