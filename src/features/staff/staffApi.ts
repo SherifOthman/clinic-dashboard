@@ -127,11 +127,11 @@ export const staffApi = {
   },
 
   resendInvitation: async (id: string): Promise<void> => {
-    await apiClient.post(`${API_ENDPOINTS.staff}/invitations/${id}/resend`);
+    await apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`);
   },
 
   setOwnerAsDoctor: async (data: SetOwnerAsDoctorRequest): Promise<void> => {
-    await apiClient.post(`${API_ENDPOINTS.staff}/set-owner-as-doctor`, data);
+    await apiClient.patch(`${API_ENDPOINTS.staff}/me/doctor-profile`, data);
   },
 
   setActiveStatus: async (id: string, isActive: boolean): Promise<void> => {

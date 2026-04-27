@@ -4,7 +4,7 @@ import type { AuditLogsResponse, AuditSearchParams } from "./types";
 
 export const auditApi = {
   async restorePatient(patientId: string): Promise<void> {
-    await apiClient.post(`${API_ENDPOINTS.patients}/${patientId}/restore`);
+    await apiClient.patch(`${API_ENDPOINTS.patients}/${patientId}/restore`);
   },
 
   async getLogs(params: AuditSearchParams = {}): Promise<AuditLogsResponse> {

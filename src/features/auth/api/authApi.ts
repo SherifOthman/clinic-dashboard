@@ -85,15 +85,10 @@ export const authApi = {
   async updateProfileImage(image: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", image);
-
-    await apiClient.post(
-      `${API_ENDPOINTS.auth}/profile/image/upload`,
+    await apiClient.put(
+      `${API_ENDPOINTS.auth}/profile/image`,
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
   },
 
