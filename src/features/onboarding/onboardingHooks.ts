@@ -1,12 +1,9 @@
-import { tokenManager } from "@/core/api";
 import { useToast } from "@/core/hooks/useToast";
 import { useCities, useCountries, useStates } from "@/core/location/hooks";
 import { createErrorHandler } from "@/core/utils/apiErrorHandler";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { onboardingApi } from "./onboardingApi";
-
-// ── Queries ───────────────────────────────────────────────────────────────────
 
 export function useSubscriptionPlans() {
   return useQuery({
@@ -26,8 +23,6 @@ export function useSpecializations() {
 
 export { useCities, useCountries, useStates };
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
-
 export function useCompleteOnboarding() {
   const queryClient = useQueryClient();
   const { showError } = useToast();
@@ -35,9 +30,9 @@ export function useCompleteOnboarding() {
 
   return useMutation({
     mutationFn: onboardingApi.completeOnboarding,
-    onSuccess: async () => {
+    onSuccess: () => {
+      // Invalidate /me so the app re-reads onboardingCompleted = true
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      await tokenManager.refreshAccessToken();
     },
     onError: createErrorHandler(showError, t),
     throwOnError: false,

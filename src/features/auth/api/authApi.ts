@@ -4,26 +4,18 @@ import type {
   ChangePassword,
   ConfirmEmail,
   ForgotPassword,
-  Login,
-  Register,
   ResendEmailVerification,
   ResetPassword,
 } from "../schemas";
-import type { Availability, LoginResponse, User } from "../types";
+import type { Availability, User } from "../types";
 
+/**
+ * Auth API — all requests use native fetch with credentials: 'include'.
+ * Tokens live in HttpOnly cookies; no manual token management needed.
+ *
+ * Login and Register are handled by the Next.js app — not here.
+ */
 export const authApi = {
-  async register(data: Register): Promise<void> {
-    await apiClient.post(`${API_ENDPOINTS.auth}/register`, data);
-  },
-
-  async login(data: Login): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>(
-      `${API_ENDPOINTS.auth}/login`,
-      data,
-    );
-    return response.data;
-  },
-
   async logout(): Promise<void> {
     await apiClient.post(`${API_ENDPOINTS.auth}/logout`);
   },
@@ -45,34 +37,25 @@ export const authApi = {
   },
 
   async resendEmailVerification(data: ResendEmailVerification): Promise<void> {
-    await apiClient.post(
-      `${API_ENDPOINTS.auth}/resend-email-verification`,
-      data,
-    );
+    await apiClient.post(`${API_ENDPOINTS.auth}/resend-email-verification`, data);
   },
 
   async getMe(): Promise<User> {
-    const response = await apiClient.get<User>(`${API_ENDPOINTS.auth}/me`);
-    return response.data;
+    return apiClient.get<User>(`${API_ENDPOINTS.auth}/me`);
   },
 
   async checkEmailAvailability(email: string): Promise<Availability> {
-    const response = await apiClient.get<Availability>(
-      `${API_ENDPOINTS.auth}/check-email`,
-      { params: { email } },
+    return apiClient.get<Availability>(
+      `${API_ENDPOINTS.auth}/check-email?email=${encodeURIComponent(email)}`,
     );
-    return response.data;
   },
 
   async checkUsernameAvailability(username: string): Promise<Availability> {
-    const response = await apiClient.get<Availability>(
-      `${API_ENDPOINTS.auth}/check-username`,
-      { params: { username } },
+    return apiClient.get<Availability>(
+      `${API_ENDPOINTS.auth}/check-username?username=${encodeURIComponent(username)}`,
     );
-    return response.data;
   },
 
-  // Profile management
   async updateProfile(data: {
     fullName: string;
     userName: string;
@@ -85,11 +68,12 @@ export const authApi = {
   async updateProfileImage(image: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", image);
-    await apiClient.put(
-      `${API_ENDPOINTS.auth}/profile/image`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
+    // multipart — don't set Content-Type, browser sets it with boundary
+    await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.auth}/profile/image`, {
+      method: "PUT",
+      credentials: "include",
+      body: formData,
+    }).then((r) => { if (!r.ok) throw new Error(`Error ${r.status}`); });
   },
 
   async deleteProfileImage(): Promise<void> {

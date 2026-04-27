@@ -4,27 +4,15 @@ import type { CompleteOnboarding } from "./schemas";
 import type { Specialization, SubscriptionPlan } from "./types";
 
 export const onboardingApi = {
-  async completeOnboarding(data: CompleteOnboarding): Promise<void> {
-    // Transform "yes"/"no" to boolean for backend
-    // If undefined, default to false (user chose not to provide medical services)
-    const payload = {
+  completeOnboarding: (data: CompleteOnboarding): Promise<void> =>
+    apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, {
       ...data,
       provideMedicalServices: data.provideMedicalServices === "yes",
-    };
-    await apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, payload);
-  },
+    }),
 
-  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    const response = await apiClient.get<SubscriptionPlan[]>(
-      API_ENDPOINTS.subscriptionPlans,
-    );
-    return response.data;
-  },
+  getSubscriptionPlans: (): Promise<SubscriptionPlan[]> =>
+    apiClient.get<SubscriptionPlan[]>(API_ENDPOINTS.subscriptionPlans),
 
-  async getSpecializations(): Promise<Specialization[]> {
-    const response = await apiClient.get<Specialization[]>(
-      API_ENDPOINTS.specializations,
-    );
-    return response.data;
-  },
+  getSpecializations: (): Promise<Specialization[]> =>
+    apiClient.get<Specialization[]>(API_ENDPOINTS.specializations),
 };

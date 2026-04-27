@@ -1,7 +1,6 @@
-import { apiClient } from "@/core/api";
+import { apiClient, apiFetch } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
 import type { PagedResult } from "@/core/types";
-import axios from "axios";
 import type {
   AcceptInvitationWithRegistration,
   InvitationDetailDto,
@@ -47,191 +46,79 @@ export interface UpsertDoctorVisitTypeRequest {
   isActive: boolean;
 }
 
-// Public client for unauthenticated endpoints
-const publicClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 30000,
-});
+function buildQuery(params: Record<string, any>): string {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
+  });
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
 
 export const staffApi = {
-  getStaffList: async (
-    params: StaffSearchParams = {},
-  ): Promise<PagedResult<StaffDto>> => {
-    const {
-      role,
-      isActive,
-      sortBy,
-      sortDirection,
-      pageNumber = 1,
-      pageSize = 10,
-    } = params;
-    const p: Record<string, any> = { pageNumber, pageSize };
-    if (role) p.role = role;
-    if (isActive !== undefined) p.isActive = isActive;
-    if (sortBy) p.sortBy = sortBy;
-    if (sortDirection) p.sortDirection = sortDirection;
-    const response = await apiClient.get<PagedResult<StaffDto>>(
-      API_ENDPOINTS.staff,
-      {
-        params: p,
-      },
-    );
-    return response.data;
+  getStaffList: (params: StaffSearchParams = {}): Promise<PagedResult<StaffDto>> => {
+    const { role, isActive, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
+    const q = buildQuery({ pageNumber, pageSize, role, isActive, sortBy, sortDirection });
+    return apiClient.get<PagedResult<StaffDto>>(`${API_ENDPOINTS.staff}${q}`);
   },
 
-  getInvitations: async (
-    params: InvitationsSearchParams = {},
-  ): Promise<PagedResult<InvitationDto>> => {
-    const {
-      status,
-      role,
-      sortBy,
-      sortDirection,
-      pageNumber = 1,
-      pageSize = 10,
-    } = params;
-    const p: Record<string, any> = { pageNumber, pageSize };
-    if (status !== undefined) p.status = status;
-    if (role) p.role = role;
-    if (sortBy) p.sortBy = sortBy;
-    if (sortDirection) p.sortDirection = sortDirection;
-    const response = await apiClient.get<PagedResult<InvitationDto>>(
-      `${API_ENDPOINTS.staff}/invitations`,
-      { params: p },
-    );
-    return response.data;
+  getInvitations: (params: InvitationsSearchParams = {}): Promise<PagedResult<InvitationDto>> => {
+    const { status, role, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
+    const q = buildQuery({ pageNumber, pageSize, status, role, sortBy, sortDirection });
+    return apiClient.get<PagedResult<InvitationDto>>(`${API_ENDPOINTS.staff}/invitations${q}`);
   },
 
-  inviteStaff: async (
-    data: InviteStaffRequest,
-  ): Promise<InviteStaffResponse> => {
-    const response = await apiClient.post<InviteStaffResponse>(
-      `${API_ENDPOINTS.staff}/invite`,
-      data,
-    );
-    return response.data;
+  inviteStaff: (data: InviteStaffRequest): Promise<InviteStaffResponse> =>
+    apiClient.post<InviteStaffResponse>(`${API_ENDPOINTS.staff}/invite`, data),
+
+  // Public endpoint — no auth cookie needed
+  acceptInvitationWithRegistration: (token: string, data: AcceptInvitationWithRegistration): Promise<void> =>
+    apiFetch(`${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  cancelInvitation: (id: string): Promise<void> =>
+    apiClient.delete(`${API_ENDPOINTS.staff}/invitations/${id}`),
+
+  resendInvitation: (id: string): Promise<void> =>
+    apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`),
+
+  setOwnerAsDoctor: (data: SetOwnerAsDoctorRequest): Promise<void> =>
+    apiClient.patch(`${API_ENDPOINTS.staff}/me/doctor-profile`, data),
+
+  setActiveStatus: (id: string, isActive: boolean): Promise<void> =>
+    apiClient.patch(`${API_ENDPOINTS.staff}/${id}/active-status`, { isActive }),
+
+  getStaffDetail: (id: string): Promise<StaffDetailDto> =>
+    apiClient.get<StaffDetailDto>(`${API_ENDPOINTS.staff}/${id}`),
+
+  getInvitationDetail: (id: string): Promise<InvitationDetailDto> =>
+    apiClient.get<InvitationDetailDto>(`${API_ENDPOINTS.staff}/invitations/${id}`),
+
+  getWorkingDays: (staffId: string, branchId?: string): Promise<WorkingDayDto[]> => {
+    const q = branchId ? `?branchId=${branchId}` : "";
+    return apiClient.get<WorkingDayDto[]>(`${API_ENDPOINTS.staff}/${staffId}/working-days${q}`);
   },
 
-  acceptInvitationWithRegistration: async (
-    token: string,
-    data: AcceptInvitationWithRegistration,
-  ): Promise<void> => {
-    await publicClient.post(
-      `${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`,
-      data,
-    );
-  },
+  saveWorkingDays: (staffId: string, branchId: string, days: WorkingDayInput[]): Promise<void> =>
+    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/working-days`, { branchId, staffId, days }),
 
-  cancelInvitation: async (id: string): Promise<void> => {
-    await apiClient.delete(`${API_ENDPOINTS.staff}/invitations/${id}`);
-  },
+  getVisitTypes: (staffId: string, branchId: string): Promise<DoctorVisitTypeDto[]> =>
+    apiClient.get<DoctorVisitTypeDto[]>(`${API_ENDPOINTS.staff}/${staffId}/visit-types?branchId=${branchId}`),
 
-  resendInvitation: async (id: string): Promise<void> => {
-    await apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`);
-  },
+  upsertVisitType: (staffId: string, data: UpsertDoctorVisitTypeRequest): Promise<string> =>
+    apiClient.put<string>(`${API_ENDPOINTS.staff}/${staffId}/visit-types`, data),
 
-  setOwnerAsDoctor: async (data: SetOwnerAsDoctorRequest): Promise<void> => {
-    await apiClient.patch(`${API_ENDPOINTS.staff}/me/doctor-profile`, data);
-  },
+  removeVisitType: (staffId: string, visitTypeId: string): Promise<void> =>
+    apiClient.delete(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`),
 
-  setActiveStatus: async (id: string, isActive: boolean): Promise<void> => {
-    await apiClient.patch(`${API_ENDPOINTS.staff}/${id}/active-status`, {
-      isActive,
-    });
-  },
+  setScheduleLock: (staffId: string, canSelfManage: boolean): Promise<void> =>
+    apiClient.patch(`${API_ENDPOINTS.staff}/${staffId}/schedule-lock`, { canSelfManage }),
 
-  getStaffDetail: async (id: string): Promise<StaffDetailDto> => {
-    const response = await apiClient.get<StaffDetailDto>(
-      `${API_ENDPOINTS.staff}/${id}`,
-    );
-    return response.data;
-  },
+  getPermissions: (staffId: string): Promise<string[]> =>
+    apiClient.get<string[]>(`${API_ENDPOINTS.staff}/${staffId}/permissions`),
 
-  getInvitationDetail: async (id: string): Promise<InvitationDetailDto> => {
-    const response = await apiClient.get<InvitationDetailDto>(
-      `${API_ENDPOINTS.staff}/invitations/${id}`,
-    );
-    return response.data;
-  },
-
-  getWorkingDays: async (
-    staffId: string,
-    branchId?: string,
-  ): Promise<WorkingDayDto[]> => {
-    const params = branchId ? { branchId } : {};
-    const res = await apiClient.get<WorkingDayDto[]>(
-      `${API_ENDPOINTS.staff}/${staffId}/working-days`,
-      { params },
-    );
-    return res.data;
-  },
-
-  saveWorkingDays: async (
-    staffId: string,
-    branchId: string,
-    days: WorkingDayInput[],
-  ): Promise<void> => {
-    await apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/working-days`, {
-      branchId,
-      staffId,
-      days,
-    });
-  },
-
-  getVisitTypes: async (
-    staffId: string,
-    branchId: string,
-  ): Promise<DoctorVisitTypeDto[]> => {
-    const res = await apiClient.get<DoctorVisitTypeDto[]>(
-      `${API_ENDPOINTS.staff}/${staffId}/visit-types`,
-      { params: { branchId } },
-    );
-    return res.data;
-  },
-
-  upsertVisitType: async (
-    staffId: string,
-    data: UpsertDoctorVisitTypeRequest,
-  ): Promise<string> => {
-    const res = await apiClient.put<string>(
-      `${API_ENDPOINTS.staff}/${staffId}/visit-types`,
-      data,
-    );
-    return res.data;
-  },
-
-  removeVisitType: async (
-    staffId: string,
-    visitTypeId: string,
-  ): Promise<void> => {
-    await apiClient.delete(
-      `${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`,
-    );
-  },
-
-  setScheduleLock: async (
-    staffId: string,
-    canSelfManage: boolean,
-  ): Promise<void> => {
-    await apiClient.patch(`${API_ENDPOINTS.staff}/${staffId}/schedule-lock`, {
-      canSelfManage,
-    });
-  },
-
-  getPermissions: async (staffId: string): Promise<string[]> => {
-    const res = await apiClient.get<string[]>(
-      `${API_ENDPOINTS.staff}/${staffId}/permissions`,
-    );
-    return res.data;
-  },
-
-  setPermissions: async (
-    staffId: string,
-    permissions: string[],
-  ): Promise<void> => {
-    await apiClient.put(
-      `${API_ENDPOINTS.staff}/${staffId}/permissions`,
-      permissions,
-    );
-  },
+  setPermissions: (staffId: string, permissions: string[]): Promise<void> =>
+    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/permissions`, permissions),
 };

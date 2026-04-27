@@ -26,16 +26,9 @@ export interface SuperAdminStatsDto {
 }
 
 export const dashboardApi = {
-  async getStats(): Promise<DashboardStatsDto> {
-    const res = await apiClient.get<DashboardStatsDto>(
-      `${API_ENDPOINTS.dashboard}/stats`,
-    );
-    return res.data;
-  },
-  async getSuperAdminStats(): Promise<SuperAdminStatsDto> {
-    const res = await apiClient.get<SuperAdminStatsDto>(
-      `${API_ENDPOINTS.dashboard}/stats/superadmin`,
-    );
-    return res.data;
-  },
+  getStats: (): Promise<DashboardStatsDto> =>
+    apiClient.get<DashboardStatsDto>(`${API_ENDPOINTS.dashboard}/stats`),
+
+  getSuperAdminStats: (): Promise<SuperAdminStatsDto> =>
+    apiClient.get<SuperAdminStatsDto>(`${API_ENDPOINTS.dashboard}/stats/superadmin`),
 };

@@ -1,157 +1,67 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+/**
+ * API client using native fetch.
+ * Both access and refresh tokens live in HttpOnly cookies — the browser
+ * sends them automatically on every request. No manual token management needed.
+ *
+ * On 401: the backend tries to refresh automatically via the cookie middleware.
+ * If refresh also fails, we redirect to the Next.js login page.
+ */
 
-// ── In-memory token store ─────────────────────────────────────────────────────
-// The access token is kept in memory (not localStorage) so it can't be read
-// by XSS scripts. The refresh token lives in an HttpOnly cookie managed by
-// the browser — we never touch it directly.
+const BASE_URL = import.meta.env.VITE_API_URL as string;
+const LOGIN_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
+  ?? "http://localhost:3001/en/login";
 
-let accessToken: string | null = null;
+export async function apiFetch<T = unknown>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    credentials: "include", // sends HttpOnly cookies automatically
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
-// Prevents multiple concurrent 401 responses from each triggering their own
-// refresh call. The first one starts the refresh; the rest await the same promise.
-let refreshPromise: Promise<string> | null = null;
+  if (res.status === 401) {
+    // Backend couldn't refresh — send user to login
+    redirectToLogin();
+    throw new Error("Unauthorized");
+  }
 
-export const tokenManager = {
-  getAccessToken: () => accessToken,
-  setAccessToken: (token: string | null) => {
-    accessToken = token;
-  },
-  clearTokens: () => {
-    accessToken = null;
-  },
-  refreshAccessToken,
-};
+  if (res.status === 403) {
+    window.location.href = "/unauthorized";
+    throw new Error("Forbidden");
+  }
 
-// ── Axios instance ────────────────────────────────────────────────────────────
-// withCredentials: true is required so the browser sends the HttpOnly refresh
-// cookie on every request (including the /auth/refresh call).
-
-export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
-  timeout: 30000,
-});
-
-// ── Request interceptor ───────────────────────────────────────────────────────
-// Attaches the Bearer token to every outgoing request if one is available.
-
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = tokenManager.getAccessToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
-// ── Response interceptor ──────────────────────────────────────────────────────
-// Handles two cases automatically:
-//   401 → try to refresh the access token once, then retry the original request
-//   403 → redirect to /unauthorized (user is authenticated but lacks permission)
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    const status = error.response?.status;
-
-    if (status === 401 && !originalRequest._retry) {
-      // Don't try to refresh if the failing request was itself an auth endpoint
-      // (e.g. login failed) — that would cause an infinite loop.
-      if (isAuthEndpoint(originalRequest.url)) {
-        return Promise.reject(error);
-      }
-
-      originalRequest._retry = true;
-
-      try {
-        // Deduplicate: if a refresh is already in flight, wait for it
-        if (!refreshPromise) {
-          refreshPromise = refreshAccessToken();
-        }
-
-        const newToken = await refreshPromise;
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-        // Retry the original request with the new token
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed (e.g. refresh token expired) — force re-login
-        tokenManager.clearTokens();
-        redirectToLogin();
-        return Promise.reject(refreshError);
-      } finally {
-        refreshPromise = null;
-      }
-    }
-
-    if (status === 403) {
-      // Only redirect to /unauthorized for page-level navigation requests,
-      // not for background data fetches (which should fail gracefully in the component)
-      const url = originalRequest.url ?? "";
-      const isPageLevelRequest = url.includes("/auth/me");
-      if (isPageLevelRequest) {
-        redirectToUnauthorized();
-      }
-    }
-
-    return Promise.reject(error);
-  },
-);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function isAuthEndpoint(url?: string): boolean {
-  if (!url) return false;
-  const authEndpoints = ["/auth/login", "/auth/register", "/auth/refresh"];
-  return authEndpoints.some((endpoint) => url.includes(endpoint));
-}
-
-async function refreshAccessToken(): Promise<string> {
-  try {
-    // Use a plain axios call (not apiClient) to avoid triggering the interceptor again
-    const response = await axios.post<{ accessToken: string }>(
-      `${import.meta.env.VITE_API_URL}/auth/refresh`,
-      {},
-      {
-        withCredentials: true, // sends the HttpOnly refresh cookie
-        timeout: 10000,
-      },
-    );
-
-    const newAccessToken = response.data.accessToken;
-    tokenManager.setAccessToken(newAccessToken);
-
-    return newAccessToken;
-  } catch (error) {
-    tokenManager.clearTokens();
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const message = err.detail ?? err.title ?? `Error ${res.status}`;
+    const error = Object.assign(new Error(message), { code: err.code, errors: err.errors, status: res.status });
     throw error;
   }
+
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 function redirectToLogin(): void {
-  const currentPath = window.location.pathname;
-  const publicPaths = [
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/confirm-email",
-    "/verify-email",
-    "/password-changed",
-    "/resend-email-verification",
-  ];
-
-  // Don't redirect if already on a public page — avoids redirect loops
-  const isPublicPath = publicPaths.some((path) => currentPath.startsWith(path));
-
-  if (!isPublicPath) {
-    window.location.href = "/login";
+  const publicPaths = ["/unauthorized"];
+  if (!publicPaths.some((p) => window.location.pathname.startsWith(p))) {
+    window.location.href = LOGIN_URL;
   }
 }
 
-function redirectToUnauthorized(): void {
-  window.location.href = "/unauthorized";
-}
+// ── Convenience methods ───────────────────────────────────────────────────────
+
+export const apiClient = {
+  get: <T>(path: string) => apiFetch<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
+  patch: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+};
