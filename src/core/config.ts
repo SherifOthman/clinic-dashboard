@@ -5,9 +5,12 @@
 import { PERMISSIONS } from "@/core/constants";
 import {
   Building2,
+  CalendarClock,
   LayoutDashboard,
   Mail,
+  MessageSquare,
   ShieldCheck,
+  Star,
   User,
   UserCog,
   Users,
@@ -26,6 +29,13 @@ export const siteConfig = {
       href: "/dashboard",
       icon: LayoutDashboard,
       requiredPermission: null, // all authenticated users
+    },
+    {
+      key: "appointments",
+      label: "Appointments",
+      href: "/appointments",
+      icon: CalendarClock,
+      requiredPermission: PERMISSIONS.VIEW_APPOINTMENTS,
     },
     {
       key: "patients",
@@ -67,7 +77,21 @@ export const siteConfig = {
       label: "Audit Logs",
       href: "/audit",
       icon: ShieldCheck,
-      requiredPermission: null, // role-guarded (SuperAdmin only) via ROUTE_ACCESS
+      requiredPermission: null,
+    },
+    {
+      key: "messages",
+      label: "Messages",
+      href: "/messages",
+      icon: MessageSquare,
+      requiredPermission: null,
+    },
+    {
+      key: "reviews",
+      label: "Reviews",
+      href: "/reviews",
+      icon: Star,
+      requiredPermission: null,
     },
   ],
 } as const;

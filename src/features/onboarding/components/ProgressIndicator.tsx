@@ -1,11 +1,12 @@
 import { Separator } from "@heroui/react";
-import { Building2, Check, Hospital, MapPin } from "lucide-react";
+import { Building2, Check, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/core/utils";
 
 interface ProgressIndicatorProps {
   currentStep: number;
+  totalSteps?: number;
 }
 
 export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
@@ -21,11 +22,6 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
       label: t("onboarding.progress.step2"),
       description: t("onboarding.progress.branchDetails"),
       icon: MapPin,
-    },
-    {
-      label: t("onboarding.progress.step3"),
-      description: t("onboarding.progress.medicalServices"),
-      icon: Hospital,
     },
   ];
 

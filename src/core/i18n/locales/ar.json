@@ -135,7 +135,12 @@
     "scheduleLocked": "تم قفل الجدول — لا يمكن للطبيب إدارته بنفسه",
     "scheduleUnlocked": "تم فتح الجدول — يمكن للطبيب إدارته بنفسه",
     "workingDaysSaved": "تم حفظ أيام العمل بنجاح",
-    "permissionsUpdated": "تم تحديث الصلاحيات بنجاح"
+    "permissionsUpdated": "تم تحديث الصلاحيات بنجاح",
+    "testimonialSubmitted": "تم إرسال تقييمك وهو في انتظار الموافقة",
+    "somethingWentWrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "appointmentCreated": "تم إنشاء الموعد بنجاح",
+    "appointmentStatusUpdated": "تم تحديث حالة الموعد",
+    "appointmentTypeUpdated": "تم تحديث نوع المواعيد"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -144,6 +149,9 @@
     "invitations": "الدعوات",
     "branches": "الفروع",
     "audit": "سجلات التدقيق",
+    "messages": "الرسائل",
+    "reviews": "التقييمات",
+    "appointments": "المواعيد",
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
     "logout": "تسجيل الخروج",
@@ -278,6 +286,51 @@
     "url": "يرجى إدخال رابط صحيح",
     "invalidId": "تنسيق المعرف غير صحيح",
     "invalidColorCode": "رمز لون غير صحيح (استخدم التنسيق: #RRGGBB)"
+  },
+  "appointments": {
+    "subtitle": "إدارة مواعيد اليوم",
+    "newAppointment": "موعد جديد",
+    "selectBranch": "اختر الفرع",
+    "selectDoctor": "اختر الطبيب",
+    "allDoctors": "جميع الأطباء",
+    "multiDoctorView": "عرض متعدد الأطباء",
+    "singleDoctorView": "عرض طبيب واحد",
+    "patient": "المريض",
+    "doctor": "الطبيب",
+    "visitType": "نوع الزيارة",
+    "price": "السعر",
+    "status": "الحالة",
+    "time": "الوقت",
+    "total": "إجمالي",
+    "noAppointments": "لا توجد مواعيد لهذا اليوم",
+    "noDoctors": "لا يوجد أطباء لهذا الفرع",
+    "queueBased": "طابور",
+    "timeBased": "بالوقت",
+    "appointmentType": "نوع المواعيد",
+    "start": "بدء",
+    "complete": "إنهاء",
+    "cancel": "إلغاء",
+    "book": "حجز موعد",
+    "date": "التاريخ",
+    "discount": "خصم %",
+    "doctorWorksOn": "الطبيب يعمل في:",
+    "searchPatient": "ابحث عن مريض بالاسم أو الكود...",
+    "noPatientFound": "لا يوجد مريض بـ",
+    "addNewPatient": "إضافة مريض جديد",
+    "slotBooked": "هذا الوقت محجوز بالفعل",
+    "bookedSlots": "الأوقات المحجوزة",
+    "statuses": {
+      "Pending": "في الانتظار",
+      "Waiting": "ينتظر",
+      "InProgress": "جارٍ",
+      "Completed": "مكتمل",
+      "Cancelled": "ملغي",
+      "NoShow": "لم يحضر"
+    },
+    "markWaiting": "المريض وصل",
+    "autoMultiView": "تلقائي: جميع الأطباء",
+    "autoSingleView": "تلقائي: طبيب واحد",
+    "manyDoctorsHint": "{{count}} أطباء — استخدم القائمة"
   },
   "branches": {
     "title": "الفروع",
@@ -494,7 +547,24 @@
     },
     "newPatients": "المرضى الجدد",
     "appointments": "المواعيد",
-    "revenue": "الإيرادات"
+    "revenue": "الإيرادات",
+    "testimonial": {
+      "title": "شارك تجربتك",
+      "subtitle": "سيظهر تقييمك على موقعنا العام",
+      "yourName": "اسمك",
+      "yourRole": "دورك / لقبك",
+      "yourReview": "تقييمك",
+      "reviewPlaceholder": "أخبر الآخرين عن تجربتك مع ClinicCare...",
+      "rating": "التقييم",
+      "submit": "إرسال التقييم",
+      "update": "تحديث التقييم",
+      "published": "منشور"
+    },
+    "messages": {
+      "subtitle": "رسائل نموذج الاتصال من الموقع",
+      "empty": "لا توجد رسائل بعد",
+      "total": "رسالة"
+    }
   },
   "staff": {
     "title": "الموظفون",

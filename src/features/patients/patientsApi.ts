@@ -9,89 +9,57 @@ import type {
   PatientsSearchParams,
 } from "./types";
 
+function buildPatientQuery(params: PatientsSearchParams, isSuperAdmin: boolean): string {
+  const p = new URLSearchParams();
+  if (params.searchTerm)      p.append("searchTerm",      params.searchTerm);
+  if (params.pageNumber)      p.append("pageNumber",      params.pageNumber.toString());
+  if (params.pageSize)        p.append("pageSize",        params.pageSize.toString());
+  if (params.sortBy)          p.append("sortBy",          params.sortBy);
+  if (params.sortDirection)   p.append("sortDirection",   params.sortDirection);
+  if (params.gender)          p.append("gender",          params.gender);
+  if (params.stateGeonameId   != null) p.append("stateGeonameId",   params.stateGeonameId.toString());
+  if (params.cityGeonameId    != null) p.append("cityGeonameId",    params.cityGeonameId.toString());
+  if (params.countryGeonameId != null) p.append("countryGeonameId", params.countryGeonameId.toString());
+  if (isSuperAdmin && params.clinicSearch) p.append("clinicSearch", params.clinicSearch);
+  return p.toString() ? `?${p.toString()}` : "";
+}
+
 export const patientsApi = {
-  async getPaginated(
-    params: PatientsSearchParams = {},
-    isSuperAdmin = false,
-  ): Promise<PagedResult<PatientListItem>> {
-    const p = new URLSearchParams();
-
-    if (params.searchTerm) p.append("searchTerm", params.searchTerm);
-    if (params.pageNumber) p.append("pageNumber", params.pageNumber.toString());
-    if (params.pageSize) p.append("pageSize", params.pageSize.toString());
-    if (params.sortBy) p.append("sortBy", params.sortBy);
-    if (params.sortDirection) p.append("sortDirection", params.sortDirection);
-    if (params.gender) p.append("gender", params.gender);
-    if (params.stateGeonameId != null)
-      p.append("stateGeonameId", params.stateGeonameId.toString());
-    if (params.cityGeonameId != null)
-      p.append("cityGeonameId", params.cityGeonameId.toString());
-    if (params.countryGeonameId != null)
-      p.append("countryGeonameId", params.countryGeonameId.toString());
-    if (isSuperAdmin && params.clinicSearch)
-      p.append("clinicSearch", params.clinicSearch);
-
-    const endpoint = isSuperAdmin
-      ? `${API_ENDPOINTS.patients}/all`
-      : API_ENDPOINTS.patients;
-
-    const response = await apiClient.get<PagedResult<PatientListItem>>(
-      `${endpoint}?${p.toString()}`,
-    );
-    return response.data;
+  getPaginated: (params: PatientsSearchParams = {}, isSuperAdmin = false): Promise<PagedResult<PatientListItem>> => {
+    const base = isSuperAdmin ? `${API_ENDPOINTS.patients}/all` : API_ENDPOINTS.patients;
+    return apiClient.get<PagedResult<PatientListItem>>(`${base}${buildPatientQuery(params, isSuperAdmin)}`);
   },
 
-  async getDetail(id: string, isSuperAdmin = false): Promise<PatientDetail> {
+  getDetail: (id: string, isSuperAdmin = false): Promise<PatientDetail> => {
     const endpoint = isSuperAdmin
       ? `${API_ENDPOINTS.patients}/all/${id}`
       : `${API_ENDPOINTS.patients}/${id}`;
-    const response = await apiClient.get<PatientDetail>(endpoint);
-    return response.data;
+    return apiClient.get<PatientDetail>(endpoint);
   },
 
-  async create(patient: PatientApiRequest): Promise<string> {
-    const response = await apiClient.post<void>(
-      API_ENDPOINTS.patients,
-      patient,
-      {
-        validateStatus: (s) => s === 201,
-      },
-    );
-    const location =
-      (response.headers as Record<string, string>)["location"] ?? "";
-    return location.split("/").pop() ?? "";
+  // Create returns the new patient ID from the Location header
+  create: (patient: PatientApiRequest): Promise<string> =>
+    apiClient.postForId(API_ENDPOINTS.patients, patient),
+
+  update: (id: string, patient: PatientApiRequest): Promise<void> =>
+    apiClient.put(`${API_ENDPOINTS.patients}/${id}`, patient),
+
+  delete: (id: string): Promise<void> =>
+    apiClient.delete(`${API_ENDPOINTS.patients}/${id}`),
+
+  getChronicDiseases: (language?: string): Promise<ChronicDisease[]> => {
+    const q = language ? `?language=${language}` : "";
+    return apiClient.get<ChronicDisease[]>(`${API_ENDPOINTS.chronicDiseases}${q}`);
   },
 
-  async update(id: string, patient: PatientApiRequest): Promise<void> {
-    await apiClient.put(`${API_ENDPOINTS.patients}/${id}`, patient);
-  },
-
-  async delete(id: string): Promise<void> {
-    await apiClient.delete(`${API_ENDPOINTS.patients}/${id}`);
-  },
-
-  async getChronicDiseases(language?: string): Promise<ChronicDisease[]> {
-    const response = await apiClient.get<ChronicDisease[]>(
-      API_ENDPOINTS.chronicDiseases,
-      { params: language ? { language } : {} },
-    );
-    return response.data;
-  },
-
-  /**
-   * Returns distinct location options from actual patient data.
-   * - No params            → countries that have patients
-   * - countryGeonameId     → states in that country that have patients
-   * - stateGeonameId       → cities in that state that have patients
-   */
-  async getLocationOptions(
+  getLocationOptions: (
     countryGeonameId?: number,
     stateGeonameId?: number,
-  ): Promise<{ geonameId: number; nameEn: string; nameAr: string }[]> {
-    const response = await apiClient.get(
-      `${API_ENDPOINTS.patients}/location-options`,
-      { params: { countryGeonameId, stateGeonameId } },
-    );
-    return response.data;
+  ): Promise<{ geonameId: number; nameEn: string; nameAr: string }[]> => {
+    const p = new URLSearchParams();
+    if (countryGeonameId != null) p.append("countryGeonameId", countryGeonameId.toString());
+    if (stateGeonameId   != null) p.append("stateGeonameId",   stateGeonameId.toString());
+    const q = p.toString() ? `?${p.toString()}` : "";
+    return apiClient.get(`${API_ENDPOINTS.patients}/location-options${q}`);
   },
 };

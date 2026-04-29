@@ -13,6 +13,7 @@ export interface User {
   permissions: string[];
   emailConfirmed: boolean;
   onboardingCompleted?: boolean;
+  hasPassword?: boolean;
   specializationNameEn?: string;
   specializationNameAr?: string;
   gender: string;

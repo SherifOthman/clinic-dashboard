@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   files: "/files",
   patients: "/patients",
   staff: "/staff",
+  appointments: "/appointments",
   audit: "/audit",
   dashboard: "/dashboard",
   branches: "/branches",
@@ -66,6 +67,11 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
  * Defines which roles can access which routes
  */
 export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
+  "/appointments": [
+    USER_ROLES.CLINIC_OWNER,
+    USER_ROLES.DOCTOR,
+    USER_ROLES.RECEPTIONIST,
+  ],
   "/dashboard": "*", // All authenticated users
   "/patients": [
     USER_ROLES.CLINIC_OWNER,
@@ -77,6 +83,8 @@ export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
   "/invitations": [USER_ROLES.CLINIC_OWNER],
   "/branches": [USER_ROLES.CLINIC_OWNER],
   "/audit": [USER_ROLES.SUPER_ADMIN],
+  "/messages": [USER_ROLES.SUPER_ADMIN],
+  "/reviews":  [USER_ROLES.SUPER_ADMIN],
   "/profile": "*", // All authenticated users
   "/onboarding": [USER_ROLES.CLINIC_OWNER],
 } as const;

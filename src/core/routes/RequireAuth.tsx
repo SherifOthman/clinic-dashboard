@@ -1,42 +1,37 @@
 import { Loading } from "@/core/components/ui/Loading";
-import {
-  canAccessOnboarding,
-  getAuthenticatedUserRoute,
-} from "@/core/utils/authNavigation";
+import { canAccessOnboarding, getAuthenticatedUserRoute } from "@/core/utils/authNavigation";
 import { useMe } from "@/features/auth/hooks";
+import { useRef } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+
+const AUTH_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
+  ?? "http://localhost:3001/en/login";
 
 export function RequireAuth() {
   const { user, isLoading } = useMe();
   const location = useLocation();
+  const redirecting = useRef(false);
 
-  if (isLoading) {
-    return <Loading className="h-screen" />;
-  }
+  if (isLoading) return <Loading className="h-screen" />;
 
-  // Not logged in → redirect to login, preserving the intended destination
-  // so after login the user lands back where they were trying to go
+  // Not authenticated → redirect to Next.js login page (hard nav, cross-origin)
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    if (!redirecting.current) {
+      redirecting.current = true;
+      window.location.replace(AUTH_URL);
+    }
+    return null; // blank while browser navigates — no flicker
   }
 
   const isOnOnboardingPage = location.pathname.startsWith("/onboarding");
 
   if (isOnOnboardingPage) {
-    // Only ClinicOwners who haven't completed onboarding can access /onboarding
-    if (!canAccessOnboarding(user)) {
-      return <Navigate to="/dashboard" replace />;
-    }
+    if (!canAccessOnboarding(user)) return <Navigate to="/dashboard" replace />;
     return <Outlet />;
   }
 
-  // getAuthenticatedUserRoute returns "/dashboard" for normal users,
-  // or "/onboarding" / "/verify-email/..." for users who need to complete a step.
-  // If the required route isn't /dashboard, redirect there first.
   const requiredRoute = getAuthenticatedUserRoute(user);
-  if (requiredRoute !== "/dashboard") {
-    return <Navigate to={requiredRoute} replace />;
-  }
+  if (requiredRoute !== "/dashboard") return <Navigate to={requiredRoute} replace />;
 
   return <Outlet />;
 }

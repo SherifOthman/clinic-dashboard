@@ -10,7 +10,6 @@ import { Loading } from "@/core/components/ui/Loading";
 
 import { BranchDetailsStep } from "./components/BranchDetailsStep";
 import { ClinicInfoStep } from "./components/ClinicInfoStep";
-import { MedicalServicesStep } from "./components/MedicalServicesStep";
 import { ProgressIndicator } from "./components/ProgressIndicator";
 import { useCompleteOnboarding, useSubscriptionPlans } from "./onboardingHooks";
 import { type CompleteOnboarding, createOnboardingSchemas } from "./schemas";
@@ -31,13 +30,8 @@ export default function OnboardingWizard() {
     completeOnboarding.mutate(data);
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <ErrorMessage message={error.message} />;
-  }
+  if (isLoading) return <Loading />;
+  if (error) return <ErrorMessage message={error.message} />;
 
   const steps = [
     {
@@ -50,17 +44,8 @@ export default function OnboardingWizard() {
       title: "Branch Details",
       component: (
         <BranchDetailsStep
-          onNext={() => setCurrentStep(2)}
-          onBack={() => setCurrentStep(0)}
-        />
-      ),
-    },
-    {
-      title: "Medical Services",
-      component: (
-        <MedicalServicesStep
           onNext={methods.handleSubmit(onSubmit)}
-          onBack={() => setCurrentStep(1)}
+          onBack={() => setCurrentStep(0)}
           isLoading={completeOnboarding.isPending}
         />
       ),
@@ -69,7 +54,6 @@ export default function OnboardingWizard() {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-foreground mb-2 text-3xl font-bold">
           {t("onboarding.title")}
@@ -77,14 +61,12 @@ export default function OnboardingWizard() {
         <p className="text-default-500 text-sm">{t("onboarding.subtitle")}</p>
       </div>
 
-      {/* Progress Card */}
       <Card className="mb-6">
         <Card.Content className="p-6">
-          <ProgressIndicator currentStep={currentStep} />
+          <ProgressIndicator currentStep={currentStep} totalSteps={2} />
         </Card.Content>
       </Card>
 
-      {/* Form */}
       <FormProvider {...methods}>
         <form>{steps[currentStep].component}</form>
       </FormProvider>

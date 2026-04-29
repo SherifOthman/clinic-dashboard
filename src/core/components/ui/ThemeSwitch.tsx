@@ -1,8 +1,9 @@
-import { Button, useTheme } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function ThemeSwitch() {
-  const { theme, setTheme } = useTheme("light");
+  const { theme, setTheme } = useTheme();
 
   return (
     <Button

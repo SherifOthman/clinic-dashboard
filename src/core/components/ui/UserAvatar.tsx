@@ -1,14 +1,10 @@
 import { Avatar, Dropdown, Label, Separator } from "@heroui/react";
-import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Settings, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
-import { tokenManager } from "@/core/api";
 import { getFileUrl } from "@/core/utils/fileUtils";
 import { getGenderImageSrc } from "@/core/utils/patientImageUtils";
-import { authApi } from "@/features/auth/api/authApi";
-import { useMe } from "@/features/auth/hooks";
+import { useLogout, useMe } from "@/features/auth/hooks";
 
 interface UserAvatarProps {
   size?: "sm" | "md" | "lg";
@@ -18,28 +14,15 @@ interface UserAvatarProps {
 export function UserAvatar({ size = "md", className }: UserAvatarProps) {
   const { user } = useMe();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // Ignore errors
-    } finally {
-      tokenManager.clearTokens();
-      queryClient.clear();
-      navigate("/login", { replace: true });
-    }
-  };
+  const { mutate: logout } = useLogout();
 
   const handleAction = (key: React.Key) => {
     switch (key) {
       case "profile":
-        navigate("/profile");
+        window.location.href = "/profile";
         break;
       case "logout":
-        handleLogout();
+        logout();
         break;
     }
   };

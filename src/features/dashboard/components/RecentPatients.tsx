@@ -20,12 +20,8 @@ interface RecentPatientDto {
 function useRecentPatients() {
   return useQuery({
     queryKey: ["dashboard", "recent-patients"],
-    queryFn: async () => {
-      const res = await apiClient.get<RecentPatientDto[]>(
-        `${API_ENDPOINTS.dashboard}/recent-patients`,
-      );
-      return res.data;
-    },
+    queryFn: () =>
+      apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`),
     staleTime: 60 * 1000,
   });
 }
