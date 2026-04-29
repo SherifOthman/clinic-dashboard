@@ -4,6 +4,7 @@ import {
   canAccessRoute,
   canAccessRouteWithPermissions,
 } from "@/core/utils/permissions";
+import { canAccessOnboarding } from "@/core/utils/authNavigation";
 import { useMe } from "@/features/auth/hooks";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -24,6 +25,11 @@ export function RequireRole() {
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // New user hasn't completed onboarding — send them there before any API calls fire
+  if (canAccessOnboarding(user)) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   // Role check

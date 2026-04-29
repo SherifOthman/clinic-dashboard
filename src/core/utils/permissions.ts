@@ -119,6 +119,9 @@ export function canAccessRoute(
  * Full route access check: role gate AND permission gate.
  * Used by the sidebar and RequireRole to hide/block routes the user
  * has no role or no permission for.
+ *
+ * ClinicOwner bypasses the permission check — they own the clinic and
+ * have implicit access to everything. Permissions only restrict staff members.
  */
 export function canAccessRouteWithPermissions(
   user: User | null | undefined,
@@ -127,6 +130,8 @@ export function canAccessRouteWithPermissions(
 ): boolean {
   if (!canAccessRoute(user, route)) return false;
   if (requiredPermission === null) return true;
+  // Clinic owners have implicit access to all routes — no permission check needed
+  if (isClinicOwner(user)) return true;
   return hasPermission(user, requiredPermission);
 }
 

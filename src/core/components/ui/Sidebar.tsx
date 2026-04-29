@@ -1,5 +1,5 @@
 import { Button, Separator, Tooltip } from "@heroui/react";
-import { Menu, Triangle } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
@@ -40,8 +40,8 @@ export function Sidebar({
       >
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <Triangle className="text-accent fill-accent h-5 w-5" />
-            <h1 className="text-lg font-bold">{t("navigation.dashboard")}</h1>
+            <img src="/logo.svg" alt="ClinicCare" className="h-7 w-7" />
+            <h1 className="text-lg font-bold">ClinicCare</h1>
           </div>
         )}
         <Button

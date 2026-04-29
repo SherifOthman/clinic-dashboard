@@ -10,9 +10,10 @@ import type { CompleteOnboarding } from "../schemas";
 interface BranchDetailsStepProps {
   onBack: () => void;
   onNext: () => void;
+  isLoading?: boolean;
 }
 
-export function BranchDetailsStep({ onBack, onNext }: BranchDetailsStepProps) {
+export function BranchDetailsStep({ onBack, onNext, isLoading = false }: BranchDetailsStepProps) {
   const { t, i18n } = useTranslation();
   const form = useFormContext<CompleteOnboarding>();
   const {
@@ -75,13 +76,9 @@ export function BranchDetailsStep({ onBack, onNext }: BranchDetailsStepProps) {
           )}
           {t("common.back")}
         </Button>
-        <Button type="button" variant="primary" size="lg" onPress={handleNext}>
-          {t("common.continue")}
-          {i18n.language === "en" ? (
-            <ArrowRight className="h-4 w-4" />
-          ) : (
-            <ArrowLeft className="h-4 w-4" />
-          )}
+        <Button type="button" variant="primary" size="lg" onPress={handleNext}
+          isPending={isLoading} isDisabled={isLoading}>
+          {isLoading ? t("onboarding.settingUp") : t("onboarding.completeSetup")}
         </Button>
       </div>
     </div>

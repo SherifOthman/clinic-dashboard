@@ -38,20 +38,8 @@ export const patientsApi = {
   },
 
   // Create returns the new patient ID from the Location header
-  create: async (patient: PatientApiRequest): Promise<string> => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.patients}`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patient),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(err.detail ?? `Error ${res.status}`), { code: err.code, errors: err.errors });
-    }
-    const location = res.headers.get("location") ?? "";
-    return location.split("/").pop() ?? "";
-  },
+  create: (patient: PatientApiRequest): Promise<string> =>
+    apiClient.postForId(API_ENDPOINTS.patients, patient),
 
   update: (id: string, patient: PatientApiRequest): Promise<void> =>
     apiClient.put(`${API_ENDPOINTS.patients}/${id}`, patient),

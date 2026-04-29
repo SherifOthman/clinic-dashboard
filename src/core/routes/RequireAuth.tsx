@@ -1,6 +1,7 @@
 import { Loading } from "@/core/components/ui/Loading";
 import { canAccessOnboarding, getAuthenticatedUserRoute } from "@/core/utils/authNavigation";
 import { useMe } from "@/features/auth/hooks";
+import { useRef } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const AUTH_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
@@ -9,13 +10,17 @@ const AUTH_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
 export function RequireAuth() {
   const { user, isLoading } = useMe();
   const location = useLocation();
+  const redirecting = useRef(false);
 
   if (isLoading) return <Loading className="h-screen" />;
 
-  // Not authenticated → redirect to Next.js login page
+  // Not authenticated → redirect to Next.js login page (hard nav, cross-origin)
   if (!user) {
-    window.location.href = AUTH_URL;
-    return <Loading className="h-screen" />;
+    if (!redirecting.current) {
+      redirecting.current = true;
+      window.location.replace(AUTH_URL);
+    }
+    return null; // blank while browser navigates — no flicker
   }
 
   const isOnOnboardingPage = location.pathname.startsWith("/onboarding");

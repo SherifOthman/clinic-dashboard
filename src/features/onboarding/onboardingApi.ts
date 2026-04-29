@@ -5,10 +5,7 @@ import type { Specialization, SubscriptionPlan } from "./types";
 
 export const onboardingApi = {
   completeOnboarding: (data: CompleteOnboarding): Promise<void> =>
-    apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, {
-      ...data,
-      provideMedicalServices: data.provideMedicalServices === "yes",
-    }),
+    apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, data),
 
   getSubscriptionPlans: (): Promise<SubscriptionPlan[]> =>
     apiClient.get<SubscriptionPlan[]>(API_ENDPOINTS.subscriptionPlans),

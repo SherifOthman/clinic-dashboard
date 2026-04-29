@@ -7,6 +7,8 @@ import { AccountInfoCard } from "./components/AccountInfoCard";
 import { ChangePasswordForm } from "./components/ChangePasswordForm";
 import { ProfileForm } from "./components/ProfileForm";
 import { ProfileImageCard } from "./components/ProfileImageCard";
+import { isClinicOwner } from "@/core/utils/permissions";
+import { TestimonialForm } from "@/features/dashboard/components/TestimonialForm";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -86,9 +88,14 @@ function ProfileContent({
         <ProfileForm user={user} />
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <ChangePasswordForm />
+        {user.hasPassword && <ChangePasswordForm />}
         <AccountInfoCard user={user} />
       </div>
+      {isClinicOwner(user) && (
+        <div className="mt-6">
+          <TestimonialForm />
+        </div>
+      )}
     </>
   );
 }

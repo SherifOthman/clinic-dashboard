@@ -31,8 +31,11 @@ export async function apiFetch<T = unknown>(
   }
 
   if (res.status === 403) {
-    window.location.href = "/unauthorized";
-    throw new Error("Forbidden");
+    // Don't redirect — let route guards (RequireAuth/RequireRole) handle navigation.
+    // Throwing lets the calling component decide how to handle it.
+    const err = await res.json().catch(() => ({}));
+    const message = err.detail ?? err.title ?? "Forbidden";
+    throw Object.assign(new Error(message), { code: err.code, status: 403 });
   }
 
   if (!res.ok) {
@@ -46,10 +49,14 @@ export async function apiFetch<T = unknown>(
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
+let _redirecting = false;
+
 function redirectToLogin(): void {
   const publicPaths = ["/unauthorized"];
+  if (_redirecting) return;
   if (!publicPaths.some((p) => window.location.pathname.startsWith(p))) {
-    window.location.href = LOGIN_URL;
+    _redirecting = true;
+    window.location.replace(LOGIN_URL);
   }
 }
 
@@ -64,4 +71,32 @@ export const apiClient = {
   patch: <T>(path: string, body?: unknown) =>
     apiFetch<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+
+  /** POST JSON and return the last segment of the Location response header (e.g. created resource ID). */
+  postForId: async (path: string, body?: unknown): Promise<string> => {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) { redirectToLogin(); throw new Error("Unauthorized"); }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(err.detail ?? err.title ?? `Error ${res.status}`), { status: res.status });
+    }
+    const location = res.headers.get("location") ?? "";
+    return location.split("/").pop() ?? "";
+  },
+
+  /** PUT with multipart FormData (e.g. file upload) — no Content-Type header so browser sets boundary. */
+  putFormData: async (path: string, formData: FormData): Promise<void> => {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: "PUT",
+      credentials: "include",
+      body: formData,
+    });
+    if (res.status === 401) { redirectToLogin(); throw new Error("Unauthorized"); }
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+  },
 };

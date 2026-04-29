@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Rounded square background -->
+  <rect width="48" height="48" rx="10" fill="#2563EB"/>
+  <!-- ECG heartbeat line (scaled to fit, centered vertically) -->
+  <polyline
+    fill="none"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    points="2,24 13,24 15.5,19 18,24 20.5,24 22.5,28 26,14 29,34 31,24 36,24 38,22 40.5,24 46,24"
+  />
+</svg>

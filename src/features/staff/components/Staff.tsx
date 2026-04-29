@@ -44,7 +44,7 @@ export function Staff() {
   return (
     <div className="flex flex-col gap-4 py-4">
       {/* Owner banner — shown when owner hasn't set up their doctor profile yet */}
-      {isClinicOwner(user) && !isDoctor(user) && (
+      {isClinicOwner(user) && !isDoctor(user) && !user?.staffId && (
         <div className="border-accent/10 bg-accent/5 flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">{t("staff.ownerDoctor.title")}</p>

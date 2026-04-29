@@ -68,12 +68,7 @@ export const authApi = {
   async updateProfileImage(image: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", image);
-    // multipart — don't set Content-Type, browser sets it with boundary
-    await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.auth}/profile/image`, {
-      method: "PUT",
-      credentials: "include",
-      body: formData,
-    }).then((r) => { if (!r.ok) throw new Error(`Error ${r.status}`); });
+    await apiClient.putFormData(`${API_ENDPOINTS.auth}/profile/image`, formData);
   },
 
   async deleteProfileImage(): Promise<void> {
