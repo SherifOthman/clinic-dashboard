@@ -1,26 +1,27 @@
 /**
  * ViewMode determines how appointments are displayed based on doctor count.
  *
- * single  → 1 doctor: full table, all columns visible
- * multi   → 2–3 doctors: side-by-side cards, priority-1 columns only + expandable rows
- * compact → 4+ doctors: branch/doctor selector, then single full table
+ * single → 1–3 doctors shown one at a time (with doctor selector if >1)
+ * multi  → 2–4 doctors shown side-by-side in a grid
+ *
+ * Auto rules:
+ *   1 doctor  → single
+ *   2–4 doctors → multi
+ *   5+ doctors  → single (too many to show side-by-side)
  */
-export type ViewMode = "single" | "multi" | "compact";
-
-export const MULTI_THRESHOLD  = 3; // ≤ this → multi; > this → compact
+export type ViewMode = "single" | "multi";
 
 export function resolveViewMode(doctorCount: number, manualOverride: ViewMode | null): ViewMode {
   if (manualOverride) return manualOverride;
-  if (doctorCount === 1) return "single";
-  if (doctorCount <= MULTI_THRESHOLD) return "multi";
-  return "compact";
+  if (doctorCount >= 2 && doctorCount <= 4) return "multi";
+  return "single";
 }
 
 /**
  * Column definition with priority and visibility rules.
  * priority 1 = always shown
- * priority 2 = shown in single only
- * priority 3 = shown in single only (least important)
+ * priority 2 = hidden in multi mode (shown in expandable row)
+ * priority 3 = hidden in multi mode (shown in expandable row)
  */
 export interface AppointmentColumn {
   key: string;
@@ -30,33 +31,34 @@ export interface AppointmentColumn {
 }
 
 export const TIME_COLUMNS: AppointmentColumn[] = [
-  { key: "time",        label: "Time",       priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "patient",     label: "Patient",    priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "status",      label: "Status",     priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "visitType",   label: "Visit Type", priority: 2, visibleIn: ["single", "compact"] },
-  { key: "price",       label: "Price",      priority: 3, visibleIn: ["single", "compact"] },
-  { key: "actions",     label: "",           priority: 1, visibleIn: ["single", "multi", "compact"] },
+  { key: "time",      label: "Time",       priority: 1, visibleIn: ["single", "multi"] },
+  { key: "patient",   label: "Patient",    priority: 1, visibleIn: ["single", "multi"] },
+  { key: "status",    label: "Status",     priority: 1, visibleIn: ["single", "multi"] },
+  { key: "visitType", label: "Visit Type", priority: 2, visibleIn: ["single"] },
+  { key: "price",     label: "Price",      priority: 3, visibleIn: ["single"] },
+  { key: "actions",   label: "",           priority: 1, visibleIn: ["single", "multi"] },
 ];
 
 export const QUEUE_COLUMNS: AppointmentColumn[] = [
-  { key: "queue",       label: "#",          priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "patient",     label: "Patient",    priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "status",      label: "Status",     priority: 1, visibleIn: ["single", "multi", "compact"] },
-  { key: "visitType",   label: "Visit Type", priority: 2, visibleIn: ["single", "compact"] },
-  { key: "price",       label: "Price",      priority: 3, visibleIn: ["single", "compact"] },
-  { key: "actions",     label: "",           priority: 1, visibleIn: ["single", "multi", "compact"] },
+  { key: "queue",     label: "#",          priority: 1, visibleIn: ["single", "multi"] },
+  { key: "patient",   label: "Patient",    priority: 1, visibleIn: ["single", "multi"] },
+  { key: "status",    label: "Status",     priority: 1, visibleIn: ["single", "multi"] },
+  { key: "visitType", label: "Visit Type", priority: 2, visibleIn: ["single"] },
+  { key: "price",     label: "Price",      priority: 3, visibleIn: ["single"] },
+  { key: "actions",   label: "",           priority: 1, visibleIn: ["single", "multi"] },
 ];
 
 export function getVisibleColumns(columns: AppointmentColumn[], mode: ViewMode): AppointmentColumn[] {
   return columns.filter((col) => {
     if (!col.visibleIn.includes(mode)) return false;
-    // In multi mode, only show priority-1 columns (reduce clutter)
     if (mode === "multi") return col.priority === 1;
     return true;
   });
 }
 
-/** Keys of columns hidden in current mode — used for expandable row content */
+/** Columns hidden in current mode — shown in expandable row */
 export function getHiddenColumns(columns: AppointmentColumn[], mode: ViewMode): AppointmentColumn[] {
-  return columns.filter((col) => col.key !== "actions" && !getVisibleColumns(columns, mode).some((v) => v.key === col.key));
+  return columns.filter(
+    (col) => col.key !== "actions" && !getVisibleColumns(columns, mode).some((v) => v.key === col.key),
+  );
 }

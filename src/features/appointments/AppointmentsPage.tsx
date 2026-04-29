@@ -2,7 +2,7 @@ import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
 import { Button } from "@heroui/react";
-import { Columns2, LayoutGrid, Rows3 } from "lucide-react";
+import { LayoutGrid, LayoutList } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBranches } from "../branches/branchesHooks";
@@ -31,16 +31,13 @@ export default function AppointmentsPage() {
 
   // ── ViewMode resolution ────────────────────────────────────────────────────
   const viewMode = resolveViewMode(doctors.length, manualViewMode);
-  const isCompact = viewMode === "compact";
-  const isSingle  = viewMode === "single";
+  const isSingle = viewMode === "single";
 
-  // In compact mode, show only the selected doctor
+  // In single mode with multiple doctors, show only the selected one
   const effectiveDoctorId = selectedDoctorId ?? doctors[0]?.doctorInfoId;
-  const visibleDoctors = isCompact
+  const visibleDoctors = isSingle && doctors.length > 1
     ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
-    : viewMode === "single" && doctors.length > 1
-      ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
-      : doctors;
+    : doctors;
 
   const doctorInfoIds = visibleDoctors.map((d) => d.doctorInfoId);
 
@@ -91,8 +88,8 @@ export default function AppointmentsPage() {
           />
         )}
 
-        {/* Doctor selector — shown in single/compact mode */}
-        {(isSingle || isCompact) && doctors.length > 1 && (
+        {/* Doctor selector — shown in single mode when multiple doctors exist */}
+        {isSingle && doctors.length > 1 && (
           <FilterSelect
             value={effectiveDoctorId}
             onChange={(v) => setSelectedDoctorId(v)}
@@ -106,28 +103,22 @@ export default function AppointmentsPage() {
         {/* Auto-mode hint */}
         {!manualViewMode && doctors.length > 0 && (
           <span className="hidden text-xs text-muted sm:block">
-            {viewMode === "multi"   && t("appointments.autoMultiView")}
-            {viewMode === "single"  && t("appointments.autoSingleView")}
-            {viewMode === "compact" && t("appointments.manyDoctorsHint", { count: doctors.length })}
+            {viewMode === "multi"  && t("appointments.autoMultiView")}
+            {viewMode === "single" && t("appointments.autoSingleView")}
           </span>
         )}
 
-        {/* Layout toggle — Multi=grid, Single=rows, Compact=columns */}
+        {/* Layout toggle — two distinct modes */}
         <div className="ms-auto flex gap-1">
-          {/* Multi: side-by-side doctor cards */}
+          {/* Multi: all doctors side-by-side */}
           <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
             onPress={() => setManualViewMode("multi")} aria-label={t("appointments.multiDoctorView")}>
             <LayoutGrid className="h-4 w-4" />
           </Button>
-          {/* Single: one doctor, full table */}
+          {/* Single: one doctor at a time, full table */}
           <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
             onPress={() => setManualViewMode("single")} aria-label={t("appointments.singleDoctorView")}>
-            <Rows3 className="h-4 w-4" />
-          </Button>
-          {/* Compact: doctor dropdown + full table */}
-          <Button size="sm" variant={viewMode === "compact" ? "primary" : "outline"} isIconOnly
-            onPress={() => setManualViewMode("compact")} aria-label="Compact">
-            <Columns2 className="h-4 w-4" />
+            <LayoutList className="h-4 w-4" />
           </Button>
           {manualViewMode && (
             <Button size="sm" variant="ghost" onPress={() => setManualViewMode(null)}
@@ -146,7 +137,7 @@ export default function AppointmentsPage() {
       ) : (
         <div className={
           viewMode === "multi" && visibleDoctors.length > 1
-            ? "grid grid-cols-1 gap-5 lg:grid-cols-2"
+            ? "grid grid-cols-1 gap-5 xl:grid-cols-2"
             : "flex flex-col gap-5"
         }>
           {visibleDoctors.map((doctor) => (
