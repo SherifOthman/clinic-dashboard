@@ -1,17 +1,19 @@
-import { DataTable } from "@/core/components/ui/DataTable";
 import { Button } from "@heroui/react";
-import { Calendar, Plus } from "lucide-react";
+import { Calendar, LogIn, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useUpdateAppointmentStatus } from "../appointmentsHooks";
 import type { AppointmentDto, DoctorForBranch } from "../types";
-import { getAppointmentColumns } from "./appointmentColumns";
+import type { ViewMode } from "../viewMode";
+import { getVisibleColumns, QUEUE_COLUMNS, TIME_COLUMNS } from "../viewMode";
+import { AppointmentRow } from "./appointmentColumns";
 import { DoctorCheckInButton } from "./DoctorCheckInButton";
 
 interface DoctorAppointmentsPanelProps {
   doctor: DoctorForBranch;
   appointments: AppointmentDto[];
   isLoading: boolean;
-  compact?: boolean;
+  viewMode: ViewMode;
   onAddAppointment?: () => void;
   branchId?: string;
 }
@@ -20,52 +22,42 @@ export function DoctorAppointmentsPanel({
   doctor,
   appointments,
   isLoading,
-  compact = false,
+  viewMode,
   onAddAppointment,
   branchId,
 }: DoctorAppointmentsPanelProps) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const { t } = useTranslation();
   const updateStatus = useUpdateAppointmentStatus();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const isQueue = doctor.appointmentType === "Queue";
+  const columns = isQueue ? QUEUE_COLUMNS : TIME_COLUMNS;
+  const visible = useMemo(() => getVisibleColumns(columns, viewMode), [columns, viewMode]);
 
-  const columns = getAppointmentColumns({
-    t,
-    isAr,
-    onStatusChange: (id, status) => updateStatus.mutate({ id, status }),
-    isPending: updateStatus.isPending,
-    showQueueNumber: isQueue,
-    showTime: !isQueue,
-  });
+  const toggleExpand = (id: string) =>
+    setExpandedId((prev) => (prev === id ? null : id));
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
-      {/* Doctor header */}
-      <div className="mb-4 flex items-center justify-between">
+    <div className="rounded-xl border border-border bg-surface overflow-hidden">
+      {/* ── Doctor header ─────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
             {doctor.fullName.charAt(0)}
           </div>
           <div>
-            <p className="font-semibold">{doctor.fullName}</p>
+            <p className="font-semibold text-sm">{doctor.fullName}</p>
             <p className="flex items-center gap-1 text-xs text-muted">
               {isQueue ? (
                 t("appointments.queueBased")
               ) : (
-                <>
-                  <Calendar className="h-3 w-3" />
-                  {t("appointments.timeBased")}
-                </>
+                <><Calendar className="h-3 w-3" />{t("appointments.timeBased")}</>
               )}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted">
-            {appointments.length} {t("appointments.total")}
-          </span>
-          {/* Check-in button — only shown for today */}
+          <span className="text-xs text-muted">{appointments.length} {t("appointments.total")}</span>
           {branchId && (
             <DoctorCheckInButton
               doctorInfoId={doctor.doctorInfoId}
@@ -82,13 +74,48 @@ export function DoctorAppointmentsPanel({
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={appointments}
-        keyExtractor={(a) => a.id}
-        isLoading={isLoading}
-        emptyMessage={t("appointments.noAppointments")}
-      />
+      {/* ── Table ─────────────────────────────────────────────────────────── */}
+      {isLoading ? (
+        <div className="flex flex-col gap-2 p-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-surface-secondary" />
+          ))}
+        </div>
+      ) : appointments.length === 0 ? (
+        <div className="py-10 text-center text-sm text-muted">
+          {t("appointments.noAppointments")}
+        </div>
+      ) : (
+        <div className="overflow-x-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border/50">
+                {visible.map((col) => (
+                  <th key={col.key}
+                    className="px-3 py-2 text-left text-xs font-medium text-muted">
+                    {col.label ? t(`appointments.columns.${col.key}`, { defaultValue: col.label }) : ""}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map((appt) => (
+                <AppointmentRow
+                  key={appt.id}
+                  appt={appt}
+                  t={t}
+                  viewMode={viewMode}
+                  onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+                  isPending={updateStatus.isPending}
+                  isQueue={isQueue}
+                  expanded={expandedId === appt.id}
+                  onToggleExpand={() => toggleExpand(appt.id)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

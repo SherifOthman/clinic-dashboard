@@ -31,8 +31,7 @@ export interface WorkingDayInput {
 
 export interface DoctorVisitTypeDto {
   id: string;
-  nameAr: string;
-  nameEn: string;
+  name: string;
   price: number;
   isActive: boolean;
 }
@@ -40,8 +39,7 @@ export interface DoctorVisitTypeDto {
 export interface UpsertDoctorVisitTypeRequest {
   branchId: string;
   visitTypeId?: string | null;
-  nameAr: string;
-  nameEn: string;
+  name: string;
   price: number;
   isActive: boolean;
 }

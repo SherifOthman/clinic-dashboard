@@ -1,6 +1,14 @@
 export type AppointmentType = "Queue" | "Time";
 export type AppointmentStatus = "Pending" | "Waiting" | "InProgress" | "Completed" | "Cancelled" | "NoShow";
 
+/**
+ * ViewMode drives column visibility and layout:
+ * - single:  1 doctor  → full table, all columns
+ * - multi:   2–3 docs  → side-by-side cards, priority-1 columns only + expandable rows
+ * - compact: >3 docs   → doctor selector + single full table
+ */
+export type ViewMode = "single" | "multi" | "compact";
+
 export interface AppointmentDto {
   id: string;
   doctorInfoId: string;
@@ -9,13 +17,12 @@ export interface AppointmentDto {
   patientName: string;
   patientCode?: string;
   queueNumber?: number;
-  scheduledTime?: string;     // "HH:mm"
-  endTime?: string;           // "HH:mm"
+  scheduledTime?: string;   // "HH:mm"
+  endTime?: string;         // "HH:mm"
   visitDurationMinutes?: number;
   type: AppointmentType;
   status: AppointmentStatus;
-  visitTypeNameEn: string;
-  visitTypeNameAr: string;
+  visitTypeName: string;    // single name — no bilingual split
   finalPrice: number;
   createdAt: string;
 }
@@ -47,3 +54,25 @@ export interface DoctorCheckInResult {
   delayMinutes?: number;
   scheduledStartTime?: string;
 }
+
+// ── Column priority system ────────────────────────────────────────────────────
+
+export interface AppointmentColumn {
+  key: string;
+  label: string;
+  /** 1 = always visible, 2 = single+compact only, 3 = single only */
+  priority: 1 | 2 | 3;
+  visibleIn: ViewMode[];
+}
+
+export interface AppointmentFeatureFlags {
+  showPrice: boolean;
+  showVisitType: boolean;
+  showActions: boolean;
+}
+
+export const DEFAULT_FLAGS: AppointmentFeatureFlags = {
+  showPrice: true,
+  showVisitType: true,
+  showActions: true,
+};

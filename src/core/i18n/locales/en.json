@@ -565,6 +565,7 @@
     "addVisitType": "Add Visit Type",
     "visitTypeNameAr": "Name (Arabic)",
     "visitTypeNameEn": "Name (English)",
+    "visitTypeName": "Visit Type Name",
     "visitTypePrice": "Price",
     "maxAppointments": "Max / day",
     "allowSelfManage": "Allow doctor to self-manage schedule",

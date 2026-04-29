@@ -37,8 +37,7 @@ export function CreateAppointmentDialog({
   doctors,
   preselectedDoctorInfoId,
 }: CreateAppointmentDialogProps) {
-  const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const { t } = useTranslation();
   const createAppointment = useCreateAppointment();
 
   const [doctorInfoId, setDoctorInfoId] = useState(preselectedDoctorInfoId ?? "");
@@ -213,8 +212,8 @@ export function CreateAppointmentDialog({
             <Select.Popover>
               <ListBox>
                 {visitTypes.filter((vt) => vt.isActive).map((vt) => (
-                  <ListBox.Item key={vt.id} id={vt.id} textValue={isAr ? vt.nameAr : vt.nameEn}>
-                    {isAr ? vt.nameAr : vt.nameEn} — ${vt.price}
+                  <ListBox.Item key={vt.id} id={vt.id} textValue={vt.name}>
+                    {vt.name} — ${vt.price}
                     <ListBox.ItemIndicator />
                   </ListBox.Item>
                 ))}

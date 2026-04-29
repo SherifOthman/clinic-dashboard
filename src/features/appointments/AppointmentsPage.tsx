@@ -10,16 +10,14 @@ import {
   DatePicker,
   Label,
 } from "@heroui/react";
-import { LayoutGrid, LayoutList, Plus } from "lucide-react";
+import { LayoutGrid, LayoutList, Maximize2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBranches } from "../branches/branchesHooks";
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
-
-/** Threshold: ≤ this many doctors → show all side-by-side; > this → show selector */
-const MULTI_VIEW_THRESHOLD = 3;
+import { type ViewMode, resolveViewMode, MULTI_THRESHOLD } from "./viewMode";
 
 function toDateString(d: DateValue): string {
   return `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
@@ -31,7 +29,7 @@ export default function AppointmentsPage() {
   const [dateValue, setDateValue] = useState<DateValue | null>(today(getLocalTimeZone()));
   const [branchId, setBranchId] = useState<string | undefined>();
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
-  const [manualMultiView, setManualMultiView] = useState<boolean | null>(null);
+  const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
   const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
   const createDialog = useDialogState();
 
@@ -40,18 +38,18 @@ export default function AppointmentsPage() {
 
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctorsForBranch(activeBranchId);
 
-  // ── Threshold logic ────────────────────────────────────────────────────────
-  // ≤ 3 doctors → default to multi-view (all side-by-side)
-  // > 3 doctors → default to single-doctor view with selector
-  const autoMultiView = doctors.length <= MULTI_VIEW_THRESHOLD;
-  const multiView = manualMultiView !== null ? manualMultiView : autoMultiView;
+  // ── ViewMode resolution ────────────────────────────────────────────────────
+  const viewMode = resolveViewMode(doctors.length, manualViewMode);
+  const isCompact = viewMode === "compact";
+  const isSingle  = viewMode === "single";
 
-  // In single-doctor mode, auto-select first doctor if none selected
+  // In compact mode, show only the selected doctor
   const effectiveDoctorId = selectedDoctorId ?? doctors[0]?.doctorInfoId;
-
-  const visibleDoctors = multiView
-    ? doctors
-    : doctors.filter((d) => d.doctorInfoId === effectiveDoctorId);
+  const visibleDoctors = isCompact
+    ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
+    : viewMode === "single" && doctors.length > 1
+      ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
+      : doctors;
 
   const doctorInfoIds = visibleDoctors.map((d) => d.doctorInfoId);
   const dateStr = dateValue ? toDateString(dateValue) : "";
@@ -76,30 +74,20 @@ export default function AppointmentsPage() {
         subtitle={t("appointments.subtitle")}
         action={
           <Button variant="primary" size="sm" onPress={() => openCreate()}>
-            <Plus className="h-4 w-4" />
-            {t("appointments.newAppointment")}
+            + {t("appointments.newAppointment")}
           </Button>
         }
       />
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         {/* HeroUI DatePicker */}
-        <DatePicker
-          value={dateValue}
-          onChange={setDateValue}
-          name="viewDate"
-          className="w-52"
-        >
+        <DatePicker value={dateValue} onChange={setDateValue} name="viewDate" className="w-48">
           <Label className="sr-only">{t("appointments.date")}</Label>
           <DateField.Group fullWidth>
-            <DateField.Input>
-              {(segment) => <DateField.Segment segment={segment} />}
-            </DateField.Input>
+            <DateField.Input>{(seg) => <DateField.Segment segment={seg} />}</DateField.Input>
             <DateField.Suffix>
-              <DatePicker.Trigger>
-                <DatePicker.TriggerIndicator />
-              </DatePicker.Trigger>
+              <DatePicker.Trigger><DatePicker.TriggerIndicator /></DatePicker.Trigger>
             </DateField.Suffix>
           </DateField.Group>
           <DatePicker.Popover>
@@ -116,9 +104,7 @@ export default function AppointmentsPage() {
                 <Calendar.GridHeader>
                   {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
                 </Calendar.GridHeader>
-                <Calendar.GridBody>
-                  {(d) => <Calendar.Cell date={d} />}
-                </Calendar.GridBody>
+                <Calendar.GridBody>{(d) => <Calendar.Cell date={d} />}</Calendar.GridBody>
               </Calendar.Grid>
               <Calendar.YearPickerGrid>
                 <Calendar.YearPickerGridBody>
@@ -137,12 +123,12 @@ export default function AppointmentsPage() {
             options={branches.map((b) => ({ id: b.id, label: b.name }))}
             placeholder={t("appointments.selectBranch")}
             ariaLabel={t("appointments.selectBranch")}
-            className="w-48"
+            className="w-44"
           />
         )}
 
-        {/* Doctor selector — shown when >3 doctors OR in single-doctor mode */}
-        {(!multiView || doctors.length > MULTI_VIEW_THRESHOLD) && (
+        {/* Doctor selector — shown in single/compact mode */}
+        {(isSingle || isCompact) && doctors.length > 1 && (
           <FilterSelect
             value={effectiveDoctorId}
             onChange={(v) => setSelectedDoctorId(v)}
@@ -153,41 +139,35 @@ export default function AppointmentsPage() {
           />
         )}
 
-        {/* Threshold hint */}
-        {doctors.length > MULTI_VIEW_THRESHOLD && manualMultiView === null && (
-          <span className="text-xs text-muted">
-            {t("appointments.manyDoctorsHint", { count: doctors.length })}
+        {/* Auto-mode hint */}
+        {!manualViewMode && doctors.length > 0 && (
+          <span className="hidden text-xs text-muted sm:block">
+            {viewMode === "multi"   && t("appointments.autoMultiView")}
+            {viewMode === "single"  && t("appointments.autoSingleView")}
+            {viewMode === "compact" && t("appointments.manyDoctorsHint", { count: doctors.length })}
           </span>
         )}
 
-        {/* Layout toggle — always available */}
-        <div className="ms-auto flex items-center gap-2">
-          {/* Auto-mode indicator */}
-          {manualMultiView === null && (
-            <span className="text-xs text-muted hidden sm:block">
-              {autoMultiView ? t("appointments.autoMultiView") : t("appointments.autoSingleView")}
-            </span>
+        {/* Layout toggle */}
+        <div className="ms-auto flex gap-1">
+          <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
+            onPress={() => setManualViewMode("multi")} aria-label={t("appointments.multiDoctorView")}>
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
+            onPress={() => setManualViewMode("single")} aria-label={t("appointments.singleDoctorView")}>
+            <LayoutList className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant={viewMode === "compact" ? "primary" : "outline"} isIconOnly
+            onPress={() => setManualViewMode("compact")} aria-label="Compact">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+          {manualViewMode && (
+            <Button size="sm" variant="ghost" onPress={() => setManualViewMode(null)}
+              className="text-xs text-muted">
+              Auto
+            </Button>
           )}
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant={multiView ? "primary" : "outline"}
-              isIconOnly
-              onPress={() => setManualMultiView(true)}
-              aria-label={t("appointments.multiDoctorView")}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant={!multiView ? "primary" : "outline"}
-              isIconOnly
-              onPress={() => setManualMultiView(false)}
-              aria-label={t("appointments.singleDoctorView")}
-            >
-              <LayoutList className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -197,20 +177,18 @@ export default function AppointmentsPage() {
           {t("appointments.noDoctors")}
         </div>
       ) : (
-        <div
-          className={
-            multiView && visibleDoctors.length > 1
-              ? "grid grid-cols-1 gap-5 lg:grid-cols-2"
-              : "flex flex-col gap-5"
-          }
-        >
+        <div className={
+          viewMode === "multi" && visibleDoctors.length > 1
+            ? "grid grid-cols-1 gap-5 lg:grid-cols-2"
+            : "flex flex-col gap-5"
+        }>
           {visibleDoctors.map((doctor) => (
             <DoctorAppointmentsPanel
               key={doctor.doctorInfoId}
               doctor={doctor}
               appointments={appointments.filter((a) => a.doctorInfoId === doctor.doctorInfoId)}
               isLoading={isLoading}
-              compact={multiView && visibleDoctors.length > 1}
+              viewMode={viewMode}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
               branchId={activeBranchId ?? undefined}
             />
