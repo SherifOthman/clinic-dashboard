@@ -1,32 +1,23 @@
 import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
-import type { DateValue } from "@internationalized/date";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import {
-  Button,
-  Calendar,
-  DateField,
-  DatePicker,
-  Label,
-} from "@heroui/react";
-import { LayoutGrid, LayoutList, Maximize2 } from "lucide-react";
+import { Button } from "@heroui/react";
+import { Columns2, LayoutGrid, Rows3 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBranches } from "../branches/branchesHooks";
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
-import { type ViewMode, resolveViewMode, MULTI_THRESHOLD } from "./viewMode";
-
-function toDateString(d: DateValue): string {
-  return `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
-}
+import { type ViewMode, resolveViewMode } from "./viewMode";
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
 
-  const [dateValue, setDateValue] = useState<DateValue | null>(today(getLocalTimeZone()));
+  const [dateStr, setDateStr] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [branchId, setBranchId] = useState<string | undefined>();
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
   const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
@@ -52,7 +43,6 @@ export default function AppointmentsPage() {
       : doctors;
 
   const doctorInfoIds = visibleDoctors.map((d) => d.doctorInfoId);
-  const dateStr = dateValue ? toDateString(dateValue) : "";
 
   const { data: appointments = [], isLoading: apptLoading } = useAppointments(
     dateStr,
@@ -81,39 +71,13 @@ export default function AppointmentsPage() {
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        {/* HeroUI DatePicker */}
-        <DatePicker value={dateValue} onChange={setDateValue} name="viewDate" className="w-48">
-          <Label className="sr-only">{t("appointments.date")}</Label>
-          <DateField.Group fullWidth>
-            <DateField.Input>{(seg) => <DateField.Segment segment={seg} />}</DateField.Input>
-            <DateField.Suffix>
-              <DatePicker.Trigger><DatePicker.TriggerIndicator /></DatePicker.Trigger>
-            </DateField.Suffix>
-          </DateField.Group>
-          <DatePicker.Popover>
-            <Calendar aria-label={t("appointments.date")}>
-              <Calendar.Header>
-                <Calendar.YearPickerTrigger>
-                  <Calendar.YearPickerTriggerHeading />
-                  <Calendar.YearPickerTriggerIndicator />
-                </Calendar.YearPickerTrigger>
-                <Calendar.NavButton slot="previous" />
-                <Calendar.NavButton slot="next" />
-              </Calendar.Header>
-              <Calendar.Grid>
-                <Calendar.GridHeader>
-                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                </Calendar.GridHeader>
-                <Calendar.GridBody>{(d) => <Calendar.Cell date={d} />}</Calendar.GridBody>
-              </Calendar.Grid>
-              <Calendar.YearPickerGrid>
-                <Calendar.YearPickerGridBody>
-                  {({ year }) => <Calendar.YearPickerCell year={year} />}
-                </Calendar.YearPickerGridBody>
-              </Calendar.YearPickerGrid>
-            </Calendar>
-          </DatePicker.Popover>
-        </DatePicker>
+        {/* Native date input — reliable cross-browser calendar */}
+        <input
+          type="date"
+          value={dateStr}
+          onChange={(e) => setDateStr(e.target.value)}
+          className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-accent"
+        />
 
         {/* Branch selector */}
         {branches.length > 1 && (
@@ -148,19 +112,22 @@ export default function AppointmentsPage() {
           </span>
         )}
 
-        {/* Layout toggle */}
+        {/* Layout toggle — Multi=grid, Single=rows, Compact=columns */}
         <div className="ms-auto flex gap-1">
+          {/* Multi: side-by-side doctor cards */}
           <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
             onPress={() => setManualViewMode("multi")} aria-label={t("appointments.multiDoctorView")}>
             <LayoutGrid className="h-4 w-4" />
           </Button>
+          {/* Single: one doctor, full table */}
           <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
             onPress={() => setManualViewMode("single")} aria-label={t("appointments.singleDoctorView")}>
-            <LayoutList className="h-4 w-4" />
+            <Rows3 className="h-4 w-4" />
           </Button>
+          {/* Compact: doctor dropdown + full table */}
           <Button size="sm" variant={viewMode === "compact" ? "primary" : "outline"} isIconOnly
             onPress={() => setManualViewMode("compact")} aria-label="Compact">
-            <Maximize2 className="h-4 w-4" />
+            <Columns2 className="h-4 w-4" />
           </Button>
           {manualViewMode && (
             <Button size="sm" variant="ghost" onPress={() => setManualViewMode(null)}

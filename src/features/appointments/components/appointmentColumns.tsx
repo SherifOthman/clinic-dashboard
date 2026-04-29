@@ -167,13 +167,21 @@ function renderActions(
 ) {
   return (
     <>
+      {/* Queue: Pending → InProgress directly (no check-in, no waiting) */}
       {a.status === "Pending" && a.type === "Queue" && (
+        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+          onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
+          <Clock className="h-4 w-4 text-accent" />
+        </Button>
+      )}
+      {/* Time-based: Pending → Waiting (arrived) → InProgress (started) */}
+      {a.status === "Pending" && a.type === "Time" && (
         <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
           onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
           <UserCheck className="h-4 w-4 text-warning" />
         </Button>
       )}
-      {(a.status === "Waiting" || (a.status === "Pending" && a.type === "Time")) && (
+      {a.status === "Waiting" && (
         <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
           onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
           <Clock className="h-4 w-4 text-accent" />

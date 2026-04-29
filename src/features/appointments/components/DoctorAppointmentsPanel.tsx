@@ -58,7 +58,7 @@ export function DoctorAppointmentsPanel({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted">{appointments.length} {t("appointments.total")}</span>
-          {branchId && (
+          {branchId && !isQueue && (
             <DoctorCheckInButton
               doctorInfoId={doctor.doctorInfoId}
               branchId={branchId}
