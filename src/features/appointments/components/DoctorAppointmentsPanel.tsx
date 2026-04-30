@@ -37,6 +37,62 @@ const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "success" |
   NoShow:     "default",
 };
 
+// ── Stable header component — must NOT be defined inline to avoid remounting ──
+interface PanelHeaderProps {
+  doctor: DoctorForBranch;
+  appointmentCount: number;
+  branchId?: string;
+  onAddAppointment?: () => void;
+}
+
+function PanelHeader({ doctor, appointmentCount, branchId, onAddAppointment }: PanelHeaderProps) {
+  const { t } = useTranslation();
+  const isQueue = doctor.appointmentType === "Queue";
+
+  return (
+    <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
+          {doctor.fullName.charAt(0)}
+        </div>
+        <div>
+          <p className="font-semibold text-sm">{doctor.fullName}</p>
+          <p className="flex items-center gap-1 text-xs text-muted">
+            {isQueue ? (
+              t("appointments.queueBased")
+            ) : (
+              <><Calendar className="h-3 w-3" />{t("appointments.timeBased")}</>
+            )}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted">{appointmentCount} {t("appointments.total")}</span>
+        {branchId && (
+          <DoctorCheckInButton
+            doctorInfoId={doctor.doctorInfoId}
+            branchId={branchId}
+            doctorName={doctor.fullName}
+            hasSessionToday={doctor.hasSessionToday}
+            appointmentType={doctor.appointmentType}
+          />
+        )}
+        {onAddAppointment && (
+          <Tooltip delay={300}>
+            <Tooltip.Trigger>
+              <Button size="sm" variant="ghost" isIconOnly onPress={onAddAppointment}
+                aria-label={t("appointments.newAppointment")}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content><p>{t("appointments.newAppointment")}</p></Tooltip.Content>
+          </Tooltip>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function DoctorAppointmentsPanel({
   doctor,
   appointments,
@@ -77,7 +133,7 @@ export function DoctorAppointmentsPanel({
   const onStatusChange = (id: string, status: string) =>
     updateStatus.mutate({ id, status });
 
-  // ── DataTable columns for single mode ─────────────────────────────────────
+  // ── DataTable columns for single mode (age as separate column) ────────────
   const dataTableColumns: Column<AppointmentDto>[] = useMemo(() => {
     const cols: Column<AppointmentDto>[] = [];
 
@@ -108,49 +164,48 @@ export function DoctorAppointmentsPanel({
       {
         key: "patientName",
         label: t("appointments.columns.patient"),
-        render: (a) => {
-          const age = a.patientDateOfBirth
-            ? formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)
-            : null;
-          return (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onViewPatient?.(a.patientId)}
-                className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-accent"
-                aria-label={a.patientName}
+        render: (a) => (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onViewPatient?.(a.patientId)}
+              className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-accent"
+              aria-label={a.patientName}
+            >
+              <Avatar
+                size="sm"
+                className={`ring-1 ${a.patientGender === "Female" ? "ring-pink-400" : "ring-accent/50"}`}
               >
-                <Avatar
-                  size="sm"
-                  className={`ring-1 ${a.patientGender === "Female" ? "ring-pink-400" : "ring-accent/50"}`}
-                >
-                  <Avatar.Image
-                    className="object-cover"
-                    src={getPatientImageSrc(a.patientGender ?? "Male", a.patientDateOfBirth)}
-                    alt={a.patientName}
-                  />
-                  <Avatar.Fallback>
-                    {a.patientGender === "Female" ? "♀" : "♂"}
-                  </Avatar.Fallback>
-                </Avatar>
-              </button>
-              <div className="flex flex-col gap-0.5">
-                <span className="font-medium leading-tight">{a.patientName}</span>
-                <div className="flex items-center gap-1.5">
-                  {a.patientCode && (
-                    <span className="text-xs text-muted">{a.patientCode}</span>
-                  )}
-                  {age && (
-                    <>
-                      <span className="text-muted text-xs">·</span>
-                      <span className="text-xs font-medium text-foreground" dir="ltr">{age}</span>
-                    </>
-                  )}
-                </div>
-              </div>
+                <Avatar.Image
+                  className="object-cover"
+                  src={getPatientImageSrc(a.patientGender ?? "Male", a.patientDateOfBirth)}
+                  alt={a.patientName}
+                />
+                <Avatar.Fallback>
+                  {a.patientGender === "Female" ? "♀" : "♂"}
+                </Avatar.Fallback>
+              </Avatar>
+            </button>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium leading-tight">{a.patientName}</span>
+              {a.patientCode && (
+                <span className="text-xs text-muted">{a.patientCode}</span>
+              )}
             </div>
-          );
-        },
+          </div>
+        ),
+      },
+      // ── Age as its own column in full/single mode ─────────────────────────
+      {
+        key: "age",
+        label: t("patients.age"),
+        render: (a) => a.patientDateOfBirth ? (
+          <span className="tabular-nums text-sm text-foreground" dir="ltr">
+            {formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
       },
       {
         key: "status",
@@ -185,55 +240,16 @@ export function DoctorAppointmentsPanel({
     return cols;
   }, [t, isAr, isQueue, onViewPatient, updateStatus.isPending]);
 
-  // ── Header ─────────────────────────────────────────────────────────────────
-  const header = (
-    <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">
-          {doctor.fullName.charAt(0)}
-        </div>
-        <div>
-          <p className="font-semibold text-sm">{doctor.fullName}</p>
-          <p className="flex items-center gap-1 text-xs text-muted">
-            {isQueue ? (
-              t("appointments.queueBased")
-            ) : (
-              <><Calendar className="h-3 w-3" />{t("appointments.timeBased")}</>
-            )}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted">{appointments.length} {t("appointments.total")}</span>
-        {branchId && (
-          <DoctorCheckInButton
-            doctorInfoId={doctor.doctorInfoId}
-            branchId={branchId}
-            doctorName={doctor.fullName}
-            hasSessionToday={doctor.hasSessionToday}
-            appointmentType={doctor.appointmentType}
-          />
-        )}
-        {onAddAppointment && (
-          <Tooltip delay={300}>
-            <Tooltip.Trigger>
-              <Button size="sm" variant="ghost" isIconOnly onPress={onAddAppointment}
-                aria-label={t("appointments.newAppointment")}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content><p>{t("appointments.newAppointment")}</p></Tooltip.Content>
-          </Tooltip>
-        )}
-      </div>
-    </div>
-  );
-
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        {header}
+        <PanelHeader
+          doctor={doctor}
+          appointmentCount={0}
+          branchId={branchId}
+          onAddAppointment={onAddAppointment}
+        />
         <div className="flex flex-col gap-2 p-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-10 animate-pulse rounded-lg bg-surface-secondary" />
@@ -247,7 +263,12 @@ export function DoctorAppointmentsPanel({
   if (appointments.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        {header}
+        <PanelHeader
+          doctor={doctor}
+          appointmentCount={0}
+          branchId={branchId}
+          onAddAppointment={onAddAppointment}
+        />
         <div className="py-10 text-center text-sm text-muted">
           {t("appointments.noAppointments")}
         </div>
@@ -259,13 +280,17 @@ export function DoctorAppointmentsPanel({
   if (isSingle) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        {header}
+        <PanelHeader
+          doctor={doctor}
+          appointmentCount={appointments.length}
+          branchId={branchId}
+          onAddAppointment={onAddAppointment}
+        />
         <DataTable
           columns={dataTableColumns}
           data={pagedAppointments}
           keyExtractor={(a) => a.id}
         />
-        {/* Simple pagination footer */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-border/50 px-4 py-2">
             <span className="text-xs text-muted">
@@ -293,7 +318,12 @@ export function DoctorAppointmentsPanel({
   // ── Multi mode: compact custom table (priority-1 columns + expandable rows) ─
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
-      {header}
+      <PanelHeader
+        doctor={doctor}
+        appointmentCount={appointments.length}
+        branchId={branchId}
+        onAddAppointment={onAddAppointment}
+      />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -334,7 +364,7 @@ export function DoctorAppointmentsPanel({
                               <span className="text-muted">{t(col.label)}:</span>
                               <span className="font-medium">
                                 {col.key === "visitType" ? appt.visitTypeName
-                                  : col.key === "price" ? `$${appt.finalPrice.toFixed(0)}`
+                                  : col.key === "price" ? `${appt.finalPrice.toFixed(0)}`
                                   : col.key === "status" ? (
                                     <Chip size="sm" variant="soft" color={STATUS_COLOR[appt.status]}>
                                       {t(`appointments.statuses.${appt.status}`)}
@@ -416,19 +446,15 @@ function renderCompactCell(
                 {a.patientName}
                 {hasHidden && <span className="ms-1 text-muted text-xs">{expanded ? "▲" : "▼"}</span>}
               </div>
-              <div className="flex items-center gap-1.5">
-                {a.patientCode && (
-                  <span className="text-xs text-muted">{a.patientCode}</span>
-                )}
-                {a.patientDateOfBirth && (
-                  <>
-                    <span className="text-muted text-xs">·</span>
-                    <span className="text-xs font-medium text-foreground" dir="ltr">
-                      {formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)}
-                    </span>
-                  </>
-                )}
-              </div>
+              {a.patientCode && (
+                <span className="text-xs text-muted">{a.patientCode}</span>
+              )}
+              {/* Age shown inline in compact/multi mode */}
+              {a.patientDateOfBirth && (
+                <span className="text-xs font-medium text-foreground" dir="ltr">
+                  {formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)}
+                </span>
+              )}
             </div>
           </div>
         </button>
