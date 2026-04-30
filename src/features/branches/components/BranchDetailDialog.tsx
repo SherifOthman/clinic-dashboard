@@ -5,8 +5,8 @@ import { formatPhoneInternational } from "@/core/utils/phoneFormat";
 import { Button, Chip } from "@heroui/react";
 import { Building2, Edit, MapPin, Phone, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { BranchDto } from "./branchesApi";
-import { useSetBranchActiveStatus } from "./branchesHooks";
+import type { BranchDto } from "../branchesApi";
+import { useSetBranchActiveStatus } from "../branchesHooks";
 
 interface BranchDetailDialogProps {
   branch: BranchDto | null;

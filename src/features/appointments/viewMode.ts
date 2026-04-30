@@ -13,7 +13,8 @@
  *   2–4 doctors → multi
  *   5+ doctors  → single
  */
-export type ViewMode = "single" | "multi";
+import type { ViewMode } from "./types";
+export type { ViewMode };
 
 export function resolveViewMode(doctorCount: number, manualOverride: ViewMode | null): ViewMode {
   if (manualOverride) return manualOverride;

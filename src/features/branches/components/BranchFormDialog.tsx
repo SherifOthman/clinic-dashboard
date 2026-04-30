@@ -9,8 +9,8 @@ import { Building2, MapPin, Phone } from "lucide-react";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import type { BranchDto, CreateBranchRequest } from "./branchesApi";
-import { useCreateBranch, useUpdateBranch } from "./branchesHooks";
+import type { BranchDto, CreateBranchRequest } from "../branchesApi";
+import { useCreateBranch, useUpdateBranch } from "../branchesHooks";
 
 interface BranchFormDialogProps {
   state: DialogState & { branch?: BranchDto };

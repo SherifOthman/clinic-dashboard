@@ -86,5 +86,6 @@ export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
   "/messages": [USER_ROLES.SUPER_ADMIN],
   "/reviews":  [USER_ROLES.SUPER_ADMIN],
   "/profile": "*", // All authenticated users
+  "/settings": "*", // All authenticated users
   "/onboarding": [USER_ROLES.CLINIC_OWNER],
 } as const;

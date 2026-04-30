@@ -1,3 +1,4 @@
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import {
   isClinicOwner,
   isDoctor,
@@ -29,10 +30,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold">{t("dashboard.title")}</h1>
-        <p className="text-default-600">{subtitle}</p>
-      </div>
+      <PageHeader title={t("dashboard.title")} subtitle={subtitle} />
       {renderDashboard()}
     </div>
   );

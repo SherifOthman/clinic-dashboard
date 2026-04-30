@@ -1,13 +1,10 @@
-import { LanguageSwitcher } from "@/core/components/ui/LanguageSwitcher";
 import { Sidebar } from "@/core/components/ui/Sidebar";
-import { ThemeSwitch } from "@/core/components/ui/ThemeSwitch";
-import { UserAvatar } from "@/core/components/ui/UserAvatar";
 import { useIsMobile } from "@/core/hooks/useIsMobile";
 import { useLocalStorage } from "@/core/hooks/useLocalStorage";
-import { Button, Drawer } from "@heroui/react";
-import { Menu as MenuIcon } from "lucide-react";
+import { Drawer } from "@heroui/react";
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { DashboardHeader } from "./DashboardHeader";
 
 // Persisted so the sidebar state survives page refreshes
 const SIDEBAR_WIDTH = 256;
@@ -42,29 +39,12 @@ export function DashboardLayout() {
       )}
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col">
-        {/* Header */}
-        <header className="bg-surface border-divider border-b shadow-sm">
-          <div className="flex h-16 items-center justify-between px-4">
-            {isMobile && (
-              <Button
-                isIconOnly
-                variant="ghost"
-                onPress={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                <MenuIcon className="h-5 w-5" />
-              </Button>
-            )}
-            <div className="flex-1" />
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeSwitch />
-              <UserAvatar />
-            </div>
-          </div>
-        </header>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <DashboardHeader
+          isMobile={isMobile}
+          onMenuToggle={() => setMobileMenuOpen((open) => !open)}
+        />
 
-        {/* Page Content */}
         <main className="flex-1 overflow-auto p-4 lg:p-6">
           <Outlet />
         </main>

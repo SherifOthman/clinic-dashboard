@@ -13,11 +13,16 @@ interface SidebarProps {
   onLinkClick: () => void;
 }
 
-export function Sidebar({
-  collapsed,
-  onToggleCollapse,
-  onLinkClick,
-}: SidebarProps) {
+function navLinkClass(isActive: boolean, collapsed: boolean): string {
+  const base = "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors";
+  const layout = collapsed ? "justify-center" : "";
+  const state = isActive
+    ? "bg-surface-tertiary text-foreground font-semibold"
+    : "text-muted hover:bg-surface-secondary hover:text-foreground";
+  return [base, layout, state].filter(Boolean).join(" ");
+}
+
+export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarProps) {
   const { t } = useTranslation();
   const { user } = useMe();
 
@@ -32,7 +37,7 @@ export function Sidebar({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
+      {/* Brand header */}
       <div
         className={`flex min-h-16 items-center px-4 ${
           collapsed ? "justify-center" : "justify-between"
@@ -57,27 +62,19 @@ export function Sidebar({
 
       <Separator />
 
-      {/* Navigation Items */}
+      {/* Navigation */}
       <nav className="flex-1 overflow-auto px-2 py-2">
         <ul className="flex flex-col gap-1">
           {navigationItems.map((item) => {
-            const IconComponent = item.icon;
+            const Icon = item.icon;
 
             const link = (
               <NavLink
                 to={item.href}
                 onClick={onLinkClick}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                    collapsed ? "justify-center" : ""
-                  } ${
-                    isActive
-                      ? "bg-surface-tertiary text-foreground font-semibold"
-                      : "text-muted hover:bg-surface-secondary hover:text-foreground"
-                  }`
-                }
+                className={({ isActive }) => navLinkClass(isActive, collapsed)}
               >
-                <IconComponent className="h-5 w-5 shrink-0" />
+                <Icon className="h-5 w-5 shrink-0" />
                 {!collapsed && (
                   <span className="text-sm font-medium">{item.label}</span>
                 )}

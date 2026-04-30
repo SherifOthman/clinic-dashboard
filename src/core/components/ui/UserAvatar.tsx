@@ -1,6 +1,7 @@
 import { Avatar, Dropdown, Label, Separator } from "@heroui/react";
 import { LogOut, Settings, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { getFileUrl } from "@/core/utils/fileUtils";
 import { getGenderImageSrc } from "@/core/utils/patientImageUtils";
@@ -15,11 +16,12 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
   const { user } = useMe();
   const { t } = useTranslation();
   const { mutate: logout } = useLogout();
+  const navigate = useNavigate();
 
   const handleAction = (key: React.Key) => {
     switch (key) {
       case "profile":
-        window.location.href = "/profile";
+        navigate("/profile");
         break;
       case "logout":
         logout();

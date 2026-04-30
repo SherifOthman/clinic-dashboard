@@ -15,24 +15,32 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Inner component that needs router context (useNavigate) and i18n (useTranslation).
+ * Syncs the HTML lang/dir attributes and wires up HeroUI's RouterProvider.
+ */
 function AppContent({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation();
-  const direction = i18n.language === "ar" ? "rtl" : "ltr";
   const navigate = useNavigate();
+  const isRTL = i18n.language === "ar";
 
-  // Sync text direction and lang attribute on <html>.
-  // Theme (light/dark class + data-theme) is handled by next-themes ThemeProvider.
+  // Keep <html dir> and <html lang> in sync with the active language.
+  // Theme (light/dark class + data-theme) is handled by next-themes.
   useEffect(() => {
     const html = document.documentElement;
-    html.setAttribute("dir", direction);
+    html.setAttribute("dir", isRTL ? "rtl" : "ltr");
     html.setAttribute("lang", i18n.language);
-  }, [direction, i18n.language]);
+  }, [isRTL, i18n.language]);
 
   return (
     <RouterProvider navigate={navigate}>
-      <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="light" enableSystem>
+      <ThemeProvider
+        attribute={["class", "data-theme"]}
+        defaultTheme="light"
+        enableSystem
+      >
         <Toast.Provider
-          placement={direction === "rtl" ? "top start" : "top end"}
+          placement={isRTL ? "top start" : "top end"}
           maxVisibleToasts={3}
         />
         {children}

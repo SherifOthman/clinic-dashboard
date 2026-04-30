@@ -2,6 +2,7 @@ export * from "./ageUtils";
 export * from "./apiErrorHandler";
 export * from "./arabicNumerals";
 export * from "./authNavigation";
+export * from "./buildQuery";
 export * from "./cn";
 export * from "./fileUtils";
 export * from "./formUtils";

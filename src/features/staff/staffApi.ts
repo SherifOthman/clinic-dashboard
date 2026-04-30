@@ -1,5 +1,6 @@
 import { apiClient, apiFetch } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
+import { buildQuery } from "@/core/utils/buildQuery";
 import type { PagedResult } from "@/core/types";
 import type {
   AcceptInvitationWithRegistration,
@@ -42,15 +43,6 @@ export interface UpsertDoctorVisitTypeRequest {
   name: string;
   price: number;
   isActive: boolean;
-}
-
-function buildQuery(params: Record<string, any>): string {
-  const q = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
-  });
-  const s = q.toString();
-  return s ? `?${s}` : "";
 }
 
 export const staffApi = {

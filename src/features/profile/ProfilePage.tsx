@@ -1,3 +1,4 @@
+import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useMe } from "@/features/auth/hooks";
 import { ScheduleTab } from "@/features/staff/components/ScheduleTab";
 import { useStaffDetail } from "@/features/staff/staffHooks";
@@ -16,10 +17,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold">{t("profile.title")}</h1>
-        <p className="text-default-500 text-sm">{t("profile.subtitle")}</p>
-      </div>
+      <PageHeader title={t("profile.title")} subtitle={t("profile.subtitle")} />
 
       {isDoctor && user.staffId ? (
         <DoctorProfilePage user={user} staffId={user.staffId} />
