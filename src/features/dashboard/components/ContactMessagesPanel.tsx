@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useContactMessages } from "../dashboardHooks";
 
 export function ContactMessagesPanel() {
-  const { t } = useTranslation();
   const { formatDateShort } = useDateFormat();
   const [expanded, setExpanded] = useState<string | null>(null);
   const { data: messages = [], isLoading } = useContactMessages();
