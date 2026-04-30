@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Mail,
   MessageSquare,
+  Settings,
   ShieldCheck,
   Star,
   User,
@@ -70,7 +71,14 @@ export const siteConfig = {
       label: "Profile",
       href: "/profile",
       icon: User,
-      requiredPermission: null, // all authenticated users
+      requiredPermission: null,
+    },
+    {
+      key: "settings",
+      label: "Settings",
+      href: "/settings",
+      icon: Settings,
+      requiredPermission: null,
     },
     {
       key: "audit",

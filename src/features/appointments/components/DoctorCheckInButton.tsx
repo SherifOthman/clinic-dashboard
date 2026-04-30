@@ -1,5 +1,5 @@
-import { Button } from "@heroui/react";
-import { LogIn } from "lucide-react";
+import { Button, Chip } from "@heroui/react";
+import { CheckCircle, LogIn } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDoctorCheckIn } from "../appointmentsHooks";
@@ -14,29 +14,45 @@ interface DoctorCheckInButtonProps {
   appointmentType?: AppointmentType;
 }
 
-export function DoctorCheckInButton({ doctorInfoId, branchId, doctorName, hasSessionToday, appointmentType }: DoctorCheckInButtonProps) {
+export function DoctorCheckInButton({
+  doctorInfoId,
+  branchId,
+  doctorName,
+  hasSessionToday,
+  appointmentType,
+}: DoctorCheckInButtonProps) {
   const { t } = useTranslation();
   const checkIn = useDoctorCheckIn();
   const [delayResult, setDelayResult] = useState<DoctorCheckInResult | null>(null);
   const [checkedIn, setCheckedIn] = useState(hasSessionToday);
 
-  // Already checked in today — hide the button
-  if (checkedIn) return null;
-
-  const isQueue = appointmentType === "Queue";
+  // Already checked in today — show a green badge instead of the button
+  if (checkedIn) {
+    return (
+      <Chip size="sm" variant="soft" color="success" className="gap-1">
+        <CheckCircle className="h-3 w-3" />
+        {t("appointments.sessionActive")}
+      </Chip>
+    );
+  }
 
   const handleCheckIn = () => {
-    checkIn.mutate({ doctorInfoId, branchId }, {
-      onSuccess: (result) => {
-        setCheckedIn(true);
-        // Only show delay dialog for time-based doctors (queue doesn't need rescheduling)
-        if (result.isLate && !isQueue) setDelayResult(result);
+    checkIn.mutate(
+      { doctorInfoId, branchId },
+      {
+        onSuccess: (result) => {
+          setCheckedIn(true);
+          // Show delay dialog for time-based doctors when late.
+          // Queue doctors: just start the queue — no rescheduling needed.
+          if (result.isLate && appointmentType !== "Queue") {
+            setDelayResult(result);
+          }
+        },
+        onError: (err: any) => {
+          if (err?.code === "ALREADY_EXISTS") setCheckedIn(true);
+        },
       },
-      onError: (err: any) => {
-        // ALREADY_EXISTS = session already open for today — treat as checked in
-        if (err?.code === "ALREADY_EXISTS") setCheckedIn(true);
-      },
-    });
+    );
   };
 
   return (

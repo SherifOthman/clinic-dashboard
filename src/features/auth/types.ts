@@ -20,6 +20,7 @@ export interface User {
   staffId?: string;
   memberId?: string;
   appointmentType?: "Queue" | "Time";
+  weekStartDay?: number; // 0 = Sunday … 6 = Saturday, default 6 (Saturday)
 }
 
 export interface LoginResponse {

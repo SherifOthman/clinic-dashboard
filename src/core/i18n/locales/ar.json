@@ -55,6 +55,7 @@
     "results": "النتائج",
     "noResults": "لم يتم العثور على نتائج",
     "noData": "لا توجد بيانات متاحة",
+    "noAccess": "ليس لديك صلاحية الوصول إلى هذه الصفحة.",
     "tryAgain": "حاول مرة أخرى",
     "somethingWentWrong": "حدث خطأ ما",
     "unexpectedError": "حدث خطأ غير متوقع",
@@ -144,7 +145,8 @@
     "appointmentStatusUpdated": "تم تحديث حالة الموعد",
     "appointmentTypeUpdated": "تم تحديث نوع المواعيد",
     "checkedIn": "تم تسجيل الحضور بنجاح",
-    "testimonialToggled": "تم تحديث حالة التقييم"
+    "testimonialToggled": "تم تحديث حالة التقييم",
+    "settingsSaved": "تم حفظ الإعدادات بنجاح"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -346,6 +348,7 @@
     "autoSingleView": "تلقائي: طبيب واحد",
     "manyDoctorsHint": "{{count}} أطباء — استخدم القائمة",
     "checkIn": "تسجيل الحضور",
+    "sessionActive": "الجلسة نشطة",
     "visitDuration": "مدة الزيارة (دقيقة)",
     "defaultDuration": "الافتراضي: {{min}} دقيقة",
     "doctorLate": "الطبيب متأخر",
@@ -724,6 +727,19 @@
       "action": "التسجيل كطبيب",
       "modalTitle": "التسجيل كطبيب",
       "confirm": "تسجيل"
+    }
+  },
+  "settings": {
+    "subtitle": "إدارة حسابك وتفضيلات العيادة",
+    "sections": {
+      "account": "الحساب والأمان",
+      "clinic": "تفضيلات العيادة",
+      "testimonial": "التقييم العام"
+    },
+    "weekStartDay": {
+      "title": "بداية الأسبوع",
+      "description": "اختر اليوم الذي يبدأ به الأسبوع في التقويمات ومحررات أيام العمل في النظام.",
+      "current": "مضبوط حالياً على {{day}}"
     }
   },
   "serverErrors": {

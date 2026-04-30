@@ -3,12 +3,8 @@ import { ScheduleTab } from "@/features/staff/components/ScheduleTab";
 import { useStaffDetail } from "@/features/staff/staffHooks";
 import { Tabs } from "@heroui/react";
 import { useTranslation } from "react-i18next";
-import { AccountInfoCard } from "./components/AccountInfoCard";
-import { ChangePasswordForm } from "./components/ChangePasswordForm";
 import { ProfileForm } from "./components/ProfileForm";
 import { ProfileImageCard } from "./components/ProfileImageCard";
-import { isClinicOwner } from "@/core/utils/permissions";
-import { TestimonialForm } from "@/features/dashboard/components/TestimonialForm";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -19,7 +15,7 @@ export default function ProfilePage() {
   const isDoctor = user.roles.includes("Doctor");
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-4xl">
       <div className="mb-6">
         <h1 className="mb-2 text-3xl font-bold">{t("profile.title")}</h1>
         <p className="text-default-500 text-sm">{t("profile.subtitle")}</p>
@@ -34,6 +30,8 @@ export default function ProfilePage() {
   );
 }
 
+// ── Doctor: profile + schedule tabs ──────────────────────────────────────────
+
 function DoctorProfilePage({
   user,
   staffId,
@@ -43,10 +41,8 @@ function DoctorProfilePage({
 }) {
   const { t } = useTranslation();
   const { data: staffDetail } = useStaffDetail(staffId);
-  const canSelfManage =
-    staffDetail?.doctorProfile?.canSelfManageSchedule ?? false;
-  // staffId IS the ClinicMember ID — that's what SetAppointmentType endpoint expects
-  const memberId = staffId;
+  const canSelfManage = staffDetail?.doctorProfile?.canSelfManageSchedule ?? false;
+  const memberId = staffId; // ClinicMember ID
   const appointmentType =
     user.appointmentType ?? staffDetail?.doctorProfile?.appointmentType ?? "Queue";
 
@@ -83,26 +79,17 @@ function DoctorProfilePage({
   );
 }
 
+// ── Shared profile content (personal info only) ───────────────────────────────
+
 function ProfileContent({
   user,
 }: {
   user: NonNullable<ReturnType<typeof useMe>["user"]>;
 }) {
   return (
-    <>
-      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-[300px_1fr]">
-        <ProfileImageCard user={user} />
-        <ProfileForm user={user} />
-      </div>
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        {user.hasPassword && <ChangePasswordForm />}
-        <AccountInfoCard user={user} />
-      </div>
-      {isClinicOwner(user) && (
-        <div className="mt-6">
-          <TestimonialForm />
-        </div>
-      )}
-    </>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-[280px_1fr]">
+      <ProfileImageCard user={user} />
+      <ProfileForm user={user} />
+    </div>
   );
 }
