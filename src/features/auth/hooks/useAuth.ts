@@ -1,6 +1,7 @@
 import type { Permission } from "@/core/constants";
 import { useToast } from "@/core/hooks/useToast";
 import { createErrorHandler } from "@/core/utils/apiErrorHandler";
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -38,6 +39,29 @@ export function useMe() {
     hasAnyPermission: (...permissions: Permission[]): boolean =>
       permissions.some((p) => query.data?.permissions?.includes(p) ?? false),
   };
+}
+
+/**
+ * For clinic owners who completed onboarding, the JWT issued at login time
+ * may not contain the ClinicId claim (e.g. Google OAuth users who onboarded
+ * before the token was refreshed). This hook fires a one-time silent refresh
+ * on mount so the new token includes ClinicId and RequireClinicOwner passes.
+ */
+export function useEnsureClinicOwnerToken(user: ReturnType<typeof useMe>["user"]) {
+  const queryClient = useQueryClient();
+  const refreshed = useRef(false);
+
+  useEffect(() => {
+    if (refreshed.current) return;
+    if (!user) return;
+    if (!user.roles?.includes("ClinicOwner")) return;
+    if (!user.onboardingCompleted) return;
+
+    refreshed.current = true;
+    authApi.refreshToken()
+      .then(() => queryClient.invalidateQueries({ queryKey: ["auth", "me"] }))
+      .catch(() => { /* silent — if refresh fails the user will get 401 and be redirected */ });
+  }, [user, queryClient]);
 }
 
 // ── Auth mutations ────────────────────────────────────────────────────────────

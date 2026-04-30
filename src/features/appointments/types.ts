@@ -25,6 +25,8 @@ export interface AppointmentDto {
   visitTypeName: string;    // single name — no bilingual split
   finalPrice: number;
   createdAt: string;
+  patientGender?: string;
+  patientDateOfBirth?: string;  // "YYYY-MM-DD"
 }
 
 export interface DoctorForBranch {
@@ -34,6 +36,7 @@ export interface DoctorForBranch {
   profileImageUrl?: string;
   appointmentType: AppointmentType;
   defaultVisitDurationMinutes: number;
+  hasSessionToday: boolean;
 }
 
 export interface CreateAppointmentRequest {

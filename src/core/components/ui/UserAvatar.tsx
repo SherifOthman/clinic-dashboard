@@ -38,7 +38,9 @@ export function UserAvatar({ size = "md", className }: UserAvatarProps) {
   }
 
   const avatarSrc = user.profileImageUrl
-    ? getFileUrl(user.profileImageUrl)
+    ? (user.profileImageUrl.startsWith("http://") || user.profileImageUrl.startsWith("https://")
+        ? user.profileImageUrl          // already a full URL (e.g. Google profile picture)
+        : getFileUrl(user.profileImageUrl))  // relative path — prepend API base
     : getGenderImageSrc(user.gender);
 
   const initials = user.fullName

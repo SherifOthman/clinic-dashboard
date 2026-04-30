@@ -1,13 +1,17 @@
 /**
  * ViewMode determines how appointments are displayed based on doctor count.
  *
- * single → 1–3 doctors shown one at a time (with doctor selector if >1)
+ * single → 1 doctor, full table with all columns
  * multi  → 2–4 doctors shown side-by-side in a grid
+ *          2 doctors → 2 columns
+ *          3 doctors → 3 columns
+ *          4 doctors → 2×2 grid
+ * 5+ doctors → single with doctor selector (too many to show side-by-side)
  *
  * Auto rules:
- *   1 doctor  → single
+ *   1 doctor    → single
  *   2–4 doctors → multi
- *   5+ doctors  → single (too many to show side-by-side)
+ *   5+ doctors  → single
  */
 export type ViewMode = "single" | "multi";
 
@@ -15,6 +19,13 @@ export function resolveViewMode(doctorCount: number, manualOverride: ViewMode | 
   if (manualOverride) return manualOverride;
   if (doctorCount >= 2 && doctorCount <= 4) return "multi";
   return "single";
+}
+
+/** Returns the Tailwind grid class for the multi-doctor layout */
+export function getMultiGridClass(doctorCount: number): string {
+  if (doctorCount === 2) return "grid grid-cols-1 gap-5 lg:grid-cols-2";
+  if (doctorCount === 3) return "grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3";
+  return "grid grid-cols-1 gap-5 xl:grid-cols-2"; // 4 doctors → 2×2
 }
 
 /**
@@ -31,21 +42,21 @@ export interface AppointmentColumn {
 }
 
 export const TIME_COLUMNS: AppointmentColumn[] = [
-  { key: "time",      label: "Time",       priority: 1, visibleIn: ["single", "multi"] },
-  { key: "patient",   label: "Patient",    priority: 1, visibleIn: ["single", "multi"] },
-  { key: "status",    label: "Status",     priority: 1, visibleIn: ["single", "multi"] },
-  { key: "visitType", label: "Visit Type", priority: 2, visibleIn: ["single"] },
-  { key: "price",     label: "Price",      priority: 3, visibleIn: ["single"] },
-  { key: "actions",   label: "",           priority: 1, visibleIn: ["single", "multi"] },
+  { key: "time",      label: "appointments.columns.time",      priority: 1, visibleIn: ["single", "multi"] },
+  { key: "patient",   label: "appointments.columns.patient",   priority: 1, visibleIn: ["single", "multi"] },
+  { key: "status",    label: "appointments.columns.status",    priority: 1, visibleIn: ["single", "multi"] },
+  { key: "visitType", label: "appointments.columns.visitType", priority: 2, visibleIn: ["single"] },
+  { key: "price",     label: "appointments.columns.price",     priority: 3, visibleIn: ["single"] },
+  { key: "actions",   label: "",                               priority: 1, visibleIn: ["single", "multi"] },
 ];
 
 export const QUEUE_COLUMNS: AppointmentColumn[] = [
-  { key: "queue",     label: "#",          priority: 1, visibleIn: ["single", "multi"] },
-  { key: "patient",   label: "Patient",    priority: 1, visibleIn: ["single", "multi"] },
-  { key: "status",    label: "Status",     priority: 1, visibleIn: ["single", "multi"] },
-  { key: "visitType", label: "Visit Type", priority: 2, visibleIn: ["single"] },
-  { key: "price",     label: "Price",      priority: 3, visibleIn: ["single"] },
-  { key: "actions",   label: "",           priority: 1, visibleIn: ["single", "multi"] },
+  { key: "queue",     label: "appointments.columns.queue",     priority: 1, visibleIn: ["single", "multi"] },
+  { key: "patient",   label: "appointments.columns.patient",   priority: 1, visibleIn: ["single", "multi"] },
+  { key: "status",    label: "appointments.columns.status",    priority: 1, visibleIn: ["single", "multi"] },
+  { key: "visitType", label: "appointments.columns.visitType", priority: 2, visibleIn: ["single"] },
+  { key: "price",     label: "appointments.columns.price",     priority: 3, visibleIn: ["single"] },
+  { key: "actions",   label: "",                               priority: 1, visibleIn: ["single", "multi"] },
 ];
 
 export function getVisibleColumns(columns: AppointmentColumn[], mode: ViewMode): AppointmentColumn[] {

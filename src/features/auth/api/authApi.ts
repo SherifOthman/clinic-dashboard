@@ -74,4 +74,8 @@ export const authApi = {
   async deleteProfileImage(): Promise<void> {
     await apiClient.delete(`${API_ENDPOINTS.auth}/profile/image`);
   },
+
+  async refreshToken(): Promise<void> {
+    await apiClient.post(`${API_ENDPOINTS.auth}/refresh`);
+  },
 };

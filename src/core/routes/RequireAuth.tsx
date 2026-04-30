@@ -1,6 +1,6 @@
 import { Loading } from "@/core/components/ui/Loading";
 import { canAccessOnboarding, getAuthenticatedUserRoute } from "@/core/utils/authNavigation";
-import { useMe } from "@/features/auth/hooks";
+import { useEnsureClinicOwnerToken, useMe } from "@/features/auth/hooks";
 import { useRef } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -11,6 +11,9 @@ export function RequireAuth() {
   const { user, isLoading } = useMe();
   const location = useLocation();
   const redirecting = useRef(false);
+
+  // Silently refresh the JWT for onboarded clinic owners so ClinicId claim is present
+  useEnsureClinicOwnerToken(user);
 
   if (isLoading) return <Loading className="h-screen" />;
 

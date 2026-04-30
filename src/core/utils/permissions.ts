@@ -98,6 +98,10 @@ export function canToggleStaffStatus(user: User | null | undefined): boolean {
 
 // ── Branch permissions ────────────────────────────────────────────────────────
 
+export function canViewBranches(user: User | null | undefined): boolean {
+  return hasPermission(user, PERMISSIONS.VIEW_BRANCHES);
+}
+
 export function canManageBranches(user: User | null | undefined): boolean {
   return hasPermission(user, PERMISSIONS.MANAGE_BRANCHES);
 }

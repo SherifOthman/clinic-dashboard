@@ -43,7 +43,7 @@ export function InvitationDetailDialog({
     data?.status === InvitationStatus.Canceled;
 
   return (
-    <Dialog isOpen={!!invitationId} onClose={onClose} size="sm">
+    <Dialog isOpen={!!invitationId} onClose={onClose} size="sm" ariaLabel={data?.email ?? t("staff.invitations")}>
       {isLoading ? (
         <Loading className="h-40" />
       ) : data ? (

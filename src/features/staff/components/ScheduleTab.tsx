@@ -1,8 +1,11 @@
 import { Button, Card, Modal, Switch, Tabs } from "@heroui/react";
-import { Lock, Pencil } from "lucide-react";
+import { Clock, Hash, Lock, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { canViewBranches } from "@/core/utils/permissions";
+import { useMe } from "@/features/auth/hooks";
 import { useBranches } from "../../branches/branchesHooks";
+import { useSetAppointmentType } from "../../appointments/appointmentsHooks";
 import { useSetScheduleLock, useWorkingDays } from "../staffHooks";
 import { VisitTypesEditor } from "./VisitTypesEditor";
 import { WorkingDaysEditor } from "./WorkingDaysEditor";
@@ -10,27 +13,38 @@ import { WorkingDaysList } from "./WorkingDaysList";
 
 interface ScheduleTabProps {
   staffId: string;
+  memberId: string;
   isOwner: boolean;
   canSelfManageSchedule: boolean;
+  appointmentType: "Queue" | "Time";
   /** compact = inside a narrow dialog; default = full page with two columns */
   compact?: boolean;
+  /** true when the doctor is viewing their own profile (not the owner viewing a staff member) */
+  isDoctorOwnProfile?: boolean;
 }
 
 export function ScheduleTab({
   staffId,
+  memberId,
   isOwner,
   canSelfManageSchedule,
+  appointmentType,
   compact = false,
+  isDoctorOwnProfile = false,
 }: ScheduleTabProps) {
   const { t } = useTranslation();
+  const { user } = useMe();
+  const hasBranchPermission = canViewBranches(user);
+
   const {
     data: branches = [],
     isLoading: branchesLoading,
     isError: branchesError,
-  } = useBranches();
+  } = useBranches(hasBranchPermission);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const setLock = useSetScheduleLock();
+  const setApptType = useSetAppointmentType();
 
   const activeBranchId = selectedBranchId ?? branches[0]?.id ?? null;
   const { data: workingDays = [] } = useWorkingDays(
@@ -38,6 +52,7 @@ export function ScheduleTab({
     activeBranchId ?? undefined,
   );
   const readOnly = !isOwner && !canSelfManageSchedule;
+  const canChangeType = isOwner || canSelfManageSchedule;
 
   return (
     <div className="flex flex-col gap-4">
@@ -72,11 +87,53 @@ export function ScheduleTab({
         </Card>
       )}
 
+      {/* Appointment type toggle — owner or doctor (when self-manage enabled) */}
+      {canChangeType && (
+        <Card>
+          <Card.Content className="py-3">
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">{t("staff.appointmentType")}</p>
+              <p className="text-default-400 text-xs">{t("staff.appointmentTypeDesc")}</p>
+              <div className="mt-1 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setApptType.mutate({ memberId, type: "Queue" })}
+                  disabled={setApptType.isPending}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                    appointmentType === "Queue"
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-muted hover:border-accent/50"
+                  }`}
+                >
+                  <Hash className="h-4 w-4" />
+                  {t("appointments.queueBased")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setApptType.mutate({ memberId, type: "Time" })}
+                  disabled={setApptType.isPending}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                    appointmentType === "Time"
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border text-muted hover:border-accent/50"
+                  }`}
+                >
+                  <Clock className="h-4 w-4" />
+                  {t("appointments.timeBased")}
+                </button>
+              </div>
+            </div>
+          </Card.Content>
+        </Card>
+      )}
+
       {/* Locked banner */}
       {!isOwner && !canSelfManageSchedule && (
         <div className="border-warning/30 bg-warning/10 text-warning flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium">
           <Lock className="h-4 w-4 shrink-0" />
-          {t("staff.scheduleLockedByOwner")}
+          {isDoctorOwnProfile
+            ? t("staff.scheduleLockedOwnProfile")
+            : t("staff.scheduleLockedByOwner")}
         </div>
       )}
 

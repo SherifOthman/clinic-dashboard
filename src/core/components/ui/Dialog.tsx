@@ -5,22 +5,16 @@ import { useTranslation } from "react-i18next";
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
-  /**
-   * Fully custom header content.
-   * When provided, title/icon/description are ignored.
-   */
   header?: ReactNode;
-  /** Convenience: plain title rendered in the default header */
   title?: string;
-  /** Convenience: icon badge shown next to the title */
   icon?: ReactNode;
-  /** Convenience: secondary line below the title (e.g. patient name in edit mode) */
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
-  /** sm | md | lg | xl — defaults to "md" */
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  /** Explicit aria-label — use when header is a custom ReactNode with no title prop */
+  ariaLabel?: string;
 }
 
 /**
@@ -42,11 +36,14 @@ export function Dialog({
   footer,
   size = "md",
   className,
+  ariaLabel,
 }: DialogProps) {
   const { i18n } = useTranslation();
   const dir = i18n.language === "ar" ? "rtl" : "ltr";
 
   const hasHeader = header || title || icon;
+  // aria-label priority: explicit ariaLabel > title > fallback "dialog"
+  const computedAriaLabel = ariaLabel ?? title ?? "dialog";
 
   return (
     <Modal.Backdrop
@@ -61,7 +58,7 @@ export function Dialog({
       >
         <Modal.Dialog
           dir={dir}
-          aria-label={title ?? "dialog"}
+          aria-label={computedAriaLabel}
           className={
             size === "xl" ? `sm:max-w-3xl ${className ?? ""}` : className
           }

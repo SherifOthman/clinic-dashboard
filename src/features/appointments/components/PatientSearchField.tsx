@@ -1,19 +1,16 @@
 import { useDebounce } from "@/core/hooks/useDebounce";
-import { useCreatePatient } from "@/features/patients/patientsMutations";
-import { toPatientApiRequest } from "@/features/patients/patientForm";
 import { patientsApi } from "@/features/patients/patientsApi";
-import type { PatientFormData } from "@/features/patients/schemas";
+import { PatientDialog } from "@/features/patients/components/PatientDialog";
 import type { PatientListItem } from "@/features/patients/types";
 import { Button } from "@heroui/react";
 import { Plus, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { QuickPatientForm } from "./QuickPatientForm";
 
 interface PatientSearchFieldProps {
-  value: string;           // selected patient ID
-  patientName: string;     // display name of selected patient
+  value: string;        // selected patient ID
+  patientName: string;  // display name of selected patient
   onChange: (id: string, name: string) => void;
 }
 
@@ -21,11 +18,10 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debouncedSearch = useDebounce(search, 300);
-  const createPatient = useCreatePatient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["patients", "search", debouncedSearch],
@@ -64,97 +60,103 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
     inputRef.current?.focus();
   };
 
-  const handleQuickCreate = (data: PatientFormData) => {
-    createPatient.mutate(toPatientApiRequest(data), {
-      onSuccess: (newId) => {
-        // Auto-fill the new patient into the appointment dialog
-        onChange(newId, data.fullName);
-        setShowQuickCreate(false);
-        setOpen(false);
-      },
-    });
+  // Called when the PatientDialog closes after creating a patient.
+  // The new patient's ID and name are passed directly — no need to search.
+  const handlePatientCreated = (patientId: string, fullName: string) => {
+    onChange(patientId, fullName);
+    setSearch("");
+    setOpen(false);
   };
 
-  if (showQuickCreate) {
-    return (
-      <QuickPatientForm
-        onSubmit={handleQuickCreate}
-        onCancel={() => setShowQuickCreate(false)}
-        isLoading={createPatient.isPending}
-      />
-    );
-  }
+  // Called when the PatientDialog closes without creating (user cancelled).
+  const handleCreateDialogClose = () => {
+    setShowCreateDialog(false);
+  };
 
   return (
-    <div className="relative">
-      <div className="relative flex items-center">
-        <Search className="absolute start-3 h-4 w-4 text-muted pointer-events-none" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={value ? patientName : search}
-          readOnly={!!value}
-          onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-          onFocus={() => { if (!value) setOpen(true); }}
-          placeholder={t("appointments.searchPatient")}
-          className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${value ? "text-foreground font-medium" : ""}`}
-        />
-        {value && (
-          <button type="button" onClick={handleClear}
-            className="absolute end-3 text-muted hover:text-foreground">
-            <X className="h-4 w-4" />
-          </button>
+    <>
+      <div className="relative">
+        <div className="relative flex items-center">
+          <Search className="absolute start-3 h-4 w-4 text-muted pointer-events-none" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={value ? patientName : search}
+            readOnly={!!value}
+            onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+            onFocus={() => { if (!value) setOpen(true); }}
+            placeholder={t("appointments.searchPatient")}
+            className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${value ? "text-foreground font-medium" : ""}`}
+          />
+          {value && (
+            <button type="button" onClick={handleClear}
+              className="absolute end-3 text-muted hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {open && !value && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg"
+          >
+            {isLoading ? (
+              <div className="px-4 py-3 text-sm text-muted">{t("common.loading")}</div>
+            ) : patients.length === 0 && debouncedSearch ? (
+              <div className="px-4 py-3 text-sm text-muted">
+                {t("appointments.noPatientFound")} "{debouncedSearch}"
+              </div>
+            ) : (
+              <ul className="max-h-52 overflow-y-auto py-1">
+                {patients.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(p)}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-start hover:bg-surface-secondary transition-colors"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
+                        {p.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{p.fullName}</p>
+                        <p className="text-xs text-muted">{p.patientCode}</p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Add new patient — opens full PatientDialog */}
+            <div className="border-t border-border p-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 text-accent"
+                onPress={() => {
+                  setOpen(false);
+                  setShowCreateDialog(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t("appointments.addNewPatient")}
+                {debouncedSearch && ` "${debouncedSearch}"`}
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
-      {open && !value && (
-        <div
-          ref={dropdownRef}
-          className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg"
-        >
-          {isLoading ? (
-            <div className="px-4 py-3 text-sm text-muted">{t("common.loading")}</div>
-          ) : patients.length === 0 && debouncedSearch ? (
-            <div className="px-4 py-3 text-sm text-muted">
-              {t("appointments.noPatientFound")} "{debouncedSearch}"
-            </div>
-          ) : (
-            <ul className="max-h-52 overflow-y-auto py-1">
-              {patients.map((p) => (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(p)}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-start hover:bg-surface-secondary transition-colors"
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
-                      {p.fullName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{p.fullName}</p>
-                      <p className="text-xs text-muted">{p.patientCode}</p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Add new patient option */}
-          <div className="border-t border-border p-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start gap-2 text-accent"
-              onPress={() => { setOpen(false); setShowQuickCreate(true); }}
-            >
-              <Plus className="h-4 w-4" />
-              {t("appointments.addNewPatient")}
-              {debouncedSearch && ` "${debouncedSearch}"`}
-            </Button>
-          </div>
-        </div>
+      {/* Full patient creation dialog */}
+      {showCreateDialog && (
+        <PatientDialog
+          state={{ mode: "create" }}
+          onClose={handleCreateDialogClose}
+          onCreated={handlePatientCreated}
+        />
       )}
-    </div>
+    </>
   );
 }

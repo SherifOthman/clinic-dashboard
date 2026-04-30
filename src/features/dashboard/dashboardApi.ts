@@ -1,5 +1,6 @@
 import { apiClient } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
+import type { AppointmentDto } from "../appointments/types";
 
 export interface SubscriptionInfoDto {
   planName: string;
@@ -50,12 +51,30 @@ export interface AdminTestimonialDto {
   createdAt: string;
 }
 
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export const dashboardApi = {
   getStats: (): Promise<DashboardStatsDto> =>
     apiClient.get<DashboardStatsDto>(`${API_ENDPOINTS.dashboard}/stats`),
 
   getSuperAdminStats: (): Promise<SuperAdminStatsDto> =>
     apiClient.get<SuperAdminStatsDto>(`${API_ENDPOINTS.dashboard}/stats/superadmin`),
+
+  /** Appointments for a specific doctor today (used by DoctorDashboard) */
+  getDoctorTodayAppointments: (doctorInfoId: string, branchId: string): Promise<AppointmentDto[]> => {
+    const params = new URLSearchParams({ date: todayStr(), branchId });
+    params.append("doctorInfoIds", doctorInfoId);
+    return apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
+  },
+
+  /** All appointments for a branch today (used by ReceptionistDashboard) */
+  getBranchTodayAppointments: (branchId: string): Promise<AppointmentDto[]> => {
+    const params = new URLSearchParams({ date: todayStr(), branchId });
+    return apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
+  },
 
   getContactMessages: (page = 1, pageSize = 20): Promise<ContactMessageDto[]> =>
     apiClient.get<ContactMessageDto[]>(`/contact?page=${page}&pageSize=${pageSize}`),

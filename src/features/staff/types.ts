@@ -34,6 +34,7 @@ export interface DoctorDetailDto {
   specializationNameEn: string;
   specializationNameAr: string;
   canSelfManageSchedule: boolean;
+  appointmentType: "Queue" | "Time";
 }
 
 // List DTO — minimal joins

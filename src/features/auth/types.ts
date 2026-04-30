@@ -18,6 +18,8 @@ export interface User {
   specializationNameAr?: string;
   gender: string;
   staffId?: string;
+  memberId?: string;
+  appointmentType?: "Queue" | "Time";
 }
 
 export interface LoginResponse {

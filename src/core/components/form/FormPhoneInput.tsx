@@ -143,7 +143,7 @@ export function FormPhoneInput({
           >
             <Autocomplete.Filter filter={contains}>
               <div className="bg-overlay sticky top-0 z-10 -mx-2 px-2 pt-2 pb-1">
-                <SearchField>
+                <SearchField aria-label={t("common.search")}>
                   <SearchField.Group>
                     <SearchField.SearchIcon>
                       <Search />

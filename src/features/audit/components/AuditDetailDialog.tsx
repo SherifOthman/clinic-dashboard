@@ -94,7 +94,7 @@ export function AuditDetailDialog({
   ) : undefined;
 
   return (
-    <Dialog isOpen={!!item} onClose={onClose} size="lg" footer={restoreFooter}>
+    <Dialog isOpen={!!item} onClose={onClose} size="lg" footer={restoreFooter} ariaLabel={item?.entityType ?? t("audit.title")}>
       {item && (
         <div className="flex flex-col gap-5">
           {/* ── Header ── */}

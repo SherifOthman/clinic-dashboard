@@ -142,10 +142,12 @@ export function StaffDetailDialog({
                 <Tabs.Panel id="schedule" className="pt-2">
                   <ScheduleTab
                     staffId={staffId}
+                    memberId={data.id}
                     isOwner={isOwner}
                     canSelfManageSchedule={
                       data.doctorProfile?.canSelfManageSchedule ?? true
                     }
+                    appointmentType={data.doctorProfile?.appointmentType ?? "Queue"}
                     compact
                   />
                 </Tabs.Panel>

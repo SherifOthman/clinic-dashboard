@@ -1,7 +1,9 @@
 import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { PageHeader } from "@/core/components/ui/PageHeader";
+import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
 import { useDialogState } from "@/core/hooks/useDialogState";
-import { Button } from "@heroui/react";
+import { Button, Tooltip } from "@heroui/react";
+import { parseDate } from "@internationalized/date";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,7 +11,8 @@ import { useBranches } from "../branches/branchesHooks";
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
-import { type ViewMode, resolveViewMode } from "./viewMode";
+import { PatientDetailDialog } from "@/features/patients/components/PatientDetailDialog";
+import { type ViewMode, getMultiGridClass, resolveViewMode } from "./viewMode";
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
@@ -22,6 +25,7 @@ export default function AppointmentsPage() {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
   const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
   const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
+  const [viewPatientId, setViewPatientId] = useState<string | null>(null);
   const createDialog = useDialogState();
 
   const { data: branches = [] } = useBranches();
@@ -68,12 +72,14 @@ export default function AppointmentsPage() {
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        {/* Native date input — reliable cross-browser calendar */}
-        <input
-          type="date"
-          value={dateStr}
-          onChange={(e) => setDateStr(e.target.value)}
-          className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-accent"
+        {/* HeroUI DatePicker — shared AppDatePicker component */}
+        <AppDatePicker
+          value={parseDate(dateStr)}
+          onChange={(d) =>
+            d && setDateStr(`${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`)
+          }
+          ariaLabel={t("common.fields.date")}
+          className="w-44 min-w-[11rem]"
         />
 
         {/* Branch selector */}
@@ -108,23 +114,36 @@ export default function AppointmentsPage() {
           </span>
         )}
 
-        {/* Layout toggle — two distinct modes */}
+        {/* Layout toggle */}
         <div className="ms-auto flex gap-1">
-          {/* Multi: all doctors side-by-side */}
-          <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
-            onPress={() => setManualViewMode("multi")} aria-label={t("appointments.multiDoctorView")}>
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          {/* Single: one doctor at a time, full table */}
-          <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
-            onPress={() => setManualViewMode("single")} aria-label={t("appointments.singleDoctorView")}>
-            <LayoutList className="h-4 w-4" />
-          </Button>
+          <Tooltip delay={300}>
+            <Tooltip.Trigger>
+              <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
+                onPress={() => setManualViewMode("multi")} aria-label={t("appointments.multiDoctorView")}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content><p>{t("appointments.multiDoctorView")}</p></Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={300}>
+            <Tooltip.Trigger>
+              <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
+                onPress={() => setManualViewMode("single")} aria-label={t("appointments.singleDoctorView")}>
+                <LayoutList className="h-4 w-4" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content><p>{t("appointments.singleDoctorView")}</p></Tooltip.Content>
+          </Tooltip>
           {manualViewMode && (
-            <Button size="sm" variant="ghost" onPress={() => setManualViewMode(null)}
-              className="text-xs text-muted">
-              Auto
-            </Button>
+            <Tooltip delay={300}>
+              <Tooltip.Trigger>
+                <Button size="sm" variant="ghost" onPress={() => setManualViewMode(null)}
+                  className="text-xs text-muted">
+                  {t("appointments.autoView")}
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content><p>{t("appointments.autoViewDesc")}</p></Tooltip.Content>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -137,7 +156,7 @@ export default function AppointmentsPage() {
       ) : (
         <div className={
           viewMode === "multi" && visibleDoctors.length > 1
-            ? "grid grid-cols-1 gap-5 xl:grid-cols-2"
+            ? getMultiGridClass(visibleDoctors.length)
             : "flex flex-col gap-5"
         }>
           {visibleDoctors.map((doctor) => (
@@ -148,6 +167,7 @@ export default function AppointmentsPage() {
               isLoading={isLoading}
               viewMode={viewMode}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
+              onViewPatient={(patientId) => setViewPatientId(patientId)}
               branchId={activeBranchId ?? undefined}
             />
           ))}
@@ -164,6 +184,12 @@ export default function AppointmentsPage() {
           preselectedDoctorInfoId={preselectedDoctor}
         />
       )}
+
+      {/* ── Patient detail dialog ─────────────────────────────────────────────── */}
+      <PatientDetailDialog
+        patientId={viewPatientId}
+        onClose={() => setViewPatientId(null)}
+      />
     </div>
   );
 }

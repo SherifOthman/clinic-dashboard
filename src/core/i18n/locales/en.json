@@ -6,6 +6,7 @@
     "cancel": "Cancel",
     "reset": "Reset",
     "save": "Save",
+    "saving": "Saving...",
     "delete": "Delete",
     "edit": "Edit",
     "add": "Add",
@@ -62,6 +63,7 @@
     "times": "times",
     "fillAllFields": "Please fill in all required fields",
     "loadError": "Failed to load data",
+    "more": "more",
     "fields": {
       "name": "Name",
       "fullName": "Full Name",
@@ -138,7 +140,9 @@
     "somethingWentWrong": "Something went wrong. Please try again.",
     "appointmentCreated": "Appointment created successfully",
     "appointmentStatusUpdated": "Appointment status updated",
-    "appointmentTypeUpdated": "Appointment type updated"
+    "appointmentTypeUpdated": "Appointment type updated",
+    "checkedIn": "Doctor checked in successfully",
+    "testimonialToggled": "Testimonial status updated"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -293,6 +297,8 @@
     "allDoctors": "All Doctors",
     "multiDoctorView": "Multi-doctor view",
     "singleDoctorView": "Single doctor view",
+    "autoView": "Auto",
+    "autoViewDesc": "Reset to automatic view mode",
     "patient": "Patient",
     "doctor": "Doctor",
     "visitType": "Visit Type",
@@ -325,13 +331,22 @@
       "Cancelled": "Cancelled",
       "NoShow": "No Show"
     },
+    "status": {
+      "pending": "Pending",
+      "waiting": "Waiting",
+      "inprogress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noshow": "No Show"
+    },
     "markWaiting": "Patient arrived",
     "autoMultiView": "Auto: all doctors",
     "autoSingleView": "Auto: single doctor",
     "manyDoctorsHint": "{{count}} doctors — use selector",
     "checkIn": "Check In",
     "visitDuration": "Visit Duration (min)",
-    "defaultDuration": "default: {{min}} min",    "doctorLate": "Doctor is Late",
+    "defaultDuration": "default: {{min}} min",
+    "doctorLate": "Doctor is Late",
     "lateBy": "Late by {{delay}}",
     "scheduledAt": "Scheduled at",
     "chooseDelayHandling": "How do you want to handle affected appointments?",
@@ -340,7 +355,17 @@
     "markMissed": "Mark as Missed",
     "markMissedDesc": "Mark all past pending appointments as No Show",
     "manualHandling": "Manual Handling",
-    "manualHandlingDesc": "Receptionist reviews and decides per appointment"
+    "manualHandlingDesc": "Receptionist reviews and decides per appointment",
+    "noAppointmentsToday": "No appointments today",
+    "goToAppointments": "Go to Appointments",
+    "columns": {
+      "time": "Time",
+      "patient": "Patient",
+      "status": "Status",
+      "visitType": "Visit Type",
+      "price": "Price",
+      "queue": "#"
+    }
   },
   "branches": {
     "title": "Branches",
@@ -514,6 +539,8 @@
     "appointmentsToday": "Appointments Today",
     "upcomingAppointments": "Upcoming Appointments",
     "recentPatients": "Recent Patients",
+    "todayAppointments": "Today's Appointments",
+    "branchAppointmentsToday": "Branch Appointments Today",
     "activeStaff": "Active Staff",
     "monthlyRevenue": "Monthly Revenue",
     "pendingInvitations": "Pending Invitations",
@@ -570,7 +597,11 @@
     "maxAppointments": "Max / day",
     "allowSelfManage": "Allow doctor to self-manage schedule",
     "allowSelfManageDesc": "When disabled, only the clinic owner can edit this doctor's schedule and visit types",
+    "appointmentType": "Appointment Type",
+    "appointmentTypeDesc": "Choose how this doctor handles appointments",
     "scheduleLockedByOwner": "Your schedule is managed by the clinic owner",
+    "scheduleLockedOwnProfile": "Your schedule is currently locked. Contact the clinic owner to enable self-management.",
+    "weekStartDay": "Week starts on",
     "tabInfo": "Info",
     "tabSchedule": "Schedule",
     "tabPermissions": "Permissions",
@@ -726,7 +757,6 @@
     "EMAIL_ALREADY_CONFIRMED": "Email is already confirmed",
     "USER_CREATION_FAILED": "Failed to create user account",
     "ROLE_ASSIGNMENT_FAILED": "Failed to assign user role",
-    "PATIENT_NOT_DELETED": "Patient is not deleted",
     "PATIENT_NOT_DELETED": "Patient is not deleted"
   },
   "errors": {

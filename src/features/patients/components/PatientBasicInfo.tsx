@@ -1,9 +1,7 @@
 import { FormInputField } from "@/core/components/form/FormInputField";
+import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
 import { translateError } from "@/core/utils/formUtils";
 import {
-  Calendar,
-  DateField,
-  DatePicker,
   FieldError,
   Label,
   ListBox,
@@ -13,7 +11,6 @@ import {
   Select,
 } from "@heroui/react";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
-import { I18nProvider } from "react-aria-components";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
@@ -73,86 +70,26 @@ export function PatientBasicInfo({ resetCount = 0 }: PatientBasicInfoProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Date of Birth - HeroUI DatePicker */}
+        {/* Date of Birth */}
         <div className="flex flex-col gap-1">
-          <I18nProvider locale={isAr ? "ar-EG" : "en-GB"}>
-            <DatePicker
-              className="w-full"
-              isInvalid={!!errors.dateOfBirth}
-              shouldForceLeadingZeros
-              maxValue={today(getLocalTimeZone())}
-              value={datePickerValue}
-              onChange={(val) => {
-                if (val) {
-                  const iso = val.toString();
-                  setValue("dateOfBirth", iso);
-                  setValue("age", calculateAge(iso));
-                  clearErrors("dateOfBirth");
-                } else {
-                  setValue("dateOfBirth", "");
-                }
-              }}
-            >
-              <Label>{t("patients.dateOfBirth")}</Label>
-              <DateField.Group fullWidth>
-                <DateField.Input>
-                  {(segment) => <DateField.Segment segment={segment} />}
-                </DateField.Input>
-                <DateField.Suffix>
-                  <DatePicker.Trigger>
-                    <DatePicker.TriggerIndicator />
-                  </DatePicker.Trigger>
-                </DateField.Suffix>
-              </DateField.Group>
-              {errors.dateOfBirth && (
-                <FieldError>
-                  {translateError(errors.dateOfBirth?.message, t)}
-                </FieldError>
-              )}
-              <DatePicker.Popover className="min-w-[320px]">
-                <Calendar
-                  aria-label={t("patients.dateOfBirth")}
-                  maxValue={today(getLocalTimeZone())}
-                >
-                  <Calendar.Header>
-                    <Calendar.YearPickerTrigger>
-                      <Calendar.YearPickerTriggerHeading />
-                      <Calendar.YearPickerTriggerIndicator
-                        className={isAr ? "rotate-180" : ""}
-                      />
-                    </Calendar.YearPickerTrigger>
-                    {/* In RTL swap order so arrows point correctly */}
-                    {isAr ? (
-                      <>
-                        <Calendar.NavButton slot="next" />
-                        <Calendar.NavButton slot="previous" />
-                      </>
-                    ) : (
-                      <>
-                        <Calendar.NavButton slot="previous" />
-                        <Calendar.NavButton slot="next" />
-                      </>
-                    )}
-                  </Calendar.Header>
-                  <Calendar.Grid>
-                    <Calendar.GridHeader>
-                      {(day) => (
-                        <Calendar.HeaderCell>{day}</Calendar.HeaderCell>
-                      )}
-                    </Calendar.GridHeader>
-                    <Calendar.GridBody>
-                      {(date) => <Calendar.Cell date={date} />}
-                    </Calendar.GridBody>
-                  </Calendar.Grid>
-                  <Calendar.YearPickerGrid>
-                    <Calendar.YearPickerGridBody>
-                      {({ year }) => <Calendar.YearPickerCell year={year} />}
-                    </Calendar.YearPickerGridBody>
-                  </Calendar.YearPickerGrid>
-                </Calendar>
-              </DatePicker.Popover>
-            </DatePicker>
-          </I18nProvider>
+          <AppDatePicker
+            label={t("patients.dateOfBirth")}
+            value={datePickerValue}
+            maxValue={today(getLocalTimeZone())}
+            isInvalid={!!errors.dateOfBirth}
+            errorMessage={errors.dateOfBirth ? translateError(errors.dateOfBirth?.message, t) : undefined}
+            onChange={(val) => {
+              if (val) {
+                const iso = val.toString();
+                setValue("dateOfBirth", iso);
+                setValue("age", calculateAge(iso));
+                clearErrors("dateOfBirth");
+              } else {
+                setValue("dateOfBirth", "");
+              }
+            }}
+            className="w-full"
+          />
 
           {dateOfBirth && (
             <p className="text-default-500 text-xs">

@@ -2,11 +2,12 @@ import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
 import { useQuery } from "@tanstack/react-query";
 import { branchesApi, type CreateBranchRequest } from "./branchesApi";
 
-export function useBranches() {
+export function useBranches(enabled = true) {
   return useQuery({
     queryKey: ["branches"],
     queryFn: () => branchesApi.getAll(),
     staleTime: 2 * 60 * 1000,
+    enabled,
   });
 }
 

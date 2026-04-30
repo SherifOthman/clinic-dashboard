@@ -17,12 +17,14 @@ interface PatientDialogProps {
   state: DialogState;
   isSuperAdmin?: boolean;
   onClose: () => void;
+  onCreated?: (patientId: string, fullName: string) => void;
 }
 
 export function PatientDialog({
   state,
   isSuperAdmin = false,
   onClose,
+  onCreated,
 }: PatientDialogProps) {
   const { t } = useTranslation();
   const isCreate = state.mode === "create";
@@ -39,8 +41,9 @@ export function PatientDialog({
 
   const handleCreateSubmit = (data: PatientFormData) => {
     createPatient.mutate(toPatientApiRequest(data), {
-      onSuccess: () => {
+      onSuccess: (newPatientId) => {
         draftRef.current = undefined; // clear draft after successful submit
+        onCreated?.(newPatientId, data.fullName);
         onClose();
       },
     });
@@ -96,6 +99,7 @@ export function PatientDialog({
         isOpen={isCreate}
         onClose={onClose}
         header={createHeader}
+        ariaLabel={t("patients.addPatient")}
         size="xl"
       >
         <PatientForm
@@ -116,6 +120,7 @@ export function PatientDialog({
         isOpen={state.mode === "edit"}
         onClose={onClose}
         header={editHeader}
+        ariaLabel={t("patients.editPatient")}
         size="xl"
       >
         {patientDetailLoading || !patientDetail ? (

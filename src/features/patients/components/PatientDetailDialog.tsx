@@ -69,7 +69,7 @@ export function PatientDetailDialog({
     ) : undefined;
 
   return (
-    <Dialog isOpen={!!patientId} onClose={onClose} size="xl" footer={footer}>
+    <Dialog isOpen={!!patientId} onClose={onClose} size="xl" footer={footer} ariaLabel={data?.fullName ?? t("patients.title")}>
       {isLoading ? (
         <Loading className="h-48" />
       ) : data ? (

@@ -35,7 +35,7 @@ export function SetOwnerAsDoctorModal({ trigger }: SetOwnerAsDoctorModalProps) {
 
   const onSubmit = (data: SetOwnerAsDoctorForm) => {
     setOwnerAsDoctor.mutate(
-      { specializationId: data.specializationId || undefined },
+      { specializationId: data.specializationId },
       { onSuccess: handleClose },
     );
   };

@@ -96,6 +96,7 @@ function LocationAutocomplete({
             autoFocus
             name="search"
             variant="secondary"
+            aria-label={t("common.search")}
             className="sticky top-0 z-10"
           >
             <SearchField.Group>

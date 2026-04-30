@@ -1,4 +1,5 @@
 ﻿export { AuthCard } from "./AuthCard";
+export { AppDatePicker } from "./AppDatePicker";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { DataTable } from "./DataTable";
 export type { Column } from "./DataTable";

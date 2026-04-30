@@ -33,7 +33,7 @@ export const createStaffSchemas = (t: TFunction) => {
     }),
 
     setOwnerAsDoctor: z.object({
-      specializationId: z.string().optional(),
+      specializationId: z.string().min(1, t("validation.required")),
     }),
   };
 };

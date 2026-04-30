@@ -7,7 +7,13 @@ import { useSaveWorkingDays } from "../staffHooks";
 
 const DEFAULT_START = "09:00";
 const DEFAULT_END = "17:00";
-const DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
+
+/** Returns days reordered so `startDay` comes first */
+function reorderDays(startDay: number): number[] {
+  const days = [0, 1, 2, 3, 4, 5, 6];
+  return [...days.slice(startDay), ...days.slice(0, startDay)];
+}
 
 function dayLabel(day: number, locale: string) {
   const date = new Date(2024, 0, 7 + day);
@@ -45,8 +51,12 @@ export function WorkingDaysEditor({
   const locale = i18n.language === "ar" ? "ar-EG" : "en-GB";
   const save = useSaveWorkingDays(staffId, branchId);
 
+  // Default start day: Saturday (6). User can change it.
+  const [weekStartDay, setWeekStartDay] = useState<number>(6);
+  const orderedDays = reorderDays(weekStartDay);
+
   const buildSchedule = (): WorkingDayInput[] =>
-    DAYS.map((d) => {
+    ALL_DAYS.map((d) => {
       const existing = initialData.find((x) => x.day === d);
       return existing
         ? {
@@ -100,7 +110,33 @@ export function WorkingDaysEditor({
 
   const body = (
     <div className="flex flex-col gap-1.5">
-      {schedule.map((s) => (
+      {/* Week start day selector */}
+      {!readOnly && (
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <span className="text-default-500 text-xs">{t("staff.weekStartDay")}:</span>
+          <div className="flex gap-1">
+            {ALL_DAYS.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setWeekStartDay(d)}
+                className={`rounded px-2 py-0.5 text-xs font-medium transition-all ${
+                  weekStartDay === d
+                    ? "bg-accent text-white"
+                    : "bg-default-100 text-default-500 hover:bg-default-200"
+                }`}
+              >
+                {new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
+                  new Date(2024, 0, 7 + d),
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {orderedDays.map((dayNum) => {
+        const s = schedule.find((x) => x.day === dayNum)!;
+        return (
         <div
           key={s.day}
           className={`flex flex-col gap-1.5 rounded-lg px-3 py-2 transition-colors ${
@@ -172,7 +208,8 @@ export function WorkingDaysEditor({
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
 
       {!readOnly && inline && (
         <div className="mt-2 flex justify-end">

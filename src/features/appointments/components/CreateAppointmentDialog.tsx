@@ -1,13 +1,11 @@
 import { Dialog } from "@/core/components/ui/Dialog";
+import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
 import type { WorkingDayDto } from "@/features/staff/staffApi";
 import { staffApi } from "@/features/staff/staffApi";
 import type { DateValue, TimeValue } from "@heroui/react";
 import { getLocalTimeZone, parseTime, today } from "@internationalized/date";
 import {
   Button,
-  Calendar,
-  DateField,
-  DatePicker,
   FieldError,
   Label,
   ListBox,
@@ -21,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCreateAppointment } from "../appointmentsHooks";
 import type { DoctorForBranch } from "../types";
 import { PatientSearchField } from "./PatientSearchField";
+import { useBranches } from "@/features/branches/branchesHooks";
 
 interface CreateAppointmentDialogProps {
   isOpen: boolean;
@@ -33,13 +32,15 @@ interface CreateAppointmentDialogProps {
 export function CreateAppointmentDialog({
   isOpen,
   onClose,
-  branchId,
-  doctors,
+  branchId: initialBranchId,
+  doctors: initialDoctors,
   preselectedDoctorInfoId,
 }: CreateAppointmentDialogProps) {
   const { t } = useTranslation();
   const createAppointment = useCreateAppointment();
+  const { data: branches = [] } = useBranches();
 
+  const [selectedBranchId, setSelectedBranchId] = useState(initialBranchId);
   const [doctorInfoId, setDoctorInfoId] = useState(preselectedDoctorInfoId ?? "");
   const [patientId, setPatientId] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -49,8 +50,21 @@ export function CreateAppointmentDialog({
   const [discountPercent, setDiscountPercent] = useState("");
   const [durationOverride, setDurationOverride] = useState("");
 
+  // When branch changes, reload doctors for that branch
+  const { data: branchDoctors = [] } = useQuery<DoctorForBranch[]>({
+    queryKey: ["appointments", "doctors", selectedBranchId],
+    queryFn: () => import("../appointmentsApi").then((m) => m.appointmentsApi.getDoctors(selectedBranchId)),
+    enabled: !!selectedBranchId && selectedBranchId !== initialBranchId,
+    staleTime: 5 * 60_000,
+  });
+
+  // Use branch-specific doctors if branch changed, otherwise use the passed-in doctors
+  const doctors = selectedBranchId !== initialBranchId ? branchDoctors : initialDoctors;
+  const branchId = selectedBranchId;
+
   useEffect(() => {
     if (isOpen) {
+      setSelectedBranchId(initialBranchId);
       setDoctorInfoId(preselectedDoctorInfoId ?? doctors[0]?.doctorInfoId ?? "");
       setPatientId("");
       setPatientName("");
@@ -60,7 +74,7 @@ export function CreateAppointmentDialog({
       setDiscountPercent("");
       setDurationOverride("");
     }
-  }, [isOpen, preselectedDoctorInfoId, doctors]);
+  }, [isOpen, preselectedDoctorInfoId, initialDoctors]);
 
   const selectedDoctor = doctors.find((d) => d.doctorInfoId === doctorInfoId);
   const isQueue = selectedDoctor?.appointmentType === "Queue";
@@ -157,6 +171,7 @@ export function CreateAppointmentDialog({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
+      ariaLabel={t("appointments.newAppointment")}
       header={
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
@@ -167,6 +182,35 @@ export function CreateAppointmentDialog({
       }
     >
       <div className="flex flex-col gap-4">
+        {/* Branch — only shown when there are multiple branches */}
+        {branches.length > 1 && (
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">{t("appointments.selectBranch")}</label>
+            <Select
+              value={selectedBranchId}
+              onChange={(v) => {
+                setSelectedBranchId(String(v));
+                setDoctorInfoId("");
+                setVisitTypeId("");
+                setTimeValue(null);
+              }}
+              aria-label={t("appointments.selectBranch")}
+            >
+              <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  {branches.map((b) => (
+                    <ListBox.Item key={b.id} id={b.id} textValue={b.name}>
+                      {b.name}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </Select.Popover>
+            </Select>
+          </div>
+        )}
+
         {/* Doctor */}
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">{t("appointments.doctor")}</label>
@@ -222,23 +266,16 @@ export function CreateAppointmentDialog({
           </Select>
         </div>
 
-        {/* Date — HeroUI DatePicker with unavailable days */}
-        <DatePicker
-          value={date}
-          onChange={(v) => { setDate(v); setTimeValue(null); }}
-          minValue={today(getLocalTimeZone())}
-          isDateUnavailable={isDateUnavailable}
-          name="appointmentDate"
-        >
-          <Label className="text-sm font-medium">{t("appointments.date")}</Label>
-          <DateField.Group fullWidth>
-            <DateField.Input>
-              {(segment) => <DateField.Segment segment={segment} />}
-            </DateField.Input>
-            <DateField.Suffix>
-              <DatePicker.Trigger><DatePicker.TriggerIndicator /></DatePicker.Trigger>
-            </DateField.Suffix>
-          </DateField.Group>
+        {/* Date */}
+        <div className="flex flex-col gap-1">
+          <AppDatePicker
+            label={t("appointments.date")}
+            value={date}
+            onChange={(v) => { setDate(v); setTimeValue(null); }}
+            minValue={today(getLocalTimeZone())}
+            isDateUnavailable={isDateUnavailable}
+            className="w-full"
+          />
           {workingDays.length > 0 && (
             <p className="mt-1 text-xs text-muted">
               {t("appointments.doctorWorksOn")}{" "}
@@ -248,33 +285,7 @@ export function CreateAppointmentDialog({
                 .join(", ")}
             </p>
           )}
-          <FieldError />
-          <DatePicker.Popover>
-            <Calendar aria-label={t("appointments.date")}>
-              <Calendar.Header>
-                <Calendar.YearPickerTrigger>
-                  <Calendar.YearPickerTriggerHeading />
-                  <Calendar.YearPickerTriggerIndicator />
-                </Calendar.YearPickerTrigger>
-                <Calendar.NavButton slot="previous" />
-                <Calendar.NavButton slot="next" />
-              </Calendar.Header>
-              <Calendar.Grid>
-                <Calendar.GridHeader>
-                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-                </Calendar.GridHeader>
-                <Calendar.GridBody>
-                  {(d) => <Calendar.Cell date={d} />}
-                </Calendar.GridBody>
-              </Calendar.Grid>
-              <Calendar.YearPickerGrid>
-                <Calendar.YearPickerGridBody>
-                  {({ year }) => <Calendar.YearPickerCell year={year} />}
-                </Calendar.YearPickerGridBody>
-              </Calendar.YearPickerGrid>
-            </Calendar>
-          </DatePicker.Popover>
-        </DatePicker>
+        </div>
 
         {/* Time — HeroUI TimeField, only for time-based doctors */}
         {!isQueue && (

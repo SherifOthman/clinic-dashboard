@@ -75,7 +75,7 @@ export function BranchDetailDialog({
   );
 
   return (
-    <Dialog isOpen={!!branch} onClose={onClose} size="sm" footer={footer}>
+    <Dialog isOpen={!!branch} onClose={onClose} size="sm" footer={footer} ariaLabel={branch?.name ?? t("branches.title")}>
       <div className="flex flex-col gap-5">
         {/* ── Header ── */}
         <div className="flex flex-col items-center gap-3 pt-1 text-center">

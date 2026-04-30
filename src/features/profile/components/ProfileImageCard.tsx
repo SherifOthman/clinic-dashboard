@@ -21,7 +21,9 @@ export function ProfileImageCard({ user }: ProfileImageCardProps) {
   const updateProfileImage = useUpdateProfileImage();
 
   const imageUrl = user.profileImageUrl
-    ? getFileUrl(user.profileImageUrl)
+    ? (user.profileImageUrl.startsWith("http://") || user.profileImageUrl.startsWith("https://")
+        ? user.profileImageUrl
+        : getFileUrl(user.profileImageUrl))
     : getGenderImageSrc(user.gender);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {

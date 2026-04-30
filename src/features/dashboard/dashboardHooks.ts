@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
+import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "./dashboardApi";
 
 export function useDashboardStats() {
@@ -14,6 +15,26 @@ export function useSuperAdminStats() {
     queryKey: ["dashboard", "stats", "superadmin"],
     queryFn: () => dashboardApi.getSuperAdminStats(),
     staleTime: 60 * 1000,
+  });
+}
+
+export function useDoctorTodayAppointments(doctorInfoId: string | undefined, branchId: string | undefined) {
+  return useQuery({
+    queryKey: ["dashboard", "doctor-today", doctorInfoId, branchId],
+    queryFn: () => dashboardApi.getDoctorTodayAppointments(doctorInfoId!, branchId!),
+    enabled: !!doctorInfoId && !!branchId,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+}
+
+export function useBranchTodayAppointments(branchId: string | undefined) {
+  return useQuery({
+    queryKey: ["dashboard", "branch-today", branchId],
+    queryFn: () => dashboardApi.getBranchTodayAppointments(branchId!),
+    enabled: !!branchId,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
   });
 }
 
@@ -34,9 +55,9 @@ export function useAllTestimonials() {
 }
 
 export function useToggleTestimonial() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => dashboardApi.toggleTestimonial(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["testimonials", "all"] }),
+  return useMutationWithToast<void, string>({
+    mutationFn: (id) => dashboardApi.toggleTestimonial(id),
+    successMessage: "toast.testimonialToggled",
+    invalidateKeys: [["testimonials", "all"]],
   });
 }

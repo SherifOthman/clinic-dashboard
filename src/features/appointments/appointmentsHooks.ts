@@ -1,5 +1,6 @@
+import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
 import { useToast } from "@/core/hooks/useToast";
-import { createErrorHandler } from "@/core/utils/apiErrorHandler";
+import { getErrorMessage } from "@/core/utils/apiErrorHandler";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { appointmentsApi } from "./appointmentsApi";
@@ -24,80 +25,55 @@ export function useDoctorsForBranch(branchId: string | null) {
 }
 
 export function useCreateAppointment() {
-  const qc = useQueryClient();
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
+  return useMutationWithToast<string, Parameters<typeof appointmentsApi.create>[0]>({
     mutationFn: appointmentsApi.create,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["appointments"] });
-      showSuccess("toast.appointmentCreated");
-    },
-    onError: createErrorHandler(showError, t),
+    successMessage: "toast.appointmentCreated",
+    invalidateKeys: [["appointments"]],
   });
 }
 
 export function useUpdateAppointmentStatus() {
-  const qc = useQueryClient();
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      appointmentsApi.updateStatus(id, status),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["appointments"] });
-      showSuccess("toast.appointmentStatusUpdated");
-    },
-    onError: createErrorHandler(showError, t),
+  return useMutationWithToast<void, { id: string; status: string }>({
+    mutationFn: ({ id, status }) => appointmentsApi.updateStatus(id, status),
+    successMessage: "toast.appointmentStatusUpdated",
+    invalidateKeys: [["appointments"]],
   });
 }
 
 export function useSetAppointmentType() {
-  const qc = useQueryClient();
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: ({ memberId, type }: { memberId: string; type: string }) =>
-      appointmentsApi.setAppointmentType(memberId, type),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["appointments", "doctors"] });
-      qc.invalidateQueries({ queryKey: ["staff"] });
-      showSuccess("toast.appointmentTypeUpdated");
-    },
-    onError: createErrorHandler(showError, t),
+  return useMutationWithToast<void, { memberId: string; type: string }>({
+    mutationFn: ({ memberId, type }) => appointmentsApi.setAppointmentType(memberId, type),
+    successMessage: "toast.appointmentTypeUpdated",
+    invalidateKeys: [["appointments", "doctors"], ["staff"]],
   });
 }
 
 export function useDoctorCheckIn() {
-  const qc = useQueryClient();
-  const { showSuccess, showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ doctorInfoId, branchId }: { doctorInfoId: string; branchId: string }) =>
       appointmentsApi.checkIn(doctorInfoId, branchId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["appointments"] });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      if (!result.isLate) {
+        showSuccess("toast.checkedIn");
+      }
     },
-    onError: createErrorHandler(showError, t),
+    onError: (err: any) => {
+      // ALREADY_EXISTS = session already open — not a real error, suppress toast
+      if (err?.code === "ALREADY_EXISTS") return;
+      showError(getErrorMessage(err, t));
+    },
   });
 }
 
 export function useHandleDelay() {
-  const qc = useQueryClient();
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: ({ sessionId, option }: { sessionId: string; option: "AutoShift" | "MarkMissed" | "Manual" }) =>
-      appointmentsApi.handleDelay(sessionId, option),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["appointments"] });
-      showSuccess("toast.appointmentStatusUpdated");
-    },
-    onError: createErrorHandler(showError, t),
+  return useMutationWithToast<void, { sessionId: string; option: "AutoShift" | "MarkMissed" | "Manual" }>({
+    mutationFn: ({ sessionId, option }) => appointmentsApi.handleDelay(sessionId, option),
+    successMessage: "toast.appointmentStatusUpdated",
+    invalidateKeys: [["appointments"]],
   });
 }

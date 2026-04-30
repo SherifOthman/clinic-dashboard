@@ -1,7 +1,8 @@
-import { Chip } from "@heroui/react";
+import { Chip, Tooltip } from "@heroui/react";
 import { Button } from "@heroui/react";
 import type { TFunction } from "i18next";
 import { CheckCircle, Clock, UserCheck, XCircle } from "lucide-react";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import type { AppointmentDto, AppointmentStatus } from "../types";
 import type { ViewMode } from "../viewMode";
 import { getVisibleColumns, QUEUE_COLUMNS, TIME_COLUMNS } from "../viewMode";
@@ -17,6 +18,7 @@ const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "success" |
 
 interface RenderOptions {
   t: TFunction;
+  isAr: boolean;
   viewMode: ViewMode;
   onStatusChange: (id: string, status: string) => void;
   isPending: boolean;
@@ -27,6 +29,7 @@ interface RenderOptions {
 export function AppointmentRow({
   appt,
   t,
+  isAr,
   viewMode,
   onStatusChange,
   isPending,
@@ -54,7 +57,7 @@ export function AppointmentRow({
       >
         {visible.map((col) => (
           <td key={col.key} className="px-3 py-2.5 text-sm">
-            {renderCell(col.key, appt, t, onStatusChange, isPending, hasHidden, expanded, onToggleExpand)}
+            {renderCell(col.key, appt, t, isAr, onStatusChange, isPending, hasHidden, expanded, onToggleExpand)}
           </td>
         ))}
       </tr>
@@ -66,7 +69,7 @@ export function AppointmentRow({
             <div className="flex flex-wrap gap-4 text-xs">
               {hidden.map((col) => (
                 <div key={col.key} className="flex items-center gap-1.5">
-                  <span className="text-muted">{col.label}:</span>
+                  <span className="text-muted">{t(col.label)}:</span>
                   <span className="font-medium">
                     {renderHiddenValue(col.key, appt, t)}
                   </span>
@@ -88,21 +91,26 @@ function renderCell(
   key: string,
   a: AppointmentDto,
   t: TFunction,
+  isAr: boolean,
   onStatusChange: (id: string, status: string) => void,
   isPending: boolean,
   hasHidden: boolean,
   expanded: boolean,
   onToggleExpand: () => void,
 ) {
+  const num = (v: string | number) => isAr ? toArabicNumerals(String(v)) : String(v);
+
   switch (key) {
     case "queue":
-      return <span className="text-base font-bold text-accent tabular-nums">{a.queueNumber}</span>;
+      return <span className="text-base font-bold text-accent tabular-nums">{num(a.queueNumber ?? "")}</span>;
 
     case "time":
       return (
-        <span className="font-bold text-accent tabular-nums">
+        <span className="font-bold text-accent tabular-nums" dir="ltr">
           {a.scheduledTime ?? "—"}
-          {a.endTime && <span className="text-xs text-muted font-normal"> – {a.endTime}</span>}
+          {a.endTime && (
+            <span className="text-xs text-muted font-normal"> – {a.endTime}</span>
+          )}
         </span>
       );
 
@@ -159,7 +167,7 @@ function renderHiddenValue(key: string, a: AppointmentDto, t: TFunction): React.
   }
 }
 
-function renderActions(
+export function renderActions(
   a: AppointmentDto,
   t: TFunction,
   onStatusChange: (id: string, status: string) => void,
@@ -169,35 +177,60 @@ function renderActions(
     <>
       {/* Queue: Pending → InProgress directly (no check-in, no waiting) */}
       {a.status === "Pending" && a.type === "Queue" && (
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-          onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
-          <Clock className="h-4 w-4 text-accent" />
-        </Button>
+        <Tooltip delay={300}>
+          <Tooltip.Trigger>
+            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+              onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
+              <Clock className="h-4 w-4 text-accent" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
+        </Tooltip>
       )}
       {/* Time-based: Pending → Waiting (arrived) → InProgress (started) */}
       {a.status === "Pending" && a.type === "Time" && (
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-          onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
-          <UserCheck className="h-4 w-4 text-warning" />
-        </Button>
+        <Tooltip delay={300}>
+          <Tooltip.Trigger>
+            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+              onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
+              <UserCheck className="h-4 w-4 text-warning" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content><p>{t("appointments.markWaiting")}</p></Tooltip.Content>
+        </Tooltip>
       )}
       {a.status === "Waiting" && (
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-          onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
-          <Clock className="h-4 w-4 text-accent" />
-        </Button>
+        <Tooltip delay={300}>
+          <Tooltip.Trigger>
+            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+              onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
+              <Clock className="h-4 w-4 text-accent" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
+        </Tooltip>
       )}
       {a.status === "InProgress" && (
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-          onPress={() => onStatusChange(a.id, "Completed")} aria-label={t("appointments.complete")}>
-          <CheckCircle className="h-4 w-4 text-success" />
-        </Button>
+        <Tooltip delay={300}>
+          <Tooltip.Trigger>
+            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+              onPress={() => onStatusChange(a.id, "Completed")} aria-label={t("appointments.complete")}>
+              <CheckCircle className="h-4 w-4 text-success" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content><p>{t("appointments.complete")}</p></Tooltip.Content>
+        </Tooltip>
       )}
       {(a.status === "Pending" || a.status === "Waiting" || a.status === "InProgress") && (
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-          onPress={() => onStatusChange(a.id, "Cancelled")} aria-label={t("appointments.cancel")}>
-          <XCircle className="h-4 w-4 text-danger" />
-        </Button>
+        <Tooltip delay={300}>
+          <Tooltip.Trigger>
+            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+              onPress={() => onStatusChange(a.id, "Cancelled")} aria-label={t("appointments.cancel")}>
+              <XCircle className="h-4 w-4 text-danger" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content><p>{t("appointments.cancel")}</p></Tooltip.Content>
+        </Tooltip>
       )}
     </>
   );
