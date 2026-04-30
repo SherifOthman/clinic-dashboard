@@ -44,8 +44,9 @@ function DoctorProfilePage({
   const { t } = useTranslation();
   const { data: staffDetail } = useStaffDetail(staffId);
   const canSelfManage =
-    staffDetail?.doctorProfile?.canSelfManageSchedule ?? true;
-  const memberId = user.memberId ?? staffDetail?.doctorProfile?.doctorProfileId ?? "";
+    staffDetail?.doctorProfile?.canSelfManageSchedule ?? false;
+  // staffId IS the ClinicMember ID — that's what SetAppointmentType endpoint expects
+  const memberId = staffId;
   const appointmentType =
     user.appointmentType ?? staffDetail?.doctorProfile?.appointmentType ?? "Queue";
 

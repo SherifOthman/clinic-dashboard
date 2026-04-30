@@ -28,13 +28,17 @@ export function ScheduleTab({
   memberId,
   isOwner,
   canSelfManageSchedule,
-  appointmentType,
+  appointmentType: appointmentTypeProp,
   compact = false,
   isDoctorOwnProfile = false,
 }: ScheduleTabProps) {
   const { t } = useTranslation();
   const { user } = useMe();
   const hasBranchPermission = canViewBranches(user);
+
+  // Local state so the button highlight updates immediately on click
+  // without waiting for a full cache invalidation + re-render cycle
+  const [currentType, setCurrentType] = useState<"Queue" | "Time">(appointmentTypeProp);
 
   const {
     data: branches = [],
@@ -53,6 +57,15 @@ export function ScheduleTab({
   );
   const readOnly = !isOwner && !canSelfManageSchedule;
   const canChangeType = isOwner || canSelfManageSchedule;
+
+  const handleSetType = (type: "Queue" | "Time") => {
+    if (type === currentType || setApptType.isPending) return;
+    const previous = currentType;
+    setCurrentType(type); // optimistic update — instant visual feedback
+    setApptType.mutate({ memberId, type }, {
+      onError: () => setCurrentType(previous), // revert on failure
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,10 +110,10 @@ export function ScheduleTab({
               <div className="mt-1 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setApptType.mutate({ memberId, type: "Queue" })}
+                  onClick={() => handleSetType("Queue")}
                   disabled={setApptType.isPending}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
-                    appointmentType === "Queue"
+                    currentType === "Queue"
                       ? "border-accent bg-accent/10 text-accent"
                       : "border-border text-muted hover:border-accent/50"
                   }`}
@@ -110,10 +123,10 @@ export function ScheduleTab({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setApptType.mutate({ memberId, type: "Time" })}
+                  onClick={() => handleSetType("Time")}
                   disabled={setApptType.isPending}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
-                    appointmentType === "Time"
+                    currentType === "Time"
                       ? "border-accent bg-accent/10 text-accent"
                       : "border-border text-muted hover:border-accent/50"
                   }`}

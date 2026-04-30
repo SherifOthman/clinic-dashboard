@@ -1,7 +1,6 @@
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { Mail } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useContactMessages } from "../dashboardHooks";
 
 export function ContactMessagesPanel() {

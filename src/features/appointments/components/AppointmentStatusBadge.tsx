@@ -3,6 +3,7 @@ import type { AppointmentStatus } from "../types";
 
 const CONFIG: Record<AppointmentStatus, { color: "warning" | "accent" | "success" | "danger" | "default"; label: string }> = {
   Pending:    { color: "warning", label: "Pending" },
+  Waiting:    { color: "warning", label: "Waiting" },
   InProgress: { color: "accent",  label: "In Progress" },
   Completed:  { color: "success", label: "Completed" },
   Cancelled:  { color: "danger",  label: "Cancelled" },
