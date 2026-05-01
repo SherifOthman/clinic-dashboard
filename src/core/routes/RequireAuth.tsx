@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const AUTH_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
-  ?? "http://localhost:3001/en/login";
+  ?? "https://clinic-website-lime.vercel.app/en/login";
 
 export function RequireAuth() {
   const { user, isLoading } = useMe();

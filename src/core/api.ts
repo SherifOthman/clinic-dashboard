@@ -9,7 +9,7 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 const LOGIN_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
-  ?? "http://localhost:3001/en/login";
+  ?? "https://clinic-website-lime.vercel.app/en/login";
 
 export async function apiFetch<T = unknown>(
   path: string,

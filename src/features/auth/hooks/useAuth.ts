@@ -68,7 +68,7 @@ export function useEnsureClinicOwnerToken(user: ReturnType<typeof useMe>["user"]
 
 export function useLogout() {
   const queryClient = useQueryClient();
-  const authUrl = import.meta.env.VITE_AUTH_URL ?? "http://localhost:3001/en/login";
+  const authUrl = import.meta.env.VITE_AUTH_URL ?? "https://clinic-website-lime.vercel.app/en/login";
 
   return useMutation({
     mutationFn: authApi.logout,
