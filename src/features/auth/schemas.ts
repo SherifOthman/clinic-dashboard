@@ -52,8 +52,8 @@ export const createAuthSchemas = (t: TFunction) => {
     }),
 
     confirmEmail: z.object({
+      userId: z.string().uuid(t("validation.invalidId")),
       token: v.requiredString(),
-      email: v.email(),
     }),
 
     resendEmailVerification: z.object({

@@ -83,9 +83,17 @@ export function useSaveWorkingDays(staffId: string, branchId: string) {
   });
 }
 
-export function useUpsertVisitType(staffId: string) {
+export function useCreateVisitType(staffId: string) {
   return useMutationWithToast<string, import("./staffApi").UpsertDoctorVisitTypeRequest>({
-    mutationFn: (data) => staffApi.upsertVisitType(staffId, data),
+    mutationFn: (data) => staffApi.createVisitType(staffId, data),
+    successMessage: "toast.visitTypeSaved",
+    invalidateKeys: [["staff", "visit-types", staffId]],
+  });
+}
+
+export function useUpdateVisitType(staffId: string) {
+  return useMutationWithToast<void, { visitTypeId: string; data: import("./staffApi").UpsertDoctorVisitTypeRequest }>({
+    mutationFn: ({ visitTypeId, data }) => staffApi.updateVisitType(staffId, visitTypeId, data),
     successMessage: "toast.visitTypeSaved",
     invalidateKeys: [["staff", "visit-types", staffId]],
   });

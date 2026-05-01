@@ -9,13 +9,11 @@ import {
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type {
-  DoctorVisitTypeDto,
-  UpsertDoctorVisitTypeRequest,
-} from "../staffApi";
+import type { DoctorVisitTypeDto, UpsertDoctorVisitTypeRequest } from "../staffApi";
 import {
+  useCreateVisitType,
   useRemoveVisitType,
-  useUpsertVisitType,
+  useUpdateVisitType,
   useVisitTypes,
 } from "../staffHooks";
 
@@ -26,6 +24,7 @@ interface VisitTypesEditorProps {
 }
 
 interface FormState {
+  /** undefined = creating new, string = editing existing */
   id?: string;
   name: string;
   price: number;
@@ -41,9 +40,13 @@ export function VisitTypesEditor({
 }: VisitTypesEditorProps) {
   const { t } = useTranslation();
   const { data: visitTypes = [], isLoading } = useVisitTypes(staffId, branchId);
-  const upsert = useUpsertVisitType(staffId);
+  const create = useCreateVisitType(staffId);
+  const update = useUpdateVisitType(staffId);
   const remove = useRemoveVisitType(staffId);
   const [form, setForm] = useState<FormState | null>(null);
+
+  const isEditing = !!form?.id;
+  const isSaving = create.isPending || update.isPending;
 
   const openAdd = () => setForm({ ...EMPTY });
   const openEdit = (vt: DoctorVisitTypeDto) =>
@@ -54,12 +57,16 @@ export function VisitTypesEditor({
     if (!form) return;
     const req: UpsertDoctorVisitTypeRequest = {
       branchId,
-      visitTypeId: form.id ?? null,
       name: form.name,
       price: form.price,
       isActive: form.isActive,
     };
-    await upsert.mutateAsync(req);
+
+    if (isEditing) {
+      await update.mutateAsync({ visitTypeId: form.id!, data: req });
+    } else {
+      await create.mutateAsync(req);
+    }
     closeForm();
   };
 
@@ -144,8 +151,8 @@ export function VisitTypesEditor({
             <Button variant="ghost" size="sm" onPress={closeForm}>{t("common.cancel")}</Button>
             <Button
               variant="primary" size="sm"
-              isPending={upsert.isPending}
-              isDisabled={!form.name.trim() || upsert.isPending}
+              isPending={isSaving}
+              isDisabled={!form.name.trim() || isSaving}
               onPress={handleSave}
             >
               {t("forms.save")}

@@ -39,7 +39,6 @@ export interface DoctorVisitTypeDto {
 
 export interface UpsertDoctorVisitTypeRequest {
   branchId: string;
-  visitTypeId?: string | null;
   name: string;
   price: number;
   isActive: boolean;
@@ -69,7 +68,7 @@ export const staffApi = {
     }),
 
   cancelInvitation: (id: string): Promise<void> =>
-    apiClient.delete(`${API_ENDPOINTS.staff}/invitations/${id}`),
+    apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/cancel`),
 
   resendInvitation: (id: string): Promise<void> =>
     apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`),
@@ -97,8 +96,11 @@ export const staffApi = {
   getVisitTypes: (staffId: string, branchId: string): Promise<DoctorVisitTypeDto[]> =>
     apiClient.get<DoctorVisitTypeDto[]>(`${API_ENDPOINTS.staff}/${staffId}/visit-types?branchId=${branchId}`),
 
-  upsertVisitType: (staffId: string, data: UpsertDoctorVisitTypeRequest): Promise<string> =>
-    apiClient.put<string>(`${API_ENDPOINTS.staff}/${staffId}/visit-types`, data),
+  createVisitType: (staffId: string, data: UpsertDoctorVisitTypeRequest): Promise<string> =>
+    apiClient.post<string>(`${API_ENDPOINTS.staff}/${staffId}/visit-types`, data),
+
+  updateVisitType: (staffId: string, visitTypeId: string, data: UpsertDoctorVisitTypeRequest): Promise<void> =>
+    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`, data),
 
   removeVisitType: (staffId: string, visitTypeId: string): Promise<void> =>
     apiClient.delete(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`),

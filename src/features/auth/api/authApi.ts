@@ -33,7 +33,7 @@ export const authApi = {
   },
 
   async changePassword(data: ChangePassword): Promise<void> {
-    await apiClient.post(`${API_ENDPOINTS.auth}/change-password`, data);
+    await apiClient.patch(`${API_ENDPOINTS.auth}/password`, data);
   },
 
   async resendEmailVerification(data: ResendEmailVerification): Promise<void> {
