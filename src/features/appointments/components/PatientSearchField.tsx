@@ -126,12 +126,22 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
                           {p.fullName.charAt(0)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{p.fullName}</p>
-                          <p className="text-xs text-muted">
-                            {p.patientCode}
-                            {age !== null && <span className="ms-2">{age} {t("common.yearsOld")}</span>}
-                            {city && <span className="ms-2">{city}</span>}
-                          </p>
+                          <p className="text-sm font-medium leading-tight">{p.fullName}</p>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
+                            <span>{p.patientCode}</span>
+                            {age !== null && (
+                              <>
+                                <span className="opacity-40">·</span>
+                                <span>{age} {t("common.yearsOld")}</span>
+                              </>
+                            )}
+                            {city && (
+                              <>
+                                <span className="opacity-40">·</span>
+                                <span>{city}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </button>
                     </li>
