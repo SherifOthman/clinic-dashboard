@@ -34,7 +34,7 @@ Both checks run in `canAccessRouteWithPermissions()`. The sidebar filters items 
 
 ### Appointments
 
-A full appointment management view with multi-doctor support. The toolbar lets you pick a date, branch, and doctor. The layout adapts automatically: 1 doctor gets a full-width panel, 2–4 doctors get a side-by-side grid, 5+ doctors switch to a single-doctor selector. Each doctor panel shows their appointment list (queue or time-based), supports check-in, status updates, and delay handling. Appointment type (Queue vs Time) is configurable per doctor.
+A full appointment management view with multi-doctor support. The toolbar lets you pick a date, branch, and doctor. The layout adapts automatically: 1 doctor gets a full-width panel, 2–4 doctors get a side-by-side grid, 5+ doctors switch to a single-doctor selector. Each doctor panel shows their appointment list (queue or time-based), supports check-in, status updates, and delay handling. Appointment type (Queue vs Time) is configurable per doctor per branch — the same doctor can run a walk-in queue at one branch and scheduled appointments at another.
 
 ### Patient Management
 
@@ -61,7 +61,7 @@ Users can update their full name, username, phone number, and upload a profile i
 
 ### Audit Log Viewer
 
-SuperAdmin-only. Shows every action taken across all clinics: who did what, to which record, when, from which IP and browser. Filterable by entity type, action type, user, clinic, and date range. Each entry expands to show field-level diffs with old and new values side by side. Deleted patients can be restored directly from the audit view.
+SuperAdmin-only. Shows every action taken across all clinics: who did what, to which record, when, from which IP and browser. Filterable by entity type, action type, user, clinic, and date range. Each entry expands to show field-level diffs with old and new values side by side — captured automatically by the backend's EF Core SaveChanges interceptor. Deleted patients can be restored directly from the audit view.
 
 ### Dashboard
 
@@ -217,7 +217,7 @@ src/
 | Update appointment status                  | ✅     | Pending → Waiting → InProgress → Done   |
 | Doctor check-in with delay detection       | ✅     |                                          |
 | Handle delay (auto-shift / mark missed)    | ✅     |                                          |
-| Set appointment type per doctor            | ✅     | Queue vs Time                            |
+| Set appointment type per doctor per branch | ✅     | Queue vs Time, independent per branch    |
 | View patient detail from appointment       | ✅     |                                          |
 | Calendar view                              | ❌     |                                          |
 
