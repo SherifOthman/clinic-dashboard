@@ -19,7 +19,7 @@ export interface User {
   gender: string;
   staffId?: string;
   memberId?: string;
-  appointmentType?: "Queue" | "Time";
+  // appointmentType removed — it is now per-doctor-per-branch, fetched via getDoctors(branchId)
   weekStartDay?: number; // 0 = Sunday … 6 = Saturday, default 6 (Saturday)
 }
 

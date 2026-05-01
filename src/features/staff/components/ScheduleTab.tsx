@@ -1,11 +1,11 @@
 import { Button, Card, Modal, Switch, Tabs } from "@heroui/react";
 import { Clock, Hash, Lock, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { canViewBranches } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useBranches } from "../../branches/branchesHooks";
-import { useSetAppointmentType } from "../../appointments/appointmentsHooks";
+import { useDoctorsForBranch, useSetAppointmentType } from "../../appointments/appointmentsHooks";
 import { useSetScheduleLock, useWorkingDays } from "../staffHooks";
 import { VisitTypesEditor } from "./VisitTypesEditor";
 import { WorkingDaysEditor } from "./WorkingDaysEditor";
@@ -14,9 +14,10 @@ import { WorkingDaysList } from "./WorkingDaysList";
 interface ScheduleTabProps {
   staffId: string;
   memberId: string;
+  /** doctorInfoId — needed to look up the per-branch appointment type */
+  doctorInfoId?: string;
   isOwner: boolean;
   canSelfManageSchedule: boolean;
-  appointmentType: "Queue" | "Time";
   /** compact = inside a narrow dialog; default = full page with two columns */
   compact?: boolean;
   /** true when the doctor is viewing their own profile (not the owner viewing a staff member) */
@@ -26,19 +27,15 @@ interface ScheduleTabProps {
 export function ScheduleTab({
   staffId,
   memberId,
+  doctorInfoId,
   isOwner,
   canSelfManageSchedule,
-  appointmentType: appointmentTypeProp,
   compact = false,
   isDoctorOwnProfile = false,
 }: ScheduleTabProps) {
   const { t } = useTranslation();
   const { user } = useMe();
   const hasBranchPermission = canViewBranches(user);
-
-  // Local state so the button highlight updates immediately on click
-  // without waiting for a full cache invalidation + re-render cycle
-  const [currentType, setCurrentType] = useState<"Queue" | "Time">(appointmentTypeProp);
 
   const {
     data: branches = [],
@@ -51,18 +48,27 @@ export function ScheduleTab({
   const setApptType = useSetAppointmentType();
 
   const activeBranchId = selectedBranchId ?? branches[0]?.id ?? null;
-  const { data: workingDays = [] } = useWorkingDays(
-    staffId,
-    activeBranchId ?? undefined,
-  );
+
+  // Fetch per-branch appointment type from the doctors-for-branch list
+  const { data: branchDoctors = [] } = useDoctorsForBranch(activeBranchId);
+  const branchAppointmentType =
+    branchDoctors.find((d) => d.doctorInfoId === doctorInfoId)?.appointmentType ?? "Queue";
+
+  // Local state for optimistic UI — resets when branch changes
+  const [currentType, setCurrentType] = useState<"Queue" | "Time">(branchAppointmentType);
+  useEffect(() => {
+    setCurrentType(branchAppointmentType);
+  }, [branchAppointmentType]);
+
+  const { data: workingDays = [] } = useWorkingDays(staffId, activeBranchId ?? undefined);
   const readOnly = !isOwner && !canSelfManageSchedule;
   const canChangeType = isOwner || canSelfManageSchedule;
 
   const handleSetType = (type: "Queue" | "Time") => {
-    if (type === currentType || setApptType.isPending) return;
+    if (type === currentType || setApptType.isPending || !activeBranchId) return;
     const previous = currentType;
     setCurrentType(type); // optimistic update — instant visual feedback
-    setApptType.mutate({ memberId, type }, {
+    setApptType.mutate({ memberId, branchId: activeBranchId, type }, {
       onError: () => setCurrentType(previous), // revert on failure
     });
   };

@@ -41,8 +41,8 @@ export function useUpdateAppointmentStatus() {
 }
 
 export function useSetAppointmentType() {
-  return useMutationWithToast<void, { memberId: string; type: string }>({
-    mutationFn: ({ memberId, type }) => appointmentsApi.setAppointmentType(memberId, type),
+  return useMutationWithToast<void, { memberId: string; branchId: string; type: string }>({
+    mutationFn: ({ memberId, branchId, type }) => appointmentsApi.setAppointmentType(memberId, branchId, type),
     successMessage: "toast.appointmentTypeUpdated",
     invalidateKeys: [["appointments", "doctors"], ["staff"]],
   });

@@ -41,8 +41,7 @@ function DoctorProfilePage({
   const { data: staffDetail } = useStaffDetail(staffId);
   const canSelfManage = staffDetail?.doctorProfile?.canSelfManageSchedule ?? false;
   const memberId = staffId; // ClinicMember ID
-  const appointmentType =
-    user.appointmentType ?? staffDetail?.doctorProfile?.appointmentType ?? "Queue";
+  const doctorInfoId = user.memberId; // DoctorInfo ID
 
   return (
     <Tabs defaultSelectedKey="profile">
@@ -67,9 +66,9 @@ function DoctorProfilePage({
         <ScheduleTab
           staffId={staffId}
           memberId={memberId}
+          doctorInfoId={doctorInfoId}
           isOwner={false}
           canSelfManageSchedule={canSelfManage}
-          appointmentType={appointmentType}
           isDoctorOwnProfile
         />
       </Tabs.Panel>
