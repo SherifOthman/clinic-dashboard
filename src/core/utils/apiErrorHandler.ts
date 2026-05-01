@@ -8,6 +8,12 @@ export function getErrorMessage(error: unknown, t: TFunction): string {
   if (error instanceof Error) {
     const e = error as any;
     if (e.code === "ACCOUNT_LOCKED" && e.detail) return e.detail;
+    if (e.code === "RATE_LIMITED") {
+      const retryAfter = e.retryAfter as number | undefined;
+      return retryAfter && retryAfter > 0
+        ? t("errors.rateLimitedWithRetry", { seconds: retryAfter })
+        : t("errors.rateLimited");
+    }
     if (e.code) {
       const key = `serverErrors.${e.code}`;
       const translated = t(key);

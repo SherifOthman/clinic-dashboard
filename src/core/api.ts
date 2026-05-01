@@ -38,6 +38,18 @@ export async function apiFetch<T = unknown>(
     throw Object.assign(new Error(message), { code: err.code, status: 403 });
   }
 
+  if (res.status === 429) {
+    // Rate limited — read retryAfter from the response body or Retry-After header
+    const err = await res.json().catch(() => ({}));
+    const retryAfter: number =
+      err.retryAfter ??
+      parseInt(res.headers.get("Retry-After") ?? "60", 10);
+    throw Object.assign(
+      new Error("Too many requests. Please slow down."),
+      { code: "RATE_LIMITED", status: 429, retryAfter },
+    );
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const message = err.detail ?? err.title ?? `Error ${res.status}`;
