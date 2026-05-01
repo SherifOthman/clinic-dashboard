@@ -131,13 +131,13 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
                             <span>{p.patientCode}</span>
                             {age !== null && (
                               <>
-                                <span className="opacity-40">·</span>
+                                <span className="opacity-40">-</span>
                                 <span>{age} {t("common.yearsOld")}</span>
                               </>
                             )}
                             {city && (
                               <>
-                                <span className="opacity-40">·</span>
+                                <span className="opacity-40">-</span>
                                 <span>{city}</span>
                               </>
                             )}
