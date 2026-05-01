@@ -15,7 +15,7 @@ interface PatientSearchFieldProps {
 }
 
 export function PatientSearchField({ value, patientName, onChange }: PatientSearchFieldProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -109,23 +109,34 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
               </div>
             ) : (
               <ul className="max-h-52 overflow-y-auto py-1">
-                {patients.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(p)}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-start hover:bg-surface-secondary transition-colors"
-                    >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
-                        {p.fullName.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{p.fullName}</p>
-                        <p className="text-xs text-muted">{p.patientCode}</p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                {patients.map((p) => {
+                  const age = p.dateOfBirth
+                    ? Math.floor((Date.now() - new Date(p.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+                    : null;
+                  const city = i18n.language === "ar" ? p.cityNameAr : p.cityNameEn;
+
+                  return (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(p)}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-start hover:bg-surface-secondary transition-colors"
+                      >
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">
+                          {p.fullName.charAt(0)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{p.fullName}</p>
+                          <p className="text-xs text-muted">
+                            {p.patientCode}
+                            {age !== null && <span className="ms-2">{age} {t("common.yearsOld")}</span>}
+                            {city && <span className="ms-2">{city}</span>}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
 
