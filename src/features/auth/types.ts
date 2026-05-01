@@ -20,7 +20,9 @@ export interface User {
   staffId?: string;
   memberId?: string;
   // appointmentType removed — it is now per-doctor-per-branch, fetched via getDoctors(branchId)
-  weekStartDay?: number; // 0 = Sunday … 6 = Saturday, default 6 (Saturday)
+  weekStartDay?: number;    // 0 = Sunday … 6 = Saturday, default 6 (Saturday)
+  lastLoginAt?: string;     // ISO 8601 — when the user last signed in
+  lastPasswordChangeAt?: string; // ISO 8601 — when the password was last changed
 }
 
 export interface LoginResponse {

@@ -534,6 +534,8 @@
     "userProfile": "الملف الشخصي",
     "accountType": "نوع الحساب",
     "accountInfo": "معلومات الحساب",
+    "lastSignIn": "آخر تسجيل دخول",
+    "lastPasswordChange": "آخر تغيير لكلمة المرور",
     "profilePicture": "الصورة الشخصية",
     "changePhoto": "تغيير الصورة",
     "deletePhoto": "حذف الصورة",

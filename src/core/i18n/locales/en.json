@@ -511,6 +511,8 @@
     "notVerified": "Not Verified",
     "accountType": "Account Type",
     "accountInfo": "Account Information",
+    "lastSignIn": "Last Sign-in",
+    "lastPasswordChange": "Password Last Changed",
     "profilePicture": "Profile Picture",
     "changePhoto": "Change Photo",
     "deletePhoto": "Delete Photo",
