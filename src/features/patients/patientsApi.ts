@@ -9,7 +9,7 @@ import type {
   PatientsSearchParams,
 } from "./types";
 
-function buildPatientQuery(params: PatientsSearchParams, isSuperAdmin: boolean): string {
+function buildPatientQuery(params: PatientsSearchParams): string {
   const p = new URLSearchParams();
   if (params.searchTerm)      p.append("searchTerm",      params.searchTerm);
   if (params.pageNumber)      p.append("pageNumber",      params.pageNumber.toString());
@@ -20,22 +20,29 @@ function buildPatientQuery(params: PatientsSearchParams, isSuperAdmin: boolean):
   if (params.stateGeonameId   != null) p.append("stateGeonameId",   params.stateGeonameId.toString());
   if (params.cityGeonameId    != null) p.append("cityGeonameId",    params.cityGeonameId.toString());
   if (params.countryGeonameId != null) p.append("countryGeonameId", params.countryGeonameId.toString());
-  if (isSuperAdmin && params.clinicSearch) p.append("clinicSearch", params.clinicSearch);
+  return p.toString() ? `?${p.toString()}` : "";
+}
+
+function buildAdminPatientQuery(params: PatientsSearchParams): string {
+  const p = new URLSearchParams(buildPatientQuery(params).replace(/^\?/, ""));
+  if (params.clinicSearch) p.append("clinicSearch", params.clinicSearch);
   return p.toString() ? `?${p.toString()}` : "";
 }
 
 export const patientsApi = {
-  getPaginated: (params: PatientsSearchParams = {}, isSuperAdmin = false): Promise<PagedResult<PatientListItem>> => {
-    const base = isSuperAdmin ? `${API_ENDPOINTS.patients}/all` : API_ENDPOINTS.patients;
-    return apiClient.get<PagedResult<PatientListItem>>(`${base}${buildPatientQuery(params, isSuperAdmin)}`);
-  },
+  getPaginated: (params: PatientsSearchParams = {}): Promise<PagedResult<PatientListItem>> =>
+    apiClient.get<PagedResult<PatientListItem>>(`${API_ENDPOINTS.patients}${buildPatientQuery(params)}`),
 
-  getDetail: (id: string, isSuperAdmin = false): Promise<PatientDetail> => {
-    const endpoint = isSuperAdmin
-      ? `${API_ENDPOINTS.patients}/all/${id}`
-      : `${API_ENDPOINTS.patients}/${id}`;
-    return apiClient.get<PatientDetail>(endpoint);
-  },
+  getDetail: (id: string): Promise<PatientDetail> =>
+    apiClient.get<PatientDetail>(`${API_ENDPOINTS.patients}/${id}`),
+
+  // ── Admin (cross-tenant) ──────────────────────────────────────────────────
+
+  getAdminPaginated: (params: PatientsSearchParams = {}): Promise<PagedResult<PatientListItem>> =>
+    apiClient.get<PagedResult<PatientListItem>>(`${API_ENDPOINTS.adminPatients}${buildAdminPatientQuery(params)}`),
+
+  getAdminDetail: (id: string): Promise<PatientDetail> =>
+    apiClient.get<PatientDetail>(`${API_ENDPOINTS.adminPatients}/${id}`),
 
   // Create returns the new patient ID from the Location header
   create: (patient: PatientApiRequest): Promise<string> =>

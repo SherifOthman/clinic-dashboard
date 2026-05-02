@@ -42,7 +42,6 @@ export default function PatientsPage() {
 
       <PatientDetailDialog
         patientId={detailPatientId}
-        isSuperAdmin={superAdmin}
         onClose={() => setDetailPatientId(null)}
         onEdit={canEditPatient(user) ? patientForm.openEdit : undefined}
         onDelete={canDeletePatient(user) ? deleteDialog.open : undefined}
@@ -50,7 +49,6 @@ export default function PatientsPage() {
 
       <PatientDialog
         state={patientForm.state}
-        isSuperAdmin={superAdmin}
         onClose={patientForm.close}
       />
 

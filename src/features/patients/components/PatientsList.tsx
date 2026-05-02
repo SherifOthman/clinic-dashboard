@@ -7,7 +7,7 @@ import { useMe } from "@/features/auth/hooks";
 import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { usePaginatedPatients, usePatientsTableState } from "../patientsHooks";
+import { useAdminPaginatedPatients, usePaginatedPatients, usePatientsTableState } from "../patientsHooks";
 import type { PatientListItem } from "../types";
 import { PatientCityFilter } from "./PatientCityFilter";
 import { getPatientColumns } from "./patientColumns";
@@ -37,14 +37,16 @@ export function PatientsList({
     400,
   );
 
-  const { data, isLoading, error } = usePaginatedPatients(
-    {
-      ...patientsState,
-      searchTerm: debouncedSearch || undefined,
-      clinicSearch: debouncedClinicSearch || undefined,
-    },
-    superAdmin,
-  );
+  const { data, isLoading, error } = superAdmin
+    ? useAdminPaginatedPatients({
+        ...patientsState,
+        searchTerm: debouncedSearch || undefined,
+        clinicSearch: debouncedClinicSearch || undefined,
+      })
+    : usePaginatedPatients({
+        ...patientsState,
+        searchTerm: debouncedSearch || undefined,
+      });
 
   const tableKey = i18n.language;
 

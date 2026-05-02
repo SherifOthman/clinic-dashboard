@@ -8,7 +8,8 @@ import { Button } from "@heroui/react";
 import { Cake, CalendarClock, CalendarPlus, Edit, MapPin, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { calculateDetailedAge, formatDetailedAge } from "../../../core/utils/ageUtils";
-import { usePatientDetail } from "../patientsHooks";
+import { usePatientDetail, useAdminPatientDetail } from "../patientsHooks";
+import { isSuperAdmin } from "@/core/utils/permissions";
 import { PatientAuditInfo } from "./PatientAuditInfo";
 import { PatientContactInfo } from "./PatientContactInfo";
 import { PatientIdentityHeader } from "./PatientIdentityHeader";
@@ -18,7 +19,6 @@ interface PatientDetailDialogProps {
   onClose: () => void;
   onEdit?: (patientId: string) => void;
   onDelete?: (patientId: string, patientName: string) => void;
-  isSuperAdmin?: boolean;
 }
 
 export function PatientDetailDialog({
@@ -26,13 +26,17 @@ export function PatientDetailDialog({
   onClose,
   onEdit,
   onDelete,
-  isSuperAdmin = false,
 }: PatientDetailDialogProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const { formatDateShort } = useDateFormat();
-  const { data, isLoading } = usePatientDetail(patientId, isSuperAdmin);
   const { user } = useMe();
+  const superAdmin = isSuperAdmin(user);
+
+  // SuperAdmin uses cross-tenant endpoint; clinic users use tenant-scoped endpoint
+  const tenantResult = usePatientDetail(superAdmin ? null : patientId);
+  const adminResult  = useAdminPatientDetail(superAdmin ? patientId : null);
+  const { data, isLoading } = superAdmin ? adminResult : tenantResult;
 
   const isAr = i18n.language === "ar";
   const locationParts = [
@@ -82,7 +86,7 @@ export function PatientDetailDialog({
             bloodType={data.bloodType}
             dateOfBirth={data.dateOfBirth}
             clinicName={data.clinicName}
-            isSuperAdmin={isSuperAdmin}
+            isSuperAdmin={superAdmin}
           />
 
           <div className="border-divider border-t" />

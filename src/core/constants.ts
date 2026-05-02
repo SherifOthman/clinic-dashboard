@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   chronicDiseases: "/chronic-diseases",
   files: "/files",
   patients: "/patients",
+  adminPatients: "/admin/patients",
   staff: "/staff",
   appointments: "/appointments",
   audit: "/audit",
