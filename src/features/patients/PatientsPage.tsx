@@ -1,7 +1,7 @@
 import { ConfirmDialog } from "@/core/components/ui/ConfirmDialog";
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDeleteDialogState, useDialogState } from "@/core/hooks/useDialogState";
-import { canDeletePatient, canEditPatient, isSuperAdmin } from "@/core/utils/permissions";
+import { canDeletePatient, canEditPatient } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,7 +14,6 @@ import type { PatientListItem } from "./types";
 export default function PatientsPage() {
   const { t } = useTranslation();
   const { user } = useMe();
-  const superAdmin = isSuperAdmin(user);
 
   const [detailPatientId, setDetailPatientId] = useState<string | null>(null);
   const patientForm = useDialogState();
