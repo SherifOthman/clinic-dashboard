@@ -8,33 +8,38 @@ import {
   toPatientApiRequest,
   useCreatePatient,
   usePatientDetail,
+  useAdminPatientDetail,
   useUpdatePatient,
 } from "../patientsHooks";
+import { isSuperAdmin } from "@/core/utils/permissions";
+import { useMe } from "@/features/auth/hooks";
 import type { PatientFormData } from "../schemas";
 import { PatientForm } from "./PatientForm";
 
 interface PatientDialogProps {
   state: DialogState;
-  isSuperAdmin?: boolean;
   onClose: () => void;
   onCreated?: (patientId: string, fullName: string) => void;
 }
 
 export function PatientDialog({
   state,
-  isSuperAdmin = false,
   onClose,
   onCreated,
 }: PatientDialogProps) {
   const { t } = useTranslation();
+  const { user } = useMe();
+  const superAdmin = isSuperAdmin(user);
   const isCreate = state.mode === "create";
   const editId = state.mode === "edit" ? state.id : null;
 
-  // Persist create-form draft across dialog open/close cycles
   const draftRef = useRef<Partial<PatientFormData> | undefined>(undefined);
 
+  // SuperAdmin editing uses admin endpoint; clinic users use tenant-scoped
+  const tenantDetail = usePatientDetail(superAdmin ? null : editId);
+  const adminDetail  = useAdminPatientDetail(superAdmin ? editId : null);
   const { data: patientDetail, isLoading: patientDetailLoading } =
-    usePatientDetail(editId, isSuperAdmin);
+    superAdmin ? adminDetail : tenantDetail;
 
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient();
