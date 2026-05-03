@@ -25,7 +25,8 @@ function buildPatientQuery(params: PatientsSearchParams): string {
 
 function buildAdminPatientQuery(params: PatientsSearchParams): string {
   const p = new URLSearchParams(buildPatientQuery(params).replace(/^\?/, ""));
-  if (params.clinicSearch) p.append("clinicSearch", params.clinicSearch);
+  if (params.clinicSearch)    p.append("clinicSearch",    params.clinicSearch);
+  if (params.includeDeleted)  p.append("includeDeleted",  "true");
   return p.toString() ? `?${p.toString()}` : "";
 }
 

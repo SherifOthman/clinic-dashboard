@@ -11,6 +11,7 @@ export interface PatientListItem {
   primaryPhone?: string;
   createdAt: string;
   clinicName?: string;
+  isDeleted?: boolean;
   // IDs — kept for filtering
   countryGeonameId?: number;
   stateGeonameId?: number;
@@ -58,6 +59,7 @@ export interface PatientsSearchParams extends BaseSearchParams {
   stateGeonameId?: number;
   cityGeonameId?: number;
   clinicSearch?: string;
+  includeDeleted?: boolean;
 }
 
 /** Single request shape for both create and update. */
