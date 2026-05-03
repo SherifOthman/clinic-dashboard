@@ -10,11 +10,8 @@ export interface MyTestimonial {
 }
 
 export interface SubmitTestimonialRequest {
-  authorName: string;
-  position: string;
   text: string;
   rating: number;
-  avatarUrl?: string;
 }
 
 export const testimonialApi = {

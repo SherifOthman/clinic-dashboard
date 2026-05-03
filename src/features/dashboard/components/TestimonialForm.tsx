@@ -35,8 +35,6 @@ export function TestimonialForm() {
   const mutation = useMutation({
     mutationFn: () =>
       testimonialApi.submit({
-        authorName: user?.fullName ?? "",
-        position: derivedPosition,
         text: form.text,
         rating: form.rating,
       }),
