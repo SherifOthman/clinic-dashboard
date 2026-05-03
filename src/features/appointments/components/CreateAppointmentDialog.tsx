@@ -1,7 +1,5 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
-import type { WorkingDayDto } from "@/features/staff/staffApi";
-import { staffApi } from "@/features/staff/staffApi";
 import type { DateValue, TimeValue } from "@heroui/react";
 import { getLocalTimeZone, parseTime, today } from "@internationalized/date";
 import {
@@ -15,11 +13,15 @@ import {
 import { CalendarClock, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { useCreateAppointment } from "../appointmentsHooks";
+import {
+  useAppointments,
+  useCreateAppointment,
+  useDoctorsForBranch,
+} from "../appointmentsHooks";
 import type { DoctorForBranch } from "../types";
 import { PatientSearchField } from "./PatientSearchField";
 import { useBranches } from "@/features/branches/branchesHooks";
+import { useVisitTypes, useWorkingDays } from "@/features/staff/staffQueries";
 
 interface CreateAppointmentDialogProps {
   isOpen: boolean;
@@ -51,12 +53,9 @@ export function CreateAppointmentDialog({
   const [durationOverride, setDurationOverride] = useState("");
 
   // When branch changes, reload doctors for that branch
-  const { data: branchDoctors = [] } = useQuery<DoctorForBranch[]>({
-    queryKey: ["appointments", "doctors", selectedBranchId],
-    queryFn: () => import("../appointmentsApi").then((m) => m.appointmentsApi.getDoctors(selectedBranchId)),
-    enabled: !!selectedBranchId && selectedBranchId !== initialBranchId,
-    staleTime: 5 * 60_000,
-  });
+  const { data: branchDoctors = [] } = useDoctorsForBranch(
+    selectedBranchId !== initialBranchId ? selectedBranchId : null,
+  );
 
   // Use branch-specific doctors if branch changed, otherwise use the passed-in doctors
   const doctors = selectedBranchId !== initialBranchId ? branchDoctors : initialDoctors;
@@ -80,12 +79,10 @@ export function CreateAppointmentDialog({
   const isQueue = selectedDoctor?.appointmentType === "Queue";
 
   // Working days for date blocking
-  const { data: workingDays = [] } = useQuery<WorkingDayDto[]>({
-    queryKey: ["working-days", doctorInfoId, branchId],
-    queryFn: () => staffApi.getWorkingDays(selectedDoctor?.memberId ?? "", branchId),
-    enabled: !!doctorInfoId && !!branchId && !!selectedDoctor?.memberId,
-    staleTime: 5 * 60_000,
-  });
+  const { data: workingDays = [] } = useWorkingDays(
+    selectedDoctor?.memberId ?? null,
+    branchId,
+  );
 
   const workingDayNumbers = new Set(
     workingDays.filter((d) => d.isAvailable).map((d) => d.day),
@@ -105,15 +102,11 @@ export function CreateAppointmentDialog({
     ? `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`
     : "";
 
-  const { data: existingAppointments = [] } = useQuery({
-    queryKey: ["appointments", dateStr, branchId, [doctorInfoId]],
-    queryFn: () =>
-      import("../appointmentsApi").then((m) =>
-        m.appointmentsApi.getAppointments(dateStr, branchId, [doctorInfoId]),
-      ),
-    enabled: !isQueue && !!doctorInfoId && !!dateStr,
-    staleTime: 30_000,
-  });
+  const { data: existingAppointments = [] } = useAppointments(
+    dateStr,
+    !isQueue && !!doctorInfoId ? branchId : null,
+    doctorInfoId ? [doctorInfoId] : [],
+  );
 
   // Set of booked times "HH:mm"
   const bookedTimes = new Set(
@@ -130,12 +123,10 @@ export function CreateAppointmentDialog({
   const isTimeBooked = !!selectedTimeStr && bookedTimes.has(selectedTimeStr);
 
   // Visit types
-  const { data: visitTypes = [] } = useQuery({
-    queryKey: ["visit-types", doctorInfoId, branchId],
-    queryFn: () => staffApi.getVisitTypes(selectedDoctor?.memberId ?? "", branchId),
-    enabled: !!doctorInfoId && !!branchId && !!selectedDoctor?.memberId,
-    staleTime: 5 * 60_000,
-  });
+  const { data: visitTypes = [] } = useVisitTypes(
+    selectedDoctor?.memberId ?? null,
+    branchId,
+  );
 
   const handleSubmit = () => {
     if (!doctorInfoId || !patientId || !visitTypeId || !date) return;

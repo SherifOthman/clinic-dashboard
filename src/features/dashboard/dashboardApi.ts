@@ -2,6 +2,33 @@ import { apiClient } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
 import type { AppointmentDto } from "../appointments/types";
 
+// ── Testimonial types (owned by dashboard feature) ────────────────────────────
+
+export interface MyTestimonial {
+  authorName: string;
+  position: string;
+  text: string;
+  rating: number;
+  avatarUrl?: string;
+  isApproved: boolean;
+}
+
+export interface SubmitTestimonialRequest {
+  text: string;
+  rating: number;
+}
+
+// ── Recent patients ───────────────────────────────────────────────────────────
+
+export interface RecentPatientDto {
+  id: string;
+  patientCode: string;
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  registeredAt: string;
+}
+
 export interface SubscriptionInfoDto {
   planName: string;
   status: string;
@@ -84,4 +111,17 @@ export const dashboardApi = {
 
   toggleTestimonial: (id: string): Promise<void> =>
     apiClient.patch(`/testimonials/${id}/toggle`),
+
+  // ── Owner testimonial ───────────────────────────────────────────────────────
+
+  getMyTestimonial: (): Promise<MyTestimonial | null> =>
+    apiClient.get<MyTestimonial>("/testimonials/mine").catch(() => null),
+
+  submitTestimonial: (data: SubmitTestimonialRequest): Promise<void> =>
+    apiClient.post("/testimonials", data),
+
+  // ── Recent patients ─────────────────────────────────────────────────────────
+
+  getRecentPatients: (): Promise<RecentPatientDto[]> =>
+    apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`),
 };

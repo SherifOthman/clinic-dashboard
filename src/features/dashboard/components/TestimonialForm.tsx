@@ -1,25 +1,16 @@
-import { useToast } from "@/core/hooks/useToast";
 import { isClinicOwner } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { testimonialApi } from "../testimonialApi";
+import { useMyTestimonial, useSubmitTestimonial } from "../dashboardHooks";
 
 export function TestimonialForm() {
   const { t, i18n } = useTranslation();
-  const { showSuccess, showError } = useToast();
-  const queryClient = useQueryClient();
   const { user } = useMe();
 
-  const { data: existing, isLoading } = useQuery({
-    queryKey: ["testimonial", "mine"],
-    queryFn: testimonialApi.getMine,
-    enabled: isClinicOwner(user),
-  });
+  const { data: existing, isLoading } = useMyTestimonial(isClinicOwner(user));
 
-  // Derive position from specialization or default to "Clinic Owner"
   const derivedPosition =
     (i18n.language === "ar" ? user?.specializationNameAr : user?.specializationNameEn)
     ?? "Clinic Owner";
@@ -32,18 +23,7 @@ export function TestimonialForm() {
     }
   }, [existing]);
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      testimonialApi.submit({
-        text: form.text,
-        rating: form.rating,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["testimonial", "mine"] });
-      showSuccess("toast.testimonialSubmitted");
-    },
-    onError: () => showError("toast.somethingWentWrong"),
-  });
+  const submitTestimonial = useSubmitTestimonial();
 
   if (!isClinicOwner(user) || isLoading) return null;
 
@@ -76,7 +56,7 @@ export function TestimonialForm() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {/* Star rating — no label */}
+        {/* Star rating */}
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -108,11 +88,11 @@ export function TestimonialForm() {
 
         <button
           type="button"
-          disabled={mutation.isPending || !form.text.trim()}
-          onClick={() => mutation.mutate()}
+          disabled={submitTestimonial.isPending || !form.text.trim()}
+          onClick={() => submitTestimonial.mutate({ text: form.text, rating: form.rating })}
           className="self-end rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90 disabled:opacity-50"
         >
-          {mutation.isPending
+          {submitTestimonial.isPending
             ? t("common.saving")
             : existing
               ? t("dashboard.testimonial.update")

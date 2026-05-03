@@ -1,30 +1,10 @@
-import { apiClient } from "@/core/api";
-import { API_ENDPOINTS } from "@/core/constants";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
 import { Card } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-
-interface RecentPatientDto {
-  id: string;
-  patientCode: string;
-  fullName: string;
-  dateOfBirth: string;
-  gender: string;
-  registeredAt: string;
-}
-
-function useRecentPatients() {
-  return useQuery({
-    queryKey: ["dashboard", "recent-patients"],
-    queryFn: () =>
-      apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`),
-    staleTime: 60 * 1000,
-  });
-}
+import { useRecentPatients } from "../dashboardHooks";
 
 export function RecentPatients() {
   const { t, i18n } = useTranslation();

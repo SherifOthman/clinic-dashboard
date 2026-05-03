@@ -1,6 +1,7 @@
 import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { dashboardApi } from "./dashboardApi";
+import type { SubmitTestimonialRequest } from "./dashboardApi";
 
 export function useDashboardStats() {
   return useQuery({
@@ -59,5 +60,37 @@ export function useToggleTestimonial() {
     mutationFn: (id) => dashboardApi.toggleTestimonial(id),
     successMessage: "toast.testimonialToggled",
     invalidateKeys: [["testimonials", "all"]],
+  });
+}
+
+// ── Owner testimonial ─────────────────────────────────────────────────────────
+
+export function useMyTestimonial(enabled = true) {
+  return useQuery({
+    queryKey: ["testimonial", "mine"],
+    queryFn: dashboardApi.getMyTestimonial,
+    enabled,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useSubmitTestimonial() {
+  const queryClient = useQueryClient();
+  return useMutationWithToast<void, SubmitTestimonialRequest>({
+    mutationFn: (data) => dashboardApi.submitTestimonial(data),
+    successMessage: "toast.testimonialSubmitted",
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["testimonial", "mine"] });
+    },
+  });
+}
+
+// ── Recent patients ───────────────────────────────────────────────────────────
+
+export function useRecentPatients() {
+  return useQuery({
+    queryKey: ["dashboard", "recent-patients"],
+    queryFn: dashboardApi.getRecentPatients,
+    staleTime: 60 * 1000,
   });
 }
