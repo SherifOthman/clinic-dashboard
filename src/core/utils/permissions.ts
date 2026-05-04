@@ -139,8 +139,20 @@ export function canAccessRouteWithPermissions(
   return hasPermission(user, requiredPermission);
 }
 
-// ── Audit visibility (role-based — SuperAdmin or ClinicOwner only) ────────────
+// ── Audit visibility ──────────────────────────────────────────────────────────
 
+/// Full audit log viewer — SuperAdmin only (cross-clinic, sensitive).
+export function canViewAuditLog(user: User | null | undefined): boolean {
+  return hasAnyRole(user, [USER_ROLES.SUPER_ADMIN]);
+}
+
+/// Patient-level "registered by / updated by" — all authenticated clinic staff.
+/// Knowing who registered a patient is standard accountability within a clinic.
+export function canViewPatientAudit(user: User | null | undefined): boolean {
+  return !!user?.isAuthenticated;
+}
+
+/** @deprecated Use canViewAuditLog or canViewPatientAudit instead */
 export function canViewAuditTrail(user: User | null | undefined): boolean {
-  return hasAnyRole(user, [USER_ROLES.SUPER_ADMIN, USER_ROLES.CLINIC_OWNER]);
+  return canViewAuditLog(user);
 }

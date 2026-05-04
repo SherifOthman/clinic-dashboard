@@ -2,7 +2,7 @@ import { Dialog } from "@/core/components/ui/Dialog";
 import { InfoRow } from "@/core/components/ui/InfoRow";
 import { Loading } from "@/core/components/ui/Loading";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
-import { canDeletePatient, canEditPatient, canViewAuditTrail } from "@/core/utils/permissions";
+import { canDeletePatient, canEditPatient, canViewPatientAudit } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { Button } from "@heroui/react";
 import { Cake, CalendarClock, CalendarPlus, Edit, MapPin, Trash2 } from "lucide-react";
@@ -47,7 +47,7 @@ export function PatientDetailDialog({
 
   const showEdit = canEditPatient(user) && !!onEdit;
   const showDelete = canDeletePatient(user) && !!onDelete;
-  const showAudit = canViewAuditTrail(user);
+  const showAudit = canViewPatientAudit(user);
 
   const footer =
     data && (showEdit || showDelete) ? (
