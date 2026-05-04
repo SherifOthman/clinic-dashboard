@@ -120,7 +120,7 @@ src/
 
 **Table state** lives in the URL query string via `useBaseTableState`. Page, size, sort, and feature-specific filters are all URL params — the user can refresh or share the URL and land on the same filtered view.
 
-**i18n** uses i18next with browser language detection and localStorage persistence. The `dir` attribute, `lang` attribute, and theme class are all applied to `<html>` reactively when the language changes. Toast notifications are positioned on the correct side based on direction.
+**i18n** uses i18next with browser language detection and localStorage persistence. The `dir` attribute, `lang` attribute, and theme class are all applied to `<html>` reactively when the language changes. Toast notifications are positioned on the correct side based on direction. Arabic translations use proper medical terminology throughout — appointment statuses, visit types, working schedules, and clinical terms are translated using domain-appropriate language rather than literal word-for-word equivalents.
 
 **Location data** is served from the backend's seeded GeoNames database. The `core/location/` layer provides `useCountries`, `useStates`, and `useCities` hooks with 24-hour stale time. Patient list rows and detail dialogs receive location names directly from the API (resolved server-side in the current language) — no extra frontend calls needed.
 
@@ -174,9 +174,9 @@ src/
 
 | Feature                                | Status | Notes                       |
 | -------------------------------------- | ------ | --------------------------- |
-| Onboarding wizard                      | ✅     |                             |
-| View / create / edit / toggle branches | ✅     | Add button permission-gated |
-| Branch phone numbers                   | ✅     |                             |
+| Onboarding wizard                      | ✅     | Includes branch phone numbers       |
+| View / create / edit / toggle branches | ✅     | Add button permission-gated         |
+| Branch phone numbers                   | ✅     | With optional label per number      |
 | Week start day setting                 | ✅     | Affects calendar grid       |
 | Subscription management UI             | ❌     | Backend entity modeled      |
 
