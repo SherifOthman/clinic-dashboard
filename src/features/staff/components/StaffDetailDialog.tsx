@@ -109,7 +109,7 @@ export function StaffDetailDialog({
           {(isDoctor || canManagePermissions) && staffId ? (
             <Tabs defaultSelectedKey="info">
               <Tabs.ListContainer>
-                <Tabs.List aria-label={t("staff.tabs")}>
+                <Tabs.List aria-label={t("staff.tabsLabel")}>
                   <Tabs.Tab id="info">
                     {t("staff.tabInfo")}
                     <Tabs.Indicator />

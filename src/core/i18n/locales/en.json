@@ -306,7 +306,6 @@
     "doctor": "Doctor",
     "visitType": "Visit Type",
     "price": "Price",
-    "status": "Status",
     "time": "Time",
     "total": "total",
     "noAppointments": "No appointments for this day",
@@ -459,7 +458,8 @@
       "subtitle": "Set up your clinic details",
       "clinicName": "Clinic Name",
       "branchName": "Branch Name",
-      "address": "Clinic Address"
+      "address": "Clinic Address",
+      "phoneNumbers": "Branch Phone Numbers"
     },
     "branchDetails": {
       "title": "Branch Details",
@@ -611,6 +611,7 @@
     "tabInfo": "Info",
     "tabSchedule": "Schedule",
     "tabPermissions": "Permissions",
+    "tabsLabel": "Staff tabs",
     "scheduleTabs": "Schedule tabs",
     "noSchedule": "No schedule available",
     "permissions": {

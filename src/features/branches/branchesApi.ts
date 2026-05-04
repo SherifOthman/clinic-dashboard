@@ -16,12 +16,14 @@ export interface BranchDto {
   phoneNumbers: BranchPhoneDto[];
 }
 
+export interface BranchPhoneInput { phoneNumber: string; label?: string; }
+
 export interface CreateBranchRequest {
   name: string;
   addressLine: string;
   stateGeonameId?: number;
   cityGeonameId?: number;
-  phoneNumbers: string[];
+  phoneNumbers: BranchPhoneInput[];
 }
 
 export const branchesApi = {

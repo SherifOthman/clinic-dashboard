@@ -5,7 +5,12 @@ import type { Specialization, SubscriptionPlan } from "./types";
 
 export const onboardingApi = {
   completeOnboarding: (data: CompleteOnboarding): Promise<void> =>
-    apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, data),
+    apiClient.post(`${API_ENDPOINTS.onboarding}/complete`, {
+      ...data,
+      phoneNumbers: data.phoneNumbers
+        ?.filter((p) => p.trim())
+        .map((p) => ({ phoneNumber: p })),
+    }),
 
   getSubscriptionPlans: (): Promise<SubscriptionPlan[]> =>
     apiClient.get<SubscriptionPlan[]>(API_ENDPOINTS.subscriptionPlans),

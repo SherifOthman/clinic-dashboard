@@ -13,6 +13,7 @@ export const createOnboardingSchemas = (t: TFunction) => {
     stateGeonameId: z.number().int().nullable().optional(),
     cityGeonameId: z.number().int().nullable().optional(),
     countryCode: z.string().length(2).nullable().optional(),
+    phoneNumbers: z.array(z.string()).optional(),
     provideMedicalServices: z.enum(["yes", "no"]).optional(),
     specializationId: z.string().uuid().nullable().optional(),
   });

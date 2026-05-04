@@ -17,7 +17,16 @@ interface BranchFormDialogProps {
   onClose: () => void;
 }
 
-const emptyDefaults: CreateBranchRequest = {
+// Internal form shape — PhoneNumbersInput works with plain strings
+interface BranchFormValues {
+  name: string;
+  addressLine: string;
+  stateGeonameId?: number;
+  cityGeonameId?: number;
+  phoneNumbers: string[];
+}
+
+const emptyDefaults: BranchFormValues = {
   name: "",
   addressLine: "",
   stateGeonameId: undefined,
@@ -33,7 +42,7 @@ export function BranchFormDialog({ state, onClose }: BranchFormDialogProps) {
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
 
-  const form = useForm<CreateBranchRequest>({ defaultValues: emptyDefaults });
+  const form = useForm<BranchFormValues>({ defaultValues: emptyDefaults });
   const { control, handleSubmit, reset } = form;
 
   useEffect(() => {
@@ -50,11 +59,18 @@ export function BranchFormDialog({ state, onClose }: BranchFormDialogProps) {
     }
   }, [branch?.id]);
 
-  const onSubmit = (data: CreateBranchRequest) => {
+  const onSubmit = (data: BranchFormValues) => {
+    // Map plain strings back to BranchPhoneInput — label not collected in this form
+    const request: CreateBranchRequest = {
+      ...data,
+      phoneNumbers: data.phoneNumbers
+        .filter((p) => p.trim())
+        .map((p) => ({ phoneNumber: p })),
+    };
     if (isEditing) {
-      updateBranch.mutate({ id: branch.id, data }, { onSuccess: onClose });
+      updateBranch.mutate({ id: branch.id, data: request }, { onSuccess: onClose });
     } else {
-      createBranch.mutate(data, { onSuccess: onClose });
+      createBranch.mutate(request, { onSuccess: onClose });
     }
   };
 

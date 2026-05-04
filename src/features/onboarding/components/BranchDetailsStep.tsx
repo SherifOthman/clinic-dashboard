@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { FormInput } from "@/core/components/form/index";
 import { LocationSelector } from "@/core/components/form/LocationSelector";
+import { PhoneNumbersInput } from "@/core/components/form/PhoneNumbersInput";
 import type { CompleteOnboarding } from "../schemas";
 
 interface BranchDetailsStepProps {
@@ -58,6 +59,12 @@ export function BranchDetailsStep({ onBack, onNext, isLoading = false }: BranchD
             placeholder={t("onboarding.addressPlaceholder")}
             isRequired
           />
+          <div>
+            <p className="text-foreground mb-2 text-sm font-medium">
+              {t("onboarding.clinicInfo.phoneNumbers")}
+            </p>
+            <PhoneNumbersInput form={form} name="phoneNumbers" maxItems={3} />
+          </div>
           <LocationSelector
             form={form}
             stateGeonameIdField="stateGeonameId"
