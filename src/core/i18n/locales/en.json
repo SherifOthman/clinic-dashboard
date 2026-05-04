@@ -791,8 +791,7 @@
     "somethingWentWrong": "Something went wrong",
     "unexpectedErrorMessage": "An unexpected error occurred. Please refresh the page or contact support if the problem persists.",
     "refreshPage": "Refresh Page",
-    "rateLimited": "Too many requests. Please slow down and try again.",
-    "rateLimitedWithRetry": "Too many requests. Please try again in {{seconds}} seconds."
+    "rateLimited": "Too many requests. Please slow down and try again."
   },
   "passwordChanged": {
     "title": "Password Changed Successfully!",

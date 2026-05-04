@@ -39,14 +39,9 @@ export async function apiFetch<T = unknown>(
   }
 
   if (res.status === 429) {
-    // Rate limited — read retryAfter from the response body or Retry-After header
-    const err = await res.json().catch(() => ({}));
-    const retryAfter: number =
-      err.retryAfter ??
-      parseInt(res.headers.get("Retry-After") ?? "60", 10);
     throw Object.assign(
       new Error("Too many requests. Please slow down."),
-      { code: "RATE_LIMITED", status: 429, retryAfter },
+      { code: "RATE_LIMITED", status: 429 },
     );
   }
 
