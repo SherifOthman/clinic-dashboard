@@ -149,7 +149,7 @@ export function canViewAuditLog(user: User | null | undefined): boolean {
 /// Patient-level "registered by / updated by" — all authenticated clinic staff.
 /// Knowing who registered a patient is standard accountability within a clinic.
 export function canViewPatientAudit(user: User | null | undefined): boolean {
-  return !!user?.isAuthenticated;
+  return !!user;
 }
 
 /** @deprecated Use canViewAuditLog or canViewPatientAudit instead */

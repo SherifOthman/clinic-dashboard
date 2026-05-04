@@ -21,6 +21,7 @@ const MessagesPage     = lazy(() => import("@/features/dashboard/MessagesPage"))
 const ReviewsPage      = lazy(() => import("@/features/dashboard/ReviewsPage"));
 const AppointmentsPage = lazy(() => import("@/features/appointments/AppointmentsPage"));
 const SettingsPage     = lazy(() => import("@/features/settings/SettingsPage"));
+const UsagePage        = lazy(() => import("@/features/usage/UsagePage"));
 
 // Email verification — still handled here (deep link from email)
 const ConfirmEmailPage = lazy(() => import("@/features/auth/pages/ConfirmEmailPage"));
@@ -58,6 +59,7 @@ export function AppRouter() {
                 <Route path="/messages"    element={<ErrorBoundary><MessagesPage /></ErrorBoundary>} />
                 <Route path="/reviews"     element={<ErrorBoundary><ReviewsPage /></ErrorBoundary>} />
                 <Route path="/settings"    element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
+                <Route path="/usage"       element={<ErrorBoundary><UsagePage /></ErrorBoundary>} />
               </Route>
             </Route>
           </Route>

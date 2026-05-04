@@ -36,6 +36,20 @@ export interface SubscriptionInfoDto {
   isTrial: boolean;
 }
 
+export interface UsageLimitDto {
+  used: number;
+  max: number;
+  lastUpdatedAt: string | null;
+}
+
+export interface UsageMetricsDto {
+  patients: UsageLimitDto;
+  appointments: UsageLimitDto;
+  invoices: UsageLimitDto;
+  staff: UsageLimitDto;
+  lastAggregatedAt: string | null;
+}
+
 export interface DashboardStatsDto {
   totalPatients: number;
   patientsThisMonth: number;
@@ -124,4 +138,9 @@ export const dashboardApi = {
 
   getRecentPatients: (): Promise<RecentPatientDto[]> =>
     apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`),
+
+  // ── Usage metrics ────────────────────────────────────────────────────────────
+
+  getUsageMetrics: (): Promise<UsageMetricsDto> =>
+    apiClient.get<UsageMetricsDto>(`${API_ENDPOINTS.dashboard}/usage-metrics`),
 };

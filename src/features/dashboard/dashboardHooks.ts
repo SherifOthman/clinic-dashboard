@@ -94,3 +94,11 @@ export function useRecentPatients() {
     staleTime: 60 * 1000,
   });
 }
+
+export function useUsageMetrics() {
+  return useQuery({
+    queryKey: ["dashboard", "usage-metrics"],
+    queryFn: dashboardApi.getUsageMetrics,
+    staleTime: 5 * 60 * 1000, // 5 min — data is aggregated daily, no need to refetch often
+  });
+}

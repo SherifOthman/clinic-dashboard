@@ -4,6 +4,7 @@
 
 import { PERMISSIONS } from "@/core/constants";
 import {
+  BarChart3,
   Building2,
   CalendarClock,
   LayoutDashboard,
@@ -78,6 +79,13 @@ export const siteConfig = {
       label: "Settings",
       href: "/settings",
       icon: Settings,
+      requiredPermission: null,
+    },
+    {
+      key: "usage",
+      label: "Usage & Limits",
+      href: "/usage",
+      icon: BarChart3,
       requiredPermission: null,
     },
     {

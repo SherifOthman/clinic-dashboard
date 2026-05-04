@@ -162,7 +162,8 @@
     "logout": "Logout",
     "login": "Login",
     "register": "Register",
-    "closeMobileMenu": "Close mobile menu"
+    "closeMobileMenu": "Close mobile menu",
+    "usage": "Usage & Limits"
   },
   "auth": {
     "login": {
@@ -576,6 +577,20 @@
       "subtitle": "Contact form submissions from the website",
       "empty": "No messages yet",
       "total": "messages"
+    },
+    "usageMetrics": {
+      "title": "Plan Usage",
+      "subtitle": "Month-to-date usage against your subscription limits",
+      "lastUpdated": "Updated {{time}}",
+      "notYetAvailable": "Usage data will be available after the first daily aggregation (runs at 1:00 AM).",
+      "patients": "New Patients This Month",
+      "appointments": "Appointments This Month",
+      "invoices": "Invoices This Month",
+      "staff": "Active Staff",
+      "pageTitle": "Usage & Limits",
+      "pageSubtitle": "Track your monthly usage against your subscription plan limits",
+      "upgradePrompt": "Need more capacity? Upgrade your plan.",
+      "noData": "No usage data available yet. Data is aggregated daily at 1:00 AM."
     }
   },
   "staff": {
