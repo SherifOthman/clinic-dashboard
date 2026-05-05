@@ -27,9 +27,9 @@ export function DashboardStats() {
 
   const todayCompleted = todayAppts.filter((a) => a.status === "Completed").length;
 
-  // Format "8/30" with Arabic numerals when in Arabic mode
+  // Format "completed/total" — reversed in Arabic (total/completed reads naturally RTL)
   const apptValue = apptLoading ? "—" : isRTL
-    ? `${toArabicNumerals(String(todayCompleted))}/${toArabicNumerals(String(todayAppts.length))}`
+    ? `${toArabicNumerals(String(todayAppts.length))}/${toArabicNumerals(String(todayCompleted))}`
     : `${todayCompleted}/${todayAppts.length}`;
 
   return (

@@ -72,7 +72,7 @@ export function StatsCard({
           </div>
 
           <div
-            className={`bg-default-100 flex h-12 w-12 items-center justify-center rounded-lg ${iconColor} ${comingSoon ? "opacity-40" : ""}`}
+            className={`ms-4 bg-default-100 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${iconColor} ${comingSoon ? "opacity-40" : ""}`}
           >
             {icon}
           </div>

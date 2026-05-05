@@ -1,6 +1,7 @@
 import { Card, Chip } from "@heroui/react";
 import { CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import type { SubscriptionInfoDto } from "../dashboardApi";
 
 interface SubscriptionCardProps {
@@ -16,18 +17,16 @@ function useStatusColor(status: string | undefined) {
   return "default" as const;
 }
 
-/**
- * Displays the clinic's current subscription plan, status, and days remaining.
- * Extracted from DashboardStats to keep each card self-contained.
- */
 export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const statusColor = useStatusColor(data?.status);
 
   const daysLabel = (() => {
     if (!data?.daysRemaining && data?.daysRemaining !== 0) return null;
     if (data.daysRemaining === 0) return t("dashboard.expirestoday");
-    return t("dashboard.daysRemaining", { count: data.daysRemaining });
+    const count = isRTL ? toArabicNumerals(String(data.daysRemaining)) : data.daysRemaining;
+    return t("dashboard.daysRemaining", { count });
   })();
 
   return (
@@ -64,7 +63,8 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
             )}
           </div>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-default-100 text-accent">
+          {/* Icon — shrink-0 prevents it from being squished in RTL */}
+          <div className="ms-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-default-100 text-accent">
             <CreditCard className="h-6 w-6" />
           </div>
         </div>
