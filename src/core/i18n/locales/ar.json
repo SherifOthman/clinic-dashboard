@@ -145,7 +145,16 @@
     "appointmentTypeUpdated": "تم تحديث نوع المواعيد",
     "checkedIn": "تم تسجيل الحضور بنجاح",
     "testimonialToggled": "تم تحديث حالة التقييم",
-    "settingsSaved": "تم حفظ الإعدادات بنجاح"
+    "settingsSaved": "تم حفظ الإعدادات بنجاح",
+    "specializationCreated": "تم إنشاء التخصص",
+    "specializationUpdated": "تم تحديث التخصص",
+    "specializationDeleted": "تم حذف التخصص",
+    "chronicDiseaseCreated": "تم إنشاء المرض المزمن",
+    "chronicDiseaseUpdated": "تم تحديث المرض المزمن",
+    "chronicDiseaseDeleted": "تم حذف المرض المزمن",
+    "subscriptionPlanCreated": "تم إنشاء خطة الاشتراك",
+    "subscriptionPlanUpdated": "تم تحديث خطة الاشتراك",
+    "subscriptionPlanToggled": "تم تحديث حالة خطة الاشتراك"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -163,7 +172,10 @@
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
     "closeMobileMenu": "إغلاق القائمة المحمولة",
-    "usage": "الاستخدام والحدود"
+    "usage": "الاستخدام والحدود",
+    "adminSpecializations": "التخصصات",
+    "adminChronicDiseases": "الأمراض المزمنة",
+    "adminSubscriptionPlans": "خطط الاشتراك"
   },
   "auth": {
     "login": {

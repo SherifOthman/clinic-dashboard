@@ -7,15 +7,18 @@ import {
   BarChart3,
   Building2,
   CalendarClock,
+  FlaskConical,
   LayoutDashboard,
   Mail,
   MessageSquare,
   Settings,
   ShieldCheck,
   Star,
+  Stethoscope,
   User,
   UserCog,
   Users,
+  CreditCard,
 } from "lucide-react";
 
 export const siteConfig = {
@@ -107,6 +110,28 @@ export const siteConfig = {
       label: "Reviews",
       href: "/reviews",
       icon: Star,
+      requiredPermission: null,
+    },
+    // ── SuperAdmin reference data management ──────────────────────────────────
+    {
+      key: "adminSpecializations",
+      label: "Specializations",
+      href: "/admin/specializations",
+      icon: Stethoscope,
+      requiredPermission: null,
+    },
+    {
+      key: "adminChronicDiseases",
+      label: "Chronic Diseases",
+      href: "/admin/chronic-diseases",
+      icon: FlaskConical,
+      requiredPermission: null,
+    },
+    {
+      key: "adminSubscriptionPlans",
+      label: "Subscription Plans",
+      href: "/admin/subscription-plans",
+      icon: CreditCard,
       requiredPermission: null,
     },
   ],

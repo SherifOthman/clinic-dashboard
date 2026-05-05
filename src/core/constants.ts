@@ -86,6 +86,9 @@ export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
   "/audit": [USER_ROLES.SUPER_ADMIN],
   "/messages": [USER_ROLES.SUPER_ADMIN],
   "/reviews":  [USER_ROLES.SUPER_ADMIN],
+  "/admin/specializations":     [USER_ROLES.SUPER_ADMIN],
+  "/admin/chronic-diseases":    [USER_ROLES.SUPER_ADMIN],
+  "/admin/subscription-plans":  [USER_ROLES.SUPER_ADMIN],
   "/profile": "*", // All authenticated users
   "/settings": "*", // All authenticated users
   "/usage": [USER_ROLES.CLINIC_OWNER],

@@ -145,7 +145,16 @@
     "appointmentTypeUpdated": "Appointment type updated",
     "checkedIn": "Doctor checked in successfully",
     "testimonialToggled": "Testimonial status updated",
-    "settingsSaved": "Settings saved successfully"
+    "settingsSaved": "Settings saved successfully",
+    "specializationCreated": "Specialization created",
+    "specializationUpdated": "Specialization updated",
+    "specializationDeleted": "Specialization deleted",
+    "chronicDiseaseCreated": "Chronic disease created",
+    "chronicDiseaseUpdated": "Chronic disease updated",
+    "chronicDiseaseDeleted": "Chronic disease deleted",
+    "subscriptionPlanCreated": "Subscription plan created",
+    "subscriptionPlanUpdated": "Subscription plan updated",
+    "subscriptionPlanToggled": "Subscription plan status updated"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -163,7 +172,10 @@
     "login": "Login",
     "register": "Register",
     "closeMobileMenu": "Close mobile menu",
-    "usage": "Usage & Limits"
+    "usage": "Usage & Limits",
+    "adminSpecializations": "Specializations",
+    "adminChronicDiseases": "Chronic Diseases",
+    "adminSubscriptionPlans": "Subscription Plans"
   },
   "auth": {
     "login": {
