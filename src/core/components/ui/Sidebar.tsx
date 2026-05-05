@@ -87,9 +87,9 @@ export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarPro
                 {/* Unread badge for Messages */}
                 {item.key === "messages" && showMessagesBadge && (
                   collapsed ? (
-                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning" />
+                    <span className="absolute top-1 end-1 h-2 w-2 rounded-full bg-warning" />
                   ) : (
-                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-bold text-warning">
+                    <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-bold text-warning">
                       {unreadMessages > 99 ? "99+" : unreadMessages}
                     </span>
                   )

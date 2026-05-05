@@ -907,5 +907,43 @@
     "empty": "No notifications yet",
     "markAllRead": "Mark all as read",
     "loadMore": "Load more"
+  },
+  "admin": {
+    "nameEn": "Name (EN)",
+    "nameAr": "Name (AR)",
+    "status": "Status",
+    "deactivateOrDelete": "Deactivate / Delete",
+    "specializations": {
+      "subtitle_one": "{{count}} specialization",
+      "subtitle_other": "{{count}} specializations",
+      "empty": "No specializations yet.",
+      "editTitle": "Edit Specialization",
+      "addTitle": "Add Specialization",
+      "deleteTitle": "Delete Specialization",
+      "deleteMessage": "Delete \"{{name}}\"? If doctors are assigned to it, deletion will be blocked — deactivate it instead."
+    },
+    "chronicDiseases": {
+      "subtitle_one": "{{count}} chronic disease",
+      "subtitle_other": "{{count}} chronic diseases",
+      "empty": "No chronic diseases yet.",
+      "editTitle": "Edit Chronic Disease",
+      "addTitle": "Add Chronic Disease",
+      "deleteTitle": "Delete Chronic Disease",
+      "deleteMessage": "Delete \"{{name}}\"? If patients have this disease assigned, deletion will be blocked — deactivate it instead."
+    }
+  },
+  "reviews": {
+    "noReviews": "No reviews yet",
+    "published": "Published",
+    "hidden": "Hidden",
+    "publish": "Publish",
+    "hide": "Hide",
+    "subtitle": "{{total}} total · {{published}} published · {{hidden}} hidden on this page"
+  },
+  "messages": {
+    "replyViaEmail": "Reply via Email",
+    "subject": "Subject",
+    "message": "Message",
+    "new": "New"
   }
 }

@@ -176,6 +176,7 @@ function MessageListItem({
 // ── Detail panel ──────────────────────────────────────────────────────────────
 
 function MessageDetail({ msg }: { msg: ContactMessageDto }) {
+  const { t } = useTranslation();
   const { formatDateShort } = useDateFormat();
 
   return (
@@ -189,7 +190,7 @@ function MessageDetail({ msg }: { msg: ContactMessageDto }) {
             <h2 className="text-lg font-semibold">{msg.firstName} {msg.lastName}</h2>
             {!msg.isRead && (
               <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
-                New
+                {t("messages.new")}
               </span>
             )}
           </div>
@@ -219,12 +220,12 @@ function MessageDetail({ msg }: { msg: ContactMessageDto }) {
       </div>
 
       <div className="rounded-lg bg-surface-secondary px-4 py-3">
-        <p className="text-xs font-medium text-muted uppercase tracking-wide mb-1">Subject</p>
+        <p className="text-xs font-medium text-muted uppercase tracking-wide mb-1">{t("messages.subject")}</p>
         <p className="font-semibold">{msg.subject}</p>
       </div>
 
       <div className="flex-1">
-        <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Message</p>
+        <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">{t("messages.message")}</p>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
       </div>
 
@@ -232,7 +233,7 @@ function MessageDetail({ msg }: { msg: ContactMessageDto }) {
         href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject)}`}
         className="self-start rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
       >
-        Reply via Email
+        {t("messages.replyViaEmail")}
       </a>
     </div>
   );

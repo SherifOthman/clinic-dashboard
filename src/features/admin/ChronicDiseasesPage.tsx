@@ -38,7 +38,7 @@ export default function ChronicDiseasesPage() {
   const columns: Column<ChronicDiseaseDto>[] = [
     {
       key: "nameEn",
-      label: "Name (EN)",
+      label: t("admin.nameEn"),
       render: (item) => (
         <span className={item.isActive ? "font-medium" : "font-medium opacity-50"}>
           {item.nameEn}
@@ -47,7 +47,7 @@ export default function ChronicDiseasesPage() {
     },
     {
       key: "nameAr",
-      label: "Name (AR)",
+      label: t("admin.nameAr"),
       render: (item) => (
         <span className={`text-muted ${item.isActive ? "" : "opacity-50"}`} dir="rtl">
           {item.nameAr}
@@ -56,7 +56,7 @@ export default function ChronicDiseasesPage() {
     },
     {
       key: "isActive",
-      label: "Status",
+      label: t("admin.status"),
       render: (item) => (
         <Chip size="sm" variant="soft" color={item.isActive ? "success" : "default"}>
           {item.isActive ? t("common.status.active") : t("common.status.inactive")}
@@ -84,7 +84,7 @@ export default function ChronicDiseasesPage() {
               </Button>
             </Tooltip.Trigger>
             <Tooltip.Content>
-              <p>{item.isActive ? "Deactivate / Delete" : t("common.delete")}</p>
+              <p>{item.isActive ? t("admin.deactivateOrDelete") : t("common.delete")}</p>
             </Tooltip.Content>
           </Tooltip>
         </div>
@@ -96,7 +96,7 @@ export default function ChronicDiseasesPage() {
     <div>
       <PageHeader
         title={t("navigation.adminChronicDiseases")}
-        subtitle={data ? `${data.totalCount} chronic diseases` : ""}
+        subtitle={data ? t("admin.chronicDiseases.subtitle", { count: data.totalCount }) : ""}
         action={
           <Button variant="primary" size="sm" onPress={() => setAdding(true)}>
             <Plus className="h-4 w-4" /> {t("common.add")}
@@ -110,7 +110,7 @@ export default function ChronicDiseasesPage() {
           data={data?.items ?? []}
           keyExtractor={(item) => item.id}
           isLoading={isLoading}
-          emptyMessage="No chronic diseases yet."
+          emptyMessage={t("admin.chronicDiseases.empty")}
         />
 
         <TablePagination
@@ -122,7 +122,7 @@ export default function ChronicDiseasesPage() {
 
       {(adding || editing) && (
         <ReferenceFormDialog
-          title={editing ? "Edit Chronic Disease" : "Add Chronic Disease"}
+          title={editing ? t("admin.chronicDiseases.editTitle") : t("admin.chronicDiseases.addTitle")}
           initial={editing ?? undefined}
           isSaving={create.isPending || update.isPending}
           onSave={handleSave}
@@ -134,8 +134,8 @@ export default function ChronicDiseasesPage() {
         isOpen={!!deleting}
         onClose={() => setDeleting(null)}
         onConfirm={() => { remove.mutate(deleting!.id, { onSuccess: () => setDeleting(null) }); }}
-        title="Delete Chronic Disease"
-        message={`Delete "${deleting?.nameEn}"? If patients have this disease assigned, deletion will be blocked — deactivate it instead.`}
+        title={t("admin.chronicDiseases.deleteTitle")}
+        message={t("admin.chronicDiseases.deleteMessage", { name: deleting?.nameEn ?? "" })}
         isLoading={remove.isPending}
       />
     </div>

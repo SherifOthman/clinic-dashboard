@@ -956,5 +956,43 @@
     "empty": "لا توجد إشعارات بعد",
     "markAllRead": "تحديد الكل كمقروء",
     "loadMore": "تحميل المزيد"
+  },
+  "admin": {
+    "nameEn": "الاسم (إنجليزي)",
+    "nameAr": "الاسم (عربي)",
+    "status": "الحالة",
+    "deactivateOrDelete": "تعطيل / حذف",
+    "specializations": {
+      "subtitle_one": "{{count}} تخصص",
+      "subtitle_other": "{{count}} تخصص",
+      "empty": "لا توجد تخصصات بعد.",
+      "editTitle": "تعديل التخصص",
+      "addTitle": "إضافة تخصص",
+      "deleteTitle": "حذف التخصص",
+      "deleteMessage": "حذف \"{{name}}\"؟ إذا كان هناك أطباء مرتبطون به، سيتم منع الحذف — قم بتعطيله بدلاً من ذلك."
+    },
+    "chronicDiseases": {
+      "subtitle_one": "{{count}} مرض مزمن",
+      "subtitle_other": "{{count}} مرض مزمن",
+      "empty": "لا توجد أمراض مزمنة بعد.",
+      "editTitle": "تعديل المرض المزمن",
+      "addTitle": "إضافة مرض مزمن",
+      "deleteTitle": "حذف المرض المزمن",
+      "deleteMessage": "حذف \"{{name}}\"؟ إذا كان هناك مرضى مرتبطون به، سيتم منع الحذف — قم بتعطيله بدلاً من ذلك."
+    }
+  },
+  "reviews": {
+    "noReviews": "لا توجد تقييمات بعد",
+    "published": "منشور",
+    "hidden": "مخفي",
+    "publish": "نشر",
+    "hide": "إخفاء",
+    "subtitle": "{{total}} إجمالي · {{published}} منشور · {{hidden}} مخفي في هذه الصفحة"
+  },
+  "messages": {
+    "replyViaEmail": "الرد عبر البريد الإلكتروني",
+    "subject": "الموضوع",
+    "message": "الرسالة",
+    "new": "جديد"
   }
 }

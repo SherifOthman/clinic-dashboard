@@ -38,7 +38,7 @@ export default function SpecializationsPage() {
   const columns: Column<SpecializationDto>[] = [
     {
       key: "nameEn",
-      label: "Name (EN)",
+      label: t("admin.nameEn"),
       render: (item) => (
         <span className={item.isActive ? "font-medium" : "font-medium opacity-50"}>
           {item.nameEn}
@@ -47,7 +47,7 @@ export default function SpecializationsPage() {
     },
     {
       key: "nameAr",
-      label: "Name (AR)",
+      label: t("admin.nameAr"),
       render: (item) => (
         <span className={`text-muted ${item.isActive ? "" : "opacity-50"}`} dir="rtl">
           {item.nameAr}
@@ -56,7 +56,7 @@ export default function SpecializationsPage() {
     },
     {
       key: "isActive",
-      label: "Status",
+      label: t("admin.status"),
       render: (item) => (
         <Chip size="sm" variant="soft" color={item.isActive ? "success" : "default"}>
           {item.isActive ? t("common.status.active") : t("common.status.inactive")}
@@ -84,7 +84,7 @@ export default function SpecializationsPage() {
               </Button>
             </Tooltip.Trigger>
             <Tooltip.Content>
-              <p>{item.isActive ? "Deactivate / Delete" : t("common.delete")}</p>
+              <p>{item.isActive ? t("admin.deactivateOrDelete") : t("common.delete")}</p>
             </Tooltip.Content>
           </Tooltip>
         </div>
@@ -96,7 +96,7 @@ export default function SpecializationsPage() {
     <div>
       <PageHeader
         title={t("navigation.adminSpecializations")}
-        subtitle={data ? `${data.totalCount} specializations` : ""}
+        subtitle={data ? t("admin.specializations.subtitle", { count: data.totalCount }) : ""}
         action={
           <Button variant="primary" size="sm" onPress={() => setAdding(true)}>
             <Plus className="h-4 w-4" /> {t("common.add")}
@@ -110,7 +110,7 @@ export default function SpecializationsPage() {
           data={data?.items ?? []}
           keyExtractor={(item) => item.id}
           isLoading={isLoading}
-          emptyMessage="No specializations yet."
+          emptyMessage={t("admin.specializations.empty")}
         />
 
         <TablePagination
@@ -122,7 +122,7 @@ export default function SpecializationsPage() {
 
       {(adding || editing) && (
         <ReferenceFormDialog
-          title={editing ? "Edit Specialization" : "Add Specialization"}
+          title={editing ? t("admin.specializations.editTitle") : t("admin.specializations.addTitle")}
           initial={editing ?? undefined}
           isSaving={create.isPending || update.isPending}
           onSave={handleSave}
@@ -134,8 +134,8 @@ export default function SpecializationsPage() {
         isOpen={!!deleting}
         onClose={() => setDeleting(null)}
         onConfirm={() => { remove.mutate(deleting!.id, { onSuccess: () => setDeleting(null) }); }}
-        title="Delete Specialization"
-        message={`Delete "${deleting?.nameEn}"? If doctors are assigned to it, deletion will be blocked — deactivate it instead.`}
+        title={t("admin.specializations.deleteTitle")}
+        message={t("admin.specializations.deleteMessage", { name: deleting?.nameEn ?? "" })}
         isLoading={remove.isPending}
       />
     </div>

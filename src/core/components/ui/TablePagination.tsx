@@ -206,7 +206,7 @@ export function TablePagination({
       {/* Center: full nav with text labels — absolutely centered */}
       <div className="absolute left-1/2 -translate-x-1/2">
         <Pagination>
-          <Pagination.Content>
+          <Pagination.Content className="gap-1">
             {/* Previous — icon + text */}
             <Pagination.Item>
               <Pagination.Previous
@@ -266,7 +266,7 @@ export function TablePagination({
       {/* Icon-only prev + page numbers + icon-only next — one centered row */}
       <div className="flex items-center justify-center overflow-x-auto">
         <Pagination>
-          <Pagination.Content>
+          <Pagination.Content className="gap-1">
             {/* Previous — icon only */}
             <Pagination.Item>
               <Pagination.Previous
