@@ -1,5 +1,5 @@
 import { Dialog } from "@/core/components/ui/Dialog";
-import { Button, Input, Switch, Textarea } from "@heroui/react";
+import { Button, Input, Label, Switch, TextArea } from "@heroui/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { SubscriptionPlanDto } from "../adminApi";
@@ -65,8 +65,14 @@ export function SubscriptionPlanFormDialog({ initial, isSaving, onSave, onClose 
           <Input label="Name (AR)" value={form.nameAr} onChange={e => set("nameAr", e.target.value)} isRequired dir="rtl" />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Textarea label="Description (EN)" value={form.description} onChange={e => set("description", e.target.value)} rows={2} />
-          <Textarea label="Description (AR)" value={form.descriptionAr} onChange={e => set("descriptionAr", e.target.value)} rows={2} dir="rtl" />
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted">Description (EN)</Label>
+            <TextArea value={form.description}   onChange={e => set("description",   e.target.value)} rows={2} placeholder="Plan description..." fullWidth />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted">Description (AR)</Label>
+            <TextArea value={form.descriptionAr} onChange={e => set("descriptionAr", e.target.value)} rows={2} placeholder="وصف الخطة..." dir="rtl" fullWidth />
+          </div>
         </div>
 
         {/* Pricing */}

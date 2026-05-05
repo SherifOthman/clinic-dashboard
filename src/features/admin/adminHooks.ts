@@ -5,11 +5,12 @@ import type { UpsertSpecializationRequest, UpsertChronicDiseaseRequest, UpsertSu
 
 // ── Specializations ───────────────────────────────────────────────────────────
 
-export function useSpecializations() {
+export function useSpecializations(page = 1, pageSize = 10) {
   return useQuery({
-    queryKey: ["admin", "specializations"],
-    queryFn:  adminApi.getSpecializations,
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["admin", "specializations", page, pageSize],
+    queryFn:  () => adminApi.getSpecializationsPaginated(page, pageSize),
+    staleTime: 30 * 1000,
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -39,11 +40,12 @@ export function useDeleteSpecialization() {
 
 // ── Chronic Diseases ──────────────────────────────────────────────────────────
 
-export function useChronicDiseases() {
+export function useChronicDiseases(page = 1, pageSize = 10) {
   return useQuery({
-    queryKey: ["admin", "chronic-diseases"],
-    queryFn:  adminApi.getChronicDiseases,
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["admin", "chronic-diseases", page, pageSize],
+    queryFn:  () => adminApi.getChronicDiseasesPaginated(page, pageSize),
+    staleTime: 30 * 1000,
+    placeholderData: (prev) => prev,
   });
 }
 

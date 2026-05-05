@@ -20,7 +20,6 @@ export interface ChronicDiseaseDto {
   descriptionAr?: string;
   isActive: boolean;
 }
-
 export interface SubscriptionPlanDto {
   id: string;
   name: string;
@@ -57,9 +56,9 @@ export type UpsertSubscriptionPlanRequest = Omit<SubscriptionPlanDto, "id">;
 // ── API ───────────────────────────────────────────────────────────────────────
 
 export const adminApi = {
-  // Specializations
-  getSpecializations: (): Promise<SpecializationDto[]> =>
-    apiClient.get(API_ENDPOINTS.specializations),
+  // Specializations — paginated (admin, includes inactive)
+  getSpecializationsPaginated: (pageNumber = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<SpecializationDto>> =>
+    apiClient.get(`/admin/specializations?pageNumber=${pageNumber}&pageSize=${pageSize}`),
 
   createSpecialization: (data: UpsertSpecializationRequest): Promise<string> =>
     apiClient.post(API_ENDPOINTS.specializations, data),
@@ -70,9 +69,9 @@ export const adminApi = {
   deleteSpecialization: (id: string): Promise<void> =>
     apiClient.delete(`/admin/specializations/${id}`),
 
-  // Chronic Diseases
-  getChronicDiseases: (): Promise<ChronicDiseaseDto[]> =>
-    apiClient.get(API_ENDPOINTS.chronicDiseases),
+  // Chronic Diseases — paginated (admin, includes inactive)
+  getChronicDiseasesPaginated: (pageNumber = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<ChronicDiseaseDto>> =>
+    apiClient.get(`/admin/chronic-diseases?pageNumber=${pageNumber}&pageSize=${pageSize}`),
 
   createChronicDisease: (data: UpsertChronicDiseaseRequest): Promise<string> =>
     apiClient.post(API_ENDPOINTS.chronicDiseases, data),
