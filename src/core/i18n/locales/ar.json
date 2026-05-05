@@ -936,5 +936,11 @@
     "searchClinic": "البحث باسم العيادة أو المعرف",
     "performedBy": "بواسطة",
     "restoreEntity": "استعادة هذا السجل"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات بعد",
+    "markAllRead": "تحديد الكل كمقروء",
+    "loadMore": "تحميل المزيد"
   }
 }

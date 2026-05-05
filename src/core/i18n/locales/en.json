@@ -887,5 +887,11 @@
     "searchClinic": "Search by clinic name or ID",
     "performedBy": "Performed by",
     "restoreEntity": "Restore this record"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "loadMore": "Load more"
   }
 }

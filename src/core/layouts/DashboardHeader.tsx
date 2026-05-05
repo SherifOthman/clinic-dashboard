@@ -1,6 +1,7 @@
 import { LanguageSwitcher } from "@/core/components/ui/LanguageSwitcher";
 import { ThemeSwitch } from "@/core/components/ui/ThemeSwitch";
 import { UserAvatar } from "@/core/components/ui/UserAvatar";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { Button } from "@heroui/react";
 import { Menu as MenuIcon } from "lucide-react";
 
@@ -22,6 +23,7 @@ export function DashboardHeader({ isMobile, onMenuToggle }: DashboardHeaderProps
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <ThemeSwitch />
+          <NotificationBell />
           <UserAvatar />
         </div>
       </div>
