@@ -338,6 +338,8 @@
     "searchPatient": "Search patient by name or code...",
     "noPatientFound": "No patient found for",
     "addNewPatient": "Add new patient",
+    "searchPlaceholder": "Search by patient name or code...",
+    "viewAllCount": "View all {{count}} appointments →",
     "slotBooked": "This time slot is already booked",
     "bookedSlots": "Booked slots",
     "statuses": {

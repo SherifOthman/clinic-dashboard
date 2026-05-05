@@ -1,6 +1,7 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
-import { Button } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBranches } from "../branches/branchesHooks";
@@ -18,23 +19,23 @@ export default function AppointmentsPage() {
   const [dateStr, setDateStr] = useState<string>(() => {
     const d = new Date();
     const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
+    const day   = String(d.getDate()).padStart(2, "0");
     return `${d.getFullYear()}-${month}-${day}`;
   });
-  const [branchId, setBranchId] = useState<string | undefined>();
+  const [branchId, setBranchId]               = useState<string | undefined>();
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
-  const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
+  const [manualViewMode, setManualViewMode]     = useState<ViewMode | null>(null);
   const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
   const [editingAppointment, setEditingAppointment] = useState<AppointmentDto | null>(null);
-  const [viewPatientId, setViewPatientId] = useState<string | null>(null);
+  const [viewPatientId, setViewPatientId]       = useState<string | null>(null);
+  const [searchTerm, setSearchTerm]             = useState("");
 
   const createDialog = useDialogState();
 
   const { data: branches = [] } = useBranches();
   const activeBranchId = branchId ?? branches[0]?.id ?? null;
 
-  const { data: doctors = [], isLoading: doctorsLoading } =
-    useDoctorsForBranch(activeBranchId);
+  const { data: doctors = [], isLoading: doctorsLoading } = useDoctorsForBranch(activeBranchId);
 
   const viewMode = resolveViewMode(doctors.length, manualViewMode);
   const isSingle = viewMode === "single";
@@ -48,14 +49,12 @@ export default function AppointmentsPage() {
   const { data: appointments = [], isLoading: apptLoading } = useAppointments(
     dateStr,
     activeBranchId,
-    visibleDoctors.length > 0
-      ? visibleDoctors.map((d) => d.doctorInfoId)
-      : undefined,
+    visibleDoctors.length > 0 ? visibleDoctors.map((d) => d.doctorInfoId) : undefined,
   );
 
   const isLoading = doctorsLoading || apptLoading;
 
-  // In multi mode, hide doctors with no appointments so the grid doesn't show empty cards
+  // In multi mode, hide doctors with no appointments
   const displayDoctors = (!isLoading && viewMode === "multi")
     ? visibleDoctors.filter((d) => appointments.some((a) => a.doctorInfoId === d.doctorInfoId))
     : visibleDoctors;
@@ -68,6 +67,12 @@ export default function AppointmentsPage() {
   const handleBranchChange = (id: string | undefined) => {
     setBranchId(id);
     setSelectedDoctorId(undefined);
+  };
+
+  // "View All" from multi mode — switch to single mode for that doctor
+  const handleViewAll = (doctorInfoId: string) => {
+    setSelectedDoctorId(doctorInfoId);
+    setManualViewMode("single");
   };
 
   return (
@@ -97,6 +102,17 @@ export default function AppointmentsPage() {
         onResetViewMode={() => setManualViewMode(null)}
       />
 
+      {/* Search bar — always visible */}
+      <div className="mb-4">
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={t("appointments.searchPlaceholder")}
+          aria-label={t("appointments.searchPlaceholder")}
+          fullWidth
+        />
+      </div>
+
       {/* Doctor panels */}
       {visibleDoctors.length === 0 && !isLoading ? (
         <div className="rounded-xl border border-border bg-surface py-16 text-center text-muted">
@@ -114,14 +130,14 @@ export default function AppointmentsPage() {
             <DoctorAppointmentsPanel
               key={doctor.doctorInfoId}
               doctor={doctor}
-              appointments={appointments.filter(
-                (a) => a.doctorInfoId === doctor.doctorInfoId,
-              )}
+              appointments={appointments.filter((a) => a.doctorInfoId === doctor.doctorInfoId)}
               isLoading={isLoading}
               viewMode={viewMode}
+              searchTerm={searchTerm}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
               onEditAppointment={(a) => setEditingAppointment(a)}
               onViewPatient={(patientId) => setViewPatientId(patientId)}
+              onViewAll={handleViewAll}
               branchId={activeBranchId ?? undefined}
             />
           ))}
@@ -138,7 +154,6 @@ export default function AppointmentsPage() {
         />
       )}
 
-      {/* Edit appointment dialog — reuses CreateAppointmentDialog with prefilled data */}
       {activeBranchId && editingAppointment && (
         <CreateAppointmentDialog
           isOpen

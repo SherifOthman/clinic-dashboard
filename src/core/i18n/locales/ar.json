@@ -338,6 +338,8 @@
     "searchPatient": "ابحث عن مريض بالاسم أو الكود...",
     "noPatientFound": "لا يوجد مريض بـ",
     "addNewPatient": "إضافة مريض جديد",
+    "searchPlaceholder": "البحث باسم المريض أو الكود...",
+    "viewAllCount": "عرض جميع {{count}} مواعيد ←",
     "slotBooked": "هذا الوقت محجوز بالفعل",
     "bookedSlots": "الأوقات المحجوزة",
     "statuses": {
