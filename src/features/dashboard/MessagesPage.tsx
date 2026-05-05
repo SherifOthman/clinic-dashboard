@@ -2,7 +2,7 @@ import { PageHeader } from "@/core/components/ui/PageHeader";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { Mail, Phone, Building2, Clock, Circle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { useContactMessages, useContactMessagesUnreadCount } from "./dashboardHooks";
@@ -19,20 +19,11 @@ export default function MessagesPage() {
   const [selected, setSelected] = useState<ContactMessageDto | null>(null);
   const qc = useQueryClient();
 
-  // Auto-select first message on initial load only
-  if (!selected && messages.length > 0 && !isLoading) {
-    handleSelect(messages[0]);
-  }
-
   const handlePageChange = (p: number) => {
     setPage(p);
     setSelected(null);
   };
 
-  // When a message is selected:
-  // 1. Optimistically flip isRead in the cached list so the UI updates instantly
-  // 2. Fire the PATCH to the backend (fire-and-forget — no spinner needed)
-  // 3. Invalidate the unread count so the sidebar badge refreshes
   const handleSelect = (msg: ContactMessageDto) => {
     setSelected({ ...msg, isRead: true }); // show as read immediately in detail panel
 
@@ -59,6 +50,15 @@ export default function MessagesPage() {
       });
     }
   };
+
+  // Auto-select first message when messages load for the first time on this page
+  useEffect(() => {
+    if (!selected && messages.length > 0 && !isLoading) {
+      handleSelect(messages[0]);
+    }
+    // Only run when messages array changes (page load / page change)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   const unreadInPage = messages.filter((m) => !m.isRead).length;
 
