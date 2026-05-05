@@ -48,6 +48,15 @@ export function useContactMessages(page = 1) {
   });
 }
 
+export function useContactMessagesUnreadCount() {
+  return useQuery({
+    queryKey: ["contact", "unread-count"],
+    queryFn:  dashboardApi.getContactMessagesUnreadCount,
+    staleTime:       30 * 1000,
+    refetchInterval: 60 * 1000, // poll every minute like notifications
+  });
+}
+
 export function useAllTestimonials(page = 1) {
   return useQuery({
     queryKey: ["testimonials", "all", "paged", page],

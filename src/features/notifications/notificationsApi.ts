@@ -14,7 +14,7 @@ export interface NotificationDto {
 }
 
 export const notificationsApi = {
-  getAll: (pageNumber = 1, pageSize = 20): Promise<PagedResult<NotificationDto>> =>
+  getAll: (pageNumber = 1, pageSize = 10): Promise<PagedResult<NotificationDto>> =>
     apiClient.get(`/notifications?pageNumber=${pageNumber}&pageSize=${pageSize}`),
 
   getUnreadCount: (): Promise<number> =>

@@ -576,7 +576,9 @@
     "messages": {
       "subtitle": "Contact form submissions from the website",
       "empty": "No messages yet",
-      "total": "messages"
+      "total": "messages",
+      "unread": "unread",
+      "unreadOnPage": "unread on this page"
     },
     "usageMetrics": {
       "title": "Plan Usage",

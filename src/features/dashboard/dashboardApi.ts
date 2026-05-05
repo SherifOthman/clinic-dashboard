@@ -120,6 +120,9 @@ export const dashboardApi = {
   getContactMessages: (page = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<ContactMessageDto>> =>
     apiClient.get(`/contact?pageNumber=${page}&pageSize=${pageSize}`),
 
+  getContactMessagesUnreadCount: (): Promise<number> =>
+    apiClient.get("/contact/unread-count"),
+
   getAllTestimonials: (page = 1, pageSize = 12): Promise<import("@/core/types").PagedResult<AdminTestimonialDto>> =>
     apiClient.get(`/testimonials/all?pageNumber=${page}&pageSize=${pageSize}`),
 

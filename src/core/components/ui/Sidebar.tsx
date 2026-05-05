@@ -6,6 +6,8 @@ import { NavLink } from "react-router-dom";
 import { siteConfig } from "@/core/config";
 import { canAccessRouteWithPermissions } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
+import { useContactMessagesUnreadCount } from "@/features/dashboard/dashboardHooks";
+import { isSuperAdmin } from "@/core/utils/permissions";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -14,7 +16,7 @@ interface SidebarProps {
 }
 
 function navLinkClass(isActive: boolean, collapsed: boolean): string {
-  const base = "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors";
+  const base = "relative flex items-center gap-3 rounded-lg px-3 py-2 transition-colors";
   const layout = collapsed ? "justify-center" : "";
   const state = isActive
     ? "bg-surface-tertiary text-foreground font-semibold"
@@ -25,6 +27,10 @@ function navLinkClass(isActive: boolean, collapsed: boolean): string {
 export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarProps) {
   const { t } = useTranslation();
   const { user } = useMe();
+  const { data: unreadMessages = 0 } = useContactMessagesUnreadCount();
+
+  // Only SuperAdmin sees the messages badge
+  const showMessagesBadge = isSuperAdmin(user) && unreadMessages > 0;
 
   const navigationItems = siteConfig.sidebarItems
     .filter((item) =>
@@ -77,6 +83,16 @@ export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarPro
                 <Icon className="h-5 w-5 shrink-0" />
                 {!collapsed && (
                   <span className="text-sm font-medium">{item.label}</span>
+                )}
+                {/* Unread badge for Messages */}
+                {item.key === "messages" && showMessagesBadge && (
+                  collapsed ? (
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-warning" />
+                  ) : (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-bold text-warning">
+                      {unreadMessages > 99 ? "99+" : unreadMessages}
+                    </span>
+                  )
                 )}
               </NavLink>
             );
