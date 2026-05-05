@@ -1,7 +1,7 @@
 import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "./adminApi";
-import type { UpsertSpecializationRequest, UpsertChronicDiseaseRequest, UpsertSubscriptionPlanRequest } from "./adminApi";
+import type { UpsertSpecializationRequest, UpsertChronicDiseaseRequest } from "./adminApi";
 
 // ── Specializations ───────────────────────────────────────────────────────────
 
@@ -70,42 +70,5 @@ export function useDeleteChronicDisease() {
     mutationFn: adminApi.deleteChronicDisease,
     successMessage: "toast.chronicDiseaseDeleted",
     invalidateKeys: [["admin", "chronic-diseases"]],
-  });
-}
-
-// ── Subscription Plans ────────────────────────────────────────────────────────
-
-export function useAdminSubscriptionPlans() {
-  return useQuery({
-    queryKey: ["admin", "subscription-plans"],
-    queryFn:  adminApi.getSubscriptionPlans,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useCreateSubscriptionPlan() {
-  return useMutationWithToast<string, UpsertSubscriptionPlanRequest>({
-    mutationFn: adminApi.createSubscriptionPlan,
-    successMessage: "toast.subscriptionPlanCreated",
-    invalidateKeys: [["admin", "subscription-plans"]],
-  });
-}
-
-export function useUpdateSubscriptionPlan() {
-  return useMutationWithToast<void, { id: string } & UpsertSubscriptionPlanRequest>({
-    mutationFn: ({ id, ...data }) => adminApi.updateSubscriptionPlan(id, data),
-    successMessage: "toast.subscriptionPlanUpdated",
-    invalidateKeys: [["admin", "subscription-plans"]],
-  });
-}
-
-export function useToggleSubscriptionPlan() {
-  const qc = useQueryClient();
-  return useMutationWithToast<void, string>({
-    mutationFn: adminApi.toggleSubscriptionPlan,
-    successMessage: "toast.subscriptionPlanToggled",
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "subscription-plans"] });
-    },
   });
 }

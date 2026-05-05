@@ -18,7 +18,6 @@ import {
   User,
   UserCog,
   Users,
-  CreditCard,
 } from "lucide-react";
 
 export const siteConfig = {
@@ -125,13 +124,6 @@ export const siteConfig = {
       label: "Chronic Diseases",
       href: "/admin/chronic-diseases",
       icon: FlaskConical,
-      requiredPermission: null,
-    },
-    {
-      key: "adminSubscriptionPlans",
-      label: "Subscription Plans",
-      href: "/admin/subscription-plans",
-      icon: CreditCard,
       requiredPermission: null,
     },
   ],

@@ -24,7 +24,6 @@ const SettingsPage     = lazy(() => import("@/features/settings/SettingsPage"));
 const UsagePage        = lazy(() => import("@/features/usage/UsagePage"));
 const AdminSpecializationsPage    = lazy(() => import("@/features/admin/SpecializationsPage"));
 const AdminChronicDiseasesPage    = lazy(() => import("@/features/admin/ChronicDiseasesPage"));
-const AdminSubscriptionPlansPage  = lazy(() => import("@/features/admin/SubscriptionPlansPage"));
 
 // Email verification — still handled here (deep link from email)
 const ConfirmEmailPage = lazy(() => import("@/features/auth/pages/ConfirmEmailPage"));
@@ -65,7 +64,6 @@ export function AppRouter() {
                 <Route path="/usage"       element={<ErrorBoundary><UsagePage /></ErrorBoundary>} />
                 <Route path="/admin/specializations"    element={<ErrorBoundary><AdminSpecializationsPage /></ErrorBoundary>} />
                 <Route path="/admin/chronic-diseases"   element={<ErrorBoundary><AdminChronicDiseasesPage /></ErrorBoundary>} />
-                <Route path="/admin/subscription-plans" element={<ErrorBoundary><AdminSubscriptionPlansPage /></ErrorBoundary>} />
               </Route>
             </Route>
           </Route>

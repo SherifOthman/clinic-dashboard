@@ -20,46 +20,96 @@ export function ReferenceFormDialog({ title, initial, isSaving, onSave, onClose 
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
 
   const isEdit  = !!initial;
-  const canSave = nameEn.trim() && nameAr.trim();
+  const canSave = nameEn.trim().length > 0 && nameAr.trim().length > 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
-    onSave({ nameEn: nameEn.trim(), nameAr: nameAr.trim(), descriptionEn: descEn.trim(), descriptionAr: descAr.trim(), isActive });
+    onSave({
+      nameEn:        nameEn.trim(),
+      nameAr:        nameAr.trim(),
+      descriptionEn: descEn.trim(),
+      descriptionAr: descAr.trim(),
+      isActive,
+    });
   };
 
   return (
     <Dialog isOpen onClose={onClose} size="md" ariaLabel={title}
       header={<h2 className="text-lg font-bold">{title}</h2>}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+        {/* Names */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="nameEn" className="text-xs font-medium text-muted">Name (English) *</Label>
-            <Input id="nameEn" value={nameEn} onChange={e => setNameEn(e.target.value)} required autoFocus placeholder="e.g. Cardiology" fullWidth />
+            <Label htmlFor="nameEn" className="text-xs font-medium text-muted">
+              Name (English) <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="nameEn"
+              value={nameEn}
+              onChange={e => setNameEn(e.target.value)}
+              autoFocus
+              placeholder="e.g. Cardiology"
+              fullWidth
+            />
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="nameAr" className="text-xs font-medium text-muted">Name (Arabic) *</Label>
-            <Input id="nameAr" value={nameAr} onChange={e => setNameAr(e.target.value)} required dir="rtl" placeholder="مثال: أمراض القلب" fullWidth />
+            <Label htmlFor="nameAr" className="text-xs font-medium text-muted">
+              Name (Arabic) <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="nameAr"
+              value={nameAr}
+              onChange={e => setNameAr(e.target.value)}
+              dir="rtl"
+              placeholder="مثال: أمراض القلب"
+              fullWidth
+            />
           </div>
         </div>
+
+        {/* Descriptions */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor="descEn" className="text-xs font-medium text-muted">Description (English)</Label>
-            <TextArea id="descEn" value={descEn} onChange={e => setDescEn(e.target.value)} rows={3} placeholder="Optional description..." fullWidth />
+            <TextArea
+              id="descEn"
+              value={descEn}
+              onChange={e => setDescEn(e.target.value)}
+              rows={3}
+              placeholder="Optional description..."
+              fullWidth
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor="descAr" className="text-xs font-medium text-muted">Description (Arabic)</Label>
-            <TextArea id="descAr" value={descAr} onChange={e => setDescAr(e.target.value)} rows={3} placeholder="وصف اختياري..." dir="rtl" fullWidth />
+            <TextArea
+              id="descAr"
+              value={descAr}
+              onChange={e => setDescAr(e.target.value)}
+              rows={3}
+              placeholder="وصف اختياري..."
+              dir="rtl"
+              fullWidth
+            />
           </div>
         </div>
+
+        {/* Active toggle — only shown when editing */}
         {isEdit && (
           <div className="flex items-center gap-3">
             <Switch isSelected={isActive} onChange={e => setIsActive(e.target.checked)} />
-            <span className="text-sm">{isActive ? t("common.status.active") : t("common.status.inactive")}</span>
+            <span className="text-sm">
+              {isActive ? t("common.status.active") : t("common.status.inactive")}
+            </span>
           </div>
         )}
+
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" onPress={onClose} isDisabled={isSaving}>{t("common.cancel")}</Button>
+          <Button variant="ghost" onPress={onClose} isDisabled={isSaving}>
+            {t("common.cancel")}
+          </Button>
           <Button variant="primary" type="submit" isPending={isSaving} isDisabled={!canSave}>
             {t("common.save")}
           </Button>
