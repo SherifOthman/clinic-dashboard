@@ -6,7 +6,8 @@ import { useContactMessages } from "../dashboardHooks";
 export function ContactMessagesPanel() {
   const { formatDateShort } = useDateFormat();
   const [expanded, setExpanded] = useState<string | null>(null);
-  const { data: messages = [], isLoading } = useContactMessages();
+  const { data, isLoading } = useContactMessages();
+  const messages = data?.items ?? [];
 
   if (isLoading) return null;
 
@@ -17,7 +18,7 @@ export function ContactMessagesPanel() {
         <h3 className="font-semibold">Contact Messages</h3>
         {messages.length > 0 && (
           <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
-            {messages.length}
+            {data?.totalCount ?? messages.length}
           </span>
         )}
       </div>
