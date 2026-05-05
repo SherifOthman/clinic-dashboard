@@ -55,6 +55,11 @@ export default function AppointmentsPage() {
 
   const isLoading = doctorsLoading || apptLoading;
 
+  // In multi mode, hide doctors with no appointments so the grid doesn't show empty cards
+  const displayDoctors = (!isLoading && viewMode === "multi")
+    ? visibleDoctors.filter((d) => appointments.some((a) => a.doctorInfoId === d.doctorInfoId))
+    : visibleDoctors;
+
   const openCreate = (doctorInfoId?: string) => {
     setPreselectedDoctor(doctorInfoId);
     createDialog.openCreate();
@@ -100,12 +105,12 @@ export default function AppointmentsPage() {
       ) : (
         <div
           className={
-            viewMode === "multi" && visibleDoctors.length > 1
-              ? getMultiGridClass(visibleDoctors.length)
+            viewMode === "multi" && displayDoctors.length > 1
+              ? getMultiGridClass(displayDoctors.length)
               : "flex flex-col gap-5"
           }
         >
-          {visibleDoctors.map((doctor) => (
+          {displayDoctors.map((doctor) => (
             <DoctorAppointmentsPanel
               key={doctor.doctorInfoId}
               doctor={doctor}

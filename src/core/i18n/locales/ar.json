@@ -366,6 +366,7 @@
     "editAppointment": "تعديل الموعد",
     "markPaid": "تسجيل الدفع",
     "refund": "استرداد المبلغ",
+    "unpaid": "غير مدفوع",
     "visitDuration": "مدة الاستشارة (دقيقة)",
     "defaultDuration": "الافتراضي: {{min}} دقيقة",
     "doctorLate": "تأخر الطبيب",

@@ -33,14 +33,14 @@ export function SlotCell({ a, isAr }: { a: AppointmentDto; isAr: boolean }) {
 
   if (a.type === "Queue") {
     return (
-      <span className="text-sm font-bold text-accent tabular-nums whitespace-nowrap">
+      <span className="text-sm font-bold text-accent tabular-nums" dir="ltr">
         #{num(a.queueNumber ?? "—")}
       </span>
     );
   }
 
   return (
-    <span className="text-sm font-bold text-accent tabular-nums whitespace-nowrap" dir="ltr">
+    <span className="text-sm font-bold text-accent tabular-nums" dir="ltr">
       {a.scheduledTime ?? "—"}
       {a.endTime && <span className="text-xs text-muted font-normal"> – {a.endTime}</span>}
     </span>
@@ -53,38 +53,40 @@ export function PatientCell({
   a,
   isAr,
   onViewPatient,
+  t,
 }: {
   a: AppointmentDto;
   isAr: boolean;
   onViewPatient?: (id: string) => void;
+  t: TFunction;
 }) {
   const age = a.patientDateOfBirth
     ? formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)
     : null;
 
+  const isUnpaid = !a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow";
+
   return (
     <button
       type="button"
       onClick={() => onViewPatient?.(a.patientId)}
-      className="text-start hover:underline focus:outline-none focus:underline"
+      className="text-start focus:outline-none group"
     >
-      {/* Unpaid badge */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm font-medium leading-tight">{a.patientName}</span>
-        {!a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow" && (
+      <div className="flex items-center gap-1">
+        <span className="text-sm font-medium leading-tight group-hover:underline">{a.patientName}</span>
+        {isUnpaid && (
           <Tooltip delay={300}>
             <Tooltip.Trigger>
-              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning/20 text-warning">
-                <BanknoteArrowDown className="h-2.5 w-2.5" />
+              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-danger/15 text-danger shrink-0">
+                <BanknoteArrowDown className="h-2 w-2" />
               </span>
             </Tooltip.Trigger>
-            <Tooltip.Content><p>Unpaid</p></Tooltip.Content>
+            <Tooltip.Content><p>{t("appointments.unpaid")}</p></Tooltip.Content>
           </Tooltip>
         )}
       </div>
-      {/* Code + age on same line, muted */}
       {(a.patientCode || age) && (
-        <div className="flex items-center gap-1 text-xs text-muted" dir={isAr ? "rtl" : "ltr"}>
+        <div className="flex items-center gap-1 text-xs text-muted">
           {a.patientCode && <span>{a.patientCode}</span>}
           {a.patientCode && age && <span>·</span>}
           {age && <span>{age}</span>}
@@ -94,7 +96,72 @@ export function PatientCell({
   );
 }
 
-// ── Actions dropdown ──────────────────────────────────────────────────────────
+// ── Next-status quick button (inline, before the ⋯ menu) ─────────────────────
+
+export function NextStatusButton({
+  a, t, onStatusChange, isPending,
+}: {
+  a: AppointmentDto;
+  t: TFunction;
+  onStatusChange: (id: string, status: string) => void;
+  isPending: boolean;
+}) {
+  if (a.status === "Pending" && a.type === "Queue") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
+            <Clock className="h-3.5 w-3.5 text-accent" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  if (a.status === "Pending" && a.type === "Time") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
+            <UserCheck className="h-3.5 w-3.5 text-warning" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.markWaiting")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  if (a.status === "Waiting") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
+            <Clock className="h-3.5 w-3.5 text-accent" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  if (a.status === "InProgress") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "Completed")} aria-label={t("appointments.complete")}>
+            <CheckCircle className="h-3.5 w-3.5 text-success" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.complete")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  return null;
+}
+
+// ── Actions dropdown (⋯) ─────────────────────────────────────────────────────
 
 interface ActionsDropdownProps {
   a: AppointmentDto;
@@ -114,28 +181,25 @@ export function ActionsDropdown({
 
   const handleAction = (key: React.Key) => {
     switch (key) {
-      case "view-patient":  onViewPatient?.(a.patientId); break;
-      case "edit":          onEdit?.(a); break;
-      case "waiting":       onStatusChange(a.id, "Waiting"); break;
-      case "in-progress":   onStatusChange(a.id, "InProgress"); break;
-      case "complete":      onStatusChange(a.id, "Completed"); break;
-      case "cancel":        onStatusChange(a.id, "Cancelled"); break;
-      case "paid":          onMarkPaid(a.id); break;
-      case "refund":        onRefund(a.id); break;
+      case "view-patient": onViewPatient?.(a.patientId); break;
+      case "edit":         onEdit?.(a); break;
+      case "cancel":       onStatusChange(a.id, "Cancelled"); break;
+      case "paid":         onMarkPaid(a.id); break;
+      case "refund":       onRefund(a.id); break;
     }
   };
 
   return (
     <Dropdown>
       <Dropdown.Trigger>
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending} aria-label="Actions">
+        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending} aria-label="More actions">
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </Dropdown.Trigger>
       <Dropdown.Popover placement="bottom end">
         <Dropdown.Menu onAction={handleAction}>
 
-          {/* ── Patient & appointment ── */}
+          {/* Patient & appointment */}
           <Dropdown.Section>
             <Dropdown.Item id="view-patient" textValue={t("appointments.viewPatient")}>
               <User className="h-3.5 w-3.5 shrink-0 text-muted" />
@@ -149,29 +213,11 @@ export function ActionsDropdown({
             )}
           </Dropdown.Section>
 
-          {/* ── Status transitions ── */}
+          {/* Cancel */}
           {isActive && (
             <>
               <Separator />
               <Dropdown.Section>
-                {a.status === "Pending" && a.type === "Time" && (
-                  <Dropdown.Item id="waiting" textValue={t("appointments.markWaiting")}>
-                    <UserCheck className="h-3.5 w-3.5 shrink-0 text-warning" />
-                    <Label>{t("appointments.markWaiting")}</Label>
-                  </Dropdown.Item>
-                )}
-                {(a.status === "Pending" || a.status === "Waiting") && (
-                  <Dropdown.Item id="in-progress" textValue={t("appointments.start")}>
-                    <Clock className="h-3.5 w-3.5 shrink-0 text-accent" />
-                    <Label>{t("appointments.start")}</Label>
-                  </Dropdown.Item>
-                )}
-                {a.status === "InProgress" && (
-                  <Dropdown.Item id="complete" textValue={t("appointments.complete")}>
-                    <CheckCircle className="h-3.5 w-3.5 shrink-0 text-success" />
-                    <Label>{t("appointments.complete")}</Label>
-                  </Dropdown.Item>
-                )}
                 <Dropdown.Item id="cancel" textValue={t("appointments.cancel")} variant="danger">
                   <XCircle className="h-3.5 w-3.5 shrink-0 text-danger" />
                   <Label>{t("appointments.cancel")}</Label>
@@ -180,7 +226,7 @@ export function ActionsDropdown({
             </>
           )}
 
-          {/* ── Payment ── */}
+          {/* Payment */}
           <Separator />
           <Dropdown.Section>
             {!a.invoiceId ? (

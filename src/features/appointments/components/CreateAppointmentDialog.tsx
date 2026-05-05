@@ -297,7 +297,7 @@ export function CreateAppointmentDialog({
               isRequired={!isQueue}
             >
               <Label className="text-sm font-medium">{t("appointments.time")}</Label>
-              <TimeField.Group fullWidth>
+              <TimeField.Group fullWidth dir="ltr">
                 <TimeField.Prefix>
                   <Clock className="h-4 w-4 text-muted" />
                 </TimeField.Prefix>

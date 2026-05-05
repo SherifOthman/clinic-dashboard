@@ -366,6 +366,7 @@
     "editAppointment": "Edit Appointment",
     "markPaid": "Mark as Paid",
     "refund": "Refund",
+    "unpaid": "Unpaid",
     "visitDuration": "Visit Duration (min)",
     "defaultDuration": "default: {{min}} min",
     "doctorLate": "Doctor is Late",
