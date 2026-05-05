@@ -1,9 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notificationsApi } from "./notificationsApi";
 
 const KEYS = {
   unreadCount: ["notifications", "unread-count"] as const,
-  list:        (page: number) => ["notifications", "list", page] as const,
+  infinite:    ["notifications", "infinite"]     as const,
 };
 
 /** Unread badge count — polled every 60s. */
@@ -11,18 +11,20 @@ export function useUnreadNotificationCount() {
   return useQuery({
     queryKey: KEYS.unreadCount,
     queryFn:  notificationsApi.getUnreadCount,
-    staleTime: 30 * 1000,
+    staleTime:       30 * 1000,
     refetchInterval: 60 * 1000,
   });
 }
 
-/** Paginated notification list. */
-export function useNotifications(page = 1) {
-  return useQuery({
-    queryKey: KEYS.list(page),
-    queryFn:  () => notificationsApi.getAll(page),
+/** Infinite notification list — accumulates pages as the user scrolls. */
+export function useInfiniteNotifications() {
+  return useInfiniteQuery({
+    queryKey: KEYS.infinite,
+    queryFn:  ({ pageParam = 1 }) => notificationsApi.getAll(pageParam as number),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.pageNumber + 1 : undefined,
     staleTime: 30 * 1000,
-    placeholderData: (prev) => prev,
   });
 }
 

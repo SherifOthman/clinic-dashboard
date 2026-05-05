@@ -1,12 +1,12 @@
 import { Popover, Button } from "@heroui/react";
-import { Bell, CheckCheck, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { Bell, CheckCheck, ExternalLink, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import {
   useUnreadNotificationCount,
-  useNotifications,
+  useInfiniteNotifications,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from "./notificationsHooks";
@@ -14,11 +14,11 @@ import type { NotificationDto } from "./notificationsApi";
 
 // ── Type → colour mapping ─────────────────────────────────────────────────────
 
-const TYPE_STYLES: Record<NotificationDto["type"], { dot: string; bg: string }> = {
-  Error:   { dot: "bg-danger",  bg: "bg-danger/10"  },
-  Warning: { dot: "bg-warning", bg: "bg-warning/10" },
-  Success: { dot: "bg-success", bg: "bg-success/10" },
-  Info:    { dot: "bg-accent",  bg: "bg-accent/10"  },
+const TYPE_STYLES: Record<NotificationDto["type"], { dot: string }> = {
+  Error:   { dot: "bg-danger"  },
+  Warning: { dot: "bg-warning" },
+  Success: { dot: "bg-success" },
+  Info:    { dot: "bg-accent"  },
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -26,25 +26,31 @@ const TYPE_STYLES: Record<NotificationDto["type"], { dot: string; bg: string }> 
 export function NotificationBell() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [page, setPage]  = useState(1);
 
-  const { data: unreadCount = 0 }  = useUnreadNotificationCount();
-  const { data, isLoading }        = useNotifications(page);
-  const markRead                   = useMarkNotificationRead();
-  const markAll                    = useMarkAllNotificationsRead();
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteNotifications();
 
-  const notifications = data?.items ?? [];
-  const hasMore       = data ? page < data.totalPages : false;
+  const markRead = useMarkNotificationRead();
+  const markAll  = useMarkAllNotificationsRead();
+
+  // Flatten all pages into a single list
+  const notifications = data?.pages.flatMap((p) => p.items) ?? [];
 
   function handleOpen(isOpen: boolean) {
     setOpen(isOpen);
-    if (isOpen) setPage(1); // reset to first page on open
+    if (isOpen) refetch(); // always fresh when opened
   }
 
   return (
     <Popover isOpen={open} onOpenChange={handleOpen} placement="bottom end">
       <Popover.Trigger>
-        {/* Bell button with unread badge */}
         <Button isIconOnly variant="ghost" aria-label={t("notifications.title")}>
           <div className="relative">
             <Bell className="h-5 w-5" />
@@ -61,11 +67,12 @@ export function NotificationBell() {
         <NotificationPanel
           notifications={notifications}
           isLoading={isLoading}
+          isFetchingMore={isFetchingNextPage}
+          hasMore={!!hasNextPage}
           unreadCount={unreadCount}
-          hasMore={hasMore}
           onMarkRead={(id) => markRead.mutate(id)}
           onMarkAll={() => markAll.mutate()}
-          onLoadMore={() => setPage((p) => p + 1)}
+          onLoadMore={fetchNextPage}
           onClose={() => setOpen(false)}
         />
       </Popover.Content>
@@ -76,21 +83,40 @@ export function NotificationBell() {
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
 interface NotificationPanelProps {
-  notifications: NotificationDto[];
-  isLoading:     boolean;
-  unreadCount:   number;
-  hasMore:       boolean;
-  onMarkRead:    (id: string) => void;
-  onMarkAll:     () => void;
-  onLoadMore:    () => void;
-  onClose:       () => void;
+  notifications:  NotificationDto[];
+  isLoading:      boolean;
+  isFetchingMore: boolean;
+  hasMore:        boolean;
+  unreadCount:    number;
+  onMarkRead:     (id: string) => void;
+  onMarkAll:      () => void;
+  onLoadMore:     () => void;
+  onClose:        () => void;
 }
 
 function NotificationPanel({
-  notifications, isLoading, unreadCount,
-  hasMore, onMarkRead, onMarkAll, onLoadMore, onClose,
+  notifications, isLoading, isFetchingMore, hasMore,
+  unreadCount, onMarkRead, onMarkAll, onLoadMore, onClose,
 }: NotificationPanelProps) {
   const { t } = useTranslation();
+
+  // Sentinel element — when it enters the viewport, load the next page
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) onLoadMore();
+      },
+      { threshold: 0.1 },
+    );
+
+    const el = sentinelRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [hasMore, onLoadMore]);
 
   return (
     <div className="flex flex-col">
@@ -116,11 +142,11 @@ function NotificationPanel({
         )}
       </div>
 
-      {/* List */}
+      {/* Scrollable list */}
       <div className="max-h-96 overflow-y-auto">
-        {isLoading && notifications.length === 0 ? (
-          <div className="flex items-center justify-center py-10 text-sm text-muted">
-            {t("common.loading")}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-5 w-5 animate-spin text-muted" />
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center text-muted">
@@ -128,26 +154,28 @@ function NotificationPanel({
             <p className="text-sm">{t("notifications.empty")}</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {notifications.map((n) => (
-              <NotificationItem
-                key={n.id}
-                notification={n}
-                onMarkRead={onMarkRead}
-                onClose={onClose}
-              />
-            ))}
-          </div>
-        )}
+          <>
+            <div className="divide-y divide-border">
+              {notifications.map((n) => (
+                <NotificationItem
+                  key={n.id}
+                  notification={n}
+                  onMarkRead={onMarkRead}
+                  onClose={onClose}
+                />
+              ))}
+            </div>
 
-        {hasMore && (
-          <button
-            type="button"
-            onClick={onLoadMore}
-            className="w-full py-2.5 text-center text-xs text-accent hover:bg-surface-secondary transition-colors"
-          >
-            {t("notifications.loadMore")}
-          </button>
+            {/* Scroll sentinel — triggers next page fetch when visible */}
+            <div ref={sentinelRef} className="h-1" />
+
+            {/* Spinner shown while fetching the next page */}
+            {isFetchingMore && (
+              <div className="flex justify-center py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-muted" />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -179,9 +207,9 @@ function NotificationItem({
 
   return (
     <div
-      className={`flex gap-3 px-4 py-3 transition-colors ${
+      className={`flex gap-3 px-4 py-3 transition-colors cursor-pointer hover:bg-surface-secondary ${
         n.isRead ? "opacity-60" : "bg-surface-secondary/40"
-      } hover:bg-surface-secondary cursor-pointer`}
+      }`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
