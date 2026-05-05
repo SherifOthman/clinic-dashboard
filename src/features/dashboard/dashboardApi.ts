@@ -117,9 +117,8 @@ export const dashboardApi = {
     return apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
   },
 
-  getContactMessages: (page = 1, pageSize = 20): Promise<ContactMessageDto[]> =>
-    apiClient.get<{ items: ContactMessageDto[] }>(`/contact?pageNumber=${page}&pageSize=${pageSize}`)
-      .then(r => r.items),
+  getContactMessages: (page = 1, pageSize = 20): Promise<import("@/core/types").PagedResult<ContactMessageDto>> =>
+    apiClient.get(`/contact?pageNumber=${page}&pageSize=${pageSize}`),
 
   getAllTestimonials: (): Promise<AdminTestimonialDto[]> =>
     apiClient.get<AdminTestimonialDto[]>(`/testimonials/all`),

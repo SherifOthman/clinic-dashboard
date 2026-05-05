@@ -44,6 +44,7 @@ export function useContactMessages(page = 1) {
     queryKey: ["contact", "messages", page],
     queryFn: () => dashboardApi.getContactMessages(page),
     staleTime: 30 * 1000,
+    placeholderData: (prev) => prev, // keep previous page data while loading next
   });
 }
 

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
+import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { Mail, Phone, Building2, Clock } from "lucide-react";
 import { useState } from "react";
@@ -8,19 +9,26 @@ import type { ContactMessageDto } from "./dashboardApi";
 
 export default function MessagesPage() {
   const { t } = useTranslation();
-  const { data: messages = [], isLoading } = useContactMessages();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useContactMessages(page);
+  const messages = data?.items ?? [];
   const [selected, setSelected] = useState<ContactMessageDto | null>(null);
 
-  // Auto-select first message
+  // Auto-select first message when page changes
   if (!selected && messages.length > 0 && !isLoading) {
     setSelected(messages[0]);
   }
+  // Clear selection when page changes and new messages load
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    setSelected(null);
+  };
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
         title={t("navigation.messages")}
-        subtitle={`${messages.length} ${t("dashboard.messages.total")}`}
+        subtitle={data ? `${data.totalCount} ${t("dashboard.messages.total")}` : ""}
       />
 
       {isLoading ? null : messages.length === 0 ? (
@@ -29,22 +37,37 @@ export default function MessagesPage() {
           <p>{t("dashboard.messages.empty")}</p>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]" style={{ minHeight: 500 }}>
-          {/* List panel */}
-          <div className="flex flex-col gap-1 overflow-y-auto rounded-xl border border-border bg-surface p-2">
-            {messages.map((msg) => (
-              <MessageListItem
-                key={msg.id}
-                msg={msg}
-                isSelected={selected?.id === msg.id}
-                onClick={() => setSelected(msg)}
-              />
-            ))}
-          </div>
+        <>
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]" style={{ minHeight: 500 }}>
+            {/* List panel */}
+            <div className="flex flex-col rounded-xl border border-border bg-surface">
+              <div className="flex flex-col gap-1 overflow-y-auto p-2 flex-1">
+                {messages.map((msg) => (
+                  <MessageListItem
+                    key={msg.id}
+                    msg={msg}
+                    isSelected={selected?.id === msg.id}
+                    onClick={() => setSelected(msg)}
+                  />
+                ))}
+              </div>
+              {/* Pagination inside the list panel */}
+              {data && data.totalPages > 1 && (
+                <div className="border-t border-border px-3">
+                  <TablePagination
+                    data={data}
+                    currentPage={page}
+                    onPageChange={handlePageChange}
+                    showTotal={false}
+                  />
+                </div>
+              )}
+            </div>
 
-          {/* Detail panel */}
-          {selected && <MessageDetail msg={selected} />}
-        </div>
+            {/* Detail panel */}
+            {selected && <MessageDetail msg={selected} />}
+          </div>
+        </>
       )}
     </div>
   );
@@ -91,7 +114,6 @@ function MessageDetail({ msg }: { msg: ContactMessageDto }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-6 flex flex-col gap-5">
-      {/* Header */}
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent/10 text-base font-bold text-accent">
           {msg.firstName[0]}{msg.lastName[0]}
@@ -123,19 +145,16 @@ function MessageDetail({ msg }: { msg: ContactMessageDto }) {
         </div>
       </div>
 
-      {/* Subject */}
       <div className="rounded-lg bg-surface-secondary px-4 py-3">
         <p className="text-xs font-medium text-muted uppercase tracking-wide mb-1">Subject</p>
         <p className="font-semibold">{msg.subject}</p>
       </div>
 
-      {/* Message body */}
       <div className="flex-1">
         <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Message</p>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
       </div>
 
-      {/* Reply button */}
       <a
         href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject)}`}
         className="self-start rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
