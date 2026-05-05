@@ -120,6 +120,7 @@ export default function ChronicDiseasesPage() {
 
       <div className="mt-6">
         <DataTable
+          key={i18n.language}
           columns={columns}
           data={data?.items ?? []}
           keyExtractor={(item) => item.id}

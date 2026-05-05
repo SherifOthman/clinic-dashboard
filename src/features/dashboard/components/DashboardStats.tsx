@@ -2,6 +2,7 @@ import { StatsCard } from "@/core/components/ui/StatsCard";
 import { useBranches } from "@/features/branches/branchesHooks";
 import { Activity, Calendar, Mail, TrendingUp, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { useBranchTodayAppointments, useDashboardStats } from "../dashboardHooks";
 import { SubscriptionCard } from "./SubscriptionCard";
 
@@ -10,7 +11,8 @@ import { SubscriptionCard } from "./SubscriptionCard";
  * Shows patients, staff, invitations, today's appointments, subscription, and revenue.
  */
 export function DashboardStats() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const { data, isLoading } = useDashboardStats();
   const { data: branches = [] } = useBranches();
   const { data: todayAppts = [], isLoading: apptLoading } = useBranchTodayAppointments(branches[0]?.id);
@@ -24,6 +26,11 @@ export function DashboardStats() {
   })();
 
   const todayCompleted = todayAppts.filter((a) => a.status === "Completed").length;
+
+  // Format "8/30" with Arabic numerals when in Arabic mode
+  const apptValue = apptLoading ? "—" : isRTL
+    ? `${toArabicNumerals(String(todayCompleted))}/${toArabicNumerals(String(todayAppts.length))}`
+    : `${todayCompleted}/${todayAppts.length}`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +59,7 @@ export function DashboardStats() {
         />
         <StatsCard
           title={t("dashboard.appointmentsToday")}
-          value={apptLoading ? "—" : `${todayCompleted}/${todayAppts.length}`}
+          value={apptValue}
           icon={<Calendar className="h-6 w-6" />}
           iconColor="text-accent-soft"
           isLoading={apptLoading}

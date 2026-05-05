@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, UserRound, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import type { AppointmentDto, AppointmentStatus } from "../../appointments/types";
 
 interface AppointmentListRowProps {
@@ -16,14 +17,14 @@ const STATUS_CONFIG: Record<AppointmentStatus, { color: string; icon: React.Reac
   NoShow:     { color: "text-default-400", icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
-/**
- * Single row in TodayAppointmentsList.
- * Shows patient avatar, name, visit type (+ doctor if showDoctor),
- * queue/time slot, and status badge.
- */
 export function AppointmentListRow({ appointment: appt, showDoctor }: AppointmentListRowProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const cfg = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.Pending;
+
+  const slotLabel = appt.type === "Queue"
+    ? `#${isRTL ? toArabicNumerals(String(appt.queueNumber ?? "—")) : (appt.queueNumber ?? "—")}`
+    : (appt.scheduledTime ?? "—");
 
   return (
     <div className="flex items-center gap-3 border-t border-divider px-5 py-3">
@@ -32,19 +33,24 @@ export function AppointmentListRow({ appointment: appt, showDoctor }: Appointmen
         <UserRound className="h-4 w-4 text-accent" />
       </div>
 
-      {/* Name + visit type */}
+      {/* Patient name + visit type + doctor (visually distinct) */}
       <div className="min-w-0 flex-1">
+        {/* Patient name — prominent */}
         <p className="truncate text-sm font-medium">{appt.patientName}</p>
-        <p className="truncate text-xs text-default-400">
+        {/* Visit type — muted */}
+        <p className="truncate text-xs text-muted">
           {appt.visitTypeName}
-          {showDoctor && ` · ${appt.doctorName}`}
+          {/* Doctor name — even more muted, separated */}
+          {showDoctor && appt.doctorName && (
+            <span className="text-default-400"> · {appt.doctorName}</span>
+          )}
         </p>
       </div>
 
       {/* Slot + status */}
       <div className="flex shrink-0 flex-col items-end gap-1">
-        <span className="text-xs font-medium text-default-500">
-          {appt.type === "Queue" ? `#${appt.queueNumber ?? "—"}` : (appt.scheduledTime ?? "—")}
+        <span className="text-xs font-medium text-default-500" dir="ltr">
+          {slotLabel}
         </span>
         <span className={`flex items-center gap-1 text-xs font-medium ${cfg.color}`}>
           {cfg.icon}
