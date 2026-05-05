@@ -6,6 +6,8 @@ import { Button, Chip, Tooltip } from "@heroui/react";
 import { Edit2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import { useBaseTableState } from "@/core/hooks/useTableState";
 import {
   useChronicDiseases, useCreateChronicDisease,
   useUpdateChronicDisease, useDeleteChronicDisease,
@@ -13,27 +15,39 @@ import {
 import type { ChronicDiseaseDto } from "./adminApi";
 import { ReferenceFormDialog } from "./components/ReferenceFormDialog";
 
-const PAGE_SIZE = 10;
-
 export default function ChronicDiseasesPage() {
-  const { t } = useTranslation();
-  const [page, setPage]         = useState(1);
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+
+  // URL-synced pagination (page + pageSize)
+  const { baseState, buildFilterParams, updateParams } = useBaseTableState({ pageSize: 10 });
+  const page     = baseState.pageNumber;
+  const pageSize = baseState.pageSize;
+
   const [editing, setEditing]   = useState<ChronicDiseaseDto | null>(null);
   const [adding, setAdding]     = useState(false);
   const [deleting, setDeleting] = useState<ChronicDiseaseDto | null>(null);
 
-  const { data, isLoading } = useChronicDiseases(page, PAGE_SIZE);
+  const { data, isLoading } = useChronicDiseases(page, pageSize);
   const create = useCreateChronicDisease();
   const update = useUpdateChronicDisease();
   const remove = useDeleteChronicDisease();
+
+  const handlePageChange = (p: number) =>
+    updateParams(buildFilterParams({ pageNumber: p }));
+
+  const handlePageSizeChange = (s: number) =>
+    updateParams(buildFilterParams({ pageSize: s, pageNumber: 1 }));
 
   const handleSave = (form: { nameEn: string; nameAr: string; descriptionEn: string; descriptionAr: string; isActive: boolean }) => {
     if (editing) {
       update.mutate({ id: editing.id, ...form }, { onSuccess: () => setEditing(null) });
     } else {
-      create.mutate(form, { onSuccess: () => { setAdding(false); setPage(1); } });
+      create.mutate(form, { onSuccess: () => { setAdding(false); handlePageChange(1); } });
     }
   };
+
+  const num = (n: number) => isRTL ? toArabicNumerals(String(n)) : String(n);
 
   const columns: Column<ChronicDiseaseDto>[] = [
     {
@@ -96,7 +110,7 @@ export default function ChronicDiseasesPage() {
     <div>
       <PageHeader
         title={t("navigation.adminChronicDiseases")}
-        subtitle={data ? t("admin.chronicDiseases.subtitle", { count: data.totalCount }) : ""}
+        subtitle={data ? t("admin.chronicDiseases.subtitle", { total: num(data.totalCount) }) : ""}
         action={
           <Button variant="primary" size="sm" onPress={() => setAdding(true)}>
             <Plus className="h-4 w-4" /> {t("common.add")}
@@ -116,7 +130,8 @@ export default function ChronicDiseasesPage() {
         <TablePagination
           data={data}
           currentPage={page}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
         />
       </div>
 

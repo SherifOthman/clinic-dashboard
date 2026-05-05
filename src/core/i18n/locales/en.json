@@ -914,8 +914,7 @@
     "status": "Status",
     "deactivateOrDelete": "Deactivate / Delete",
     "specializations": {
-      "subtitle_one": "{{count}} specialization",
-      "subtitle_other": "{{count}} specializations",
+      "subtitle": "{{total}} specializations",
       "empty": "No specializations yet.",
       "editTitle": "Edit Specialization",
       "addTitle": "Add Specialization",
@@ -923,8 +922,7 @@
       "deleteMessage": "Delete \"{{name}}\"? If doctors are assigned to it, deletion will be blocked — deactivate it instead."
     },
     "chronicDiseases": {
-      "subtitle_one": "{{count}} chronic disease",
-      "subtitle_other": "{{count}} chronic diseases",
+      "subtitle": "{{total}} chronic diseases",
       "empty": "No chronic diseases yet.",
       "editTitle": "Edit Chronic Disease",
       "addTitle": "Add Chronic Disease",

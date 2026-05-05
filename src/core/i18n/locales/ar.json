@@ -963,8 +963,7 @@
     "status": "الحالة",
     "deactivateOrDelete": "تعطيل / حذف",
     "specializations": {
-      "subtitle_one": "{{count}} تخصص",
-      "subtitle_other": "{{count}} تخصص",
+      "subtitle": "{{total}} تخصص",
       "empty": "لا توجد تخصصات بعد.",
       "editTitle": "تعديل التخصص",
       "addTitle": "إضافة تخصص",
@@ -972,8 +971,7 @@
       "deleteMessage": "حذف \"{{name}}\"؟ إذا كان هناك أطباء مرتبطون به، سيتم منع الحذف — قم بتعطيله بدلاً من ذلك."
     },
     "chronicDiseases": {
-      "subtitle_one": "{{count}} مرض مزمن",
-      "subtitle_other": "{{count}} مرض مزمن",
+      "subtitle": "{{total}} مرض مزمن",
       "empty": "لا توجد أمراض مزمنة بعد.",
       "editTitle": "تعديل المرض المزمن",
       "addTitle": "إضافة مرض مزمن",

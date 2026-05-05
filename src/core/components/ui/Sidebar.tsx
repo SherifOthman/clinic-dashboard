@@ -8,6 +8,7 @@ import { canAccessRouteWithPermissions } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useContactMessagesUnreadCount } from "@/features/dashboard/dashboardHooks";
 import { isSuperAdmin } from "@/core/utils/permissions";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -25,12 +26,15 @@ function navLinkClass(isActive: boolean, collapsed: boolean): string {
 }
 
 export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const { user } = useMe();
   const { data: unreadMessages = 0 } = useContactMessagesUnreadCount();
 
-  // Only SuperAdmin sees the messages badge
   const showMessagesBadge = isSuperAdmin(user) && unreadMessages > 0;
+  const badgeLabel = unreadMessages > 99
+    ? (isRTL ? "٩٩+" : "99+")
+    : isRTL ? toArabicNumerals(String(unreadMessages)) : String(unreadMessages);
 
   const navigationItems = siteConfig.sidebarItems
     .filter((item) =>
@@ -90,7 +94,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onLinkClick }: SidebarPro
                     <span className="absolute top-1 end-1 h-2 w-2 rounded-full bg-warning" />
                   ) : (
                     <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-bold text-warning">
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
+                      {badgeLabel}
                     </span>
                   )
                 )}

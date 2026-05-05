@@ -1,6 +1,8 @@
 import { Card, Skeleton } from "@heroui/react";
 import { Clock, TrendingDown, TrendingUp } from "lucide-react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 
 interface StatsCardProps {
   title: string;
@@ -21,6 +23,18 @@ export function StatsCard({
   isLoading = false,
   comingSoon = false,
 }: StatsCardProps) {
+  const { i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+
+  // Convert numeric values to Arabic numerals when in Arabic mode
+  const displayValue = isRTL && typeof value === "number"
+    ? toArabicNumerals(String(value))
+    : value;
+
+  const displayTrend = isRTL && trend
+    ? toArabicNumerals(String(Math.abs(trend.value)))
+    : trend ? String(Math.abs(trend.value)) : null;
+
   return (
     <Card>
       <Card.Content className="p-6">
@@ -36,7 +50,7 @@ export function StatsCard({
                 <span className="text-sm font-medium">{value}</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold">{value}</p>
+              <p className="text-3xl font-bold">{displayValue}</p>
             )}
 
             {trend && !comingSoon && !isLoading && (
@@ -51,7 +65,7 @@ export function StatsCard({
                   <TrendingDown className="h-4 w-4" />
                 )}
                 <span className="text-sm font-medium">
-                  {Math.abs(trend.value)}%
+                  {displayTrend}%
                 </span>
               </div>
             )}
