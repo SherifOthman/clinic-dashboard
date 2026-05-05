@@ -1,31 +1,29 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
+import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { Eye, EyeOff, Star } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAllTestimonials, useToggleTestimonial } from "./dashboardHooks";
 import type { AdminTestimonialDto } from "./dashboardApi";
-import { Pagination } from "@heroui/react";
-
-const PAGE_SIZE = 12;
 
 export default function ReviewsPage() {
   const { t } = useTranslation();
-  const { data: reviews = [], isLoading } = useAllTestimonials();
-  const toggle = useToggleTestimonial();
   const [page, setPage] = useState(1);
+  const { data, isLoading } = useAllTestimonials(page);
+  const toggle = useToggleTestimonial();
 
+  const reviews = data?.items ?? [];
   const published = reviews.filter((r) => r.isApproved).length;
   const hidden    = reviews.filter((r) => !r.isApproved).length;
-
-  const totalPages = Math.ceil(reviews.length / PAGE_SIZE);
-  const paged = reviews.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
       <PageHeader
         title={t("navigation.reviews")}
-        subtitle={`${published} published · ${hidden} hidden`}
+        subtitle={data
+          ? `${data.totalCount} total · ${published} published · ${hidden} hidden on this page`
+          : ""}
       />
 
       {isLoading ? null : reviews.length === 0 ? (
@@ -36,7 +34,7 @@ export default function ReviewsPage() {
       ) : (
         <>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {paged.map((r) => (
+            {reviews.map((r) => (
               <ReviewCard
                 key={r.id}
                 review={r}
@@ -46,17 +44,11 @@ export default function ReviewsPage() {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-center">
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={setPage}
-                color="accent"
-                showControls
-              />
-            </div>
-          )}
+          <TablePagination
+            data={data}
+            currentPage={page}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

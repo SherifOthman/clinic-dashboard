@@ -48,11 +48,12 @@ export function useContactMessages(page = 1) {
   });
 }
 
-export function useAllTestimonials() {
+export function useAllTestimonials(page = 1) {
   return useQuery({
-    queryKey: ["testimonials", "all"],
-    queryFn: () => dashboardApi.getAllTestimonials(),
+    queryKey: ["testimonials", "all", page],
+    queryFn: () => dashboardApi.getAllTestimonials(page),
     staleTime: 30 * 1000,
+    placeholderData: (prev) => prev,
   });
 }
 
