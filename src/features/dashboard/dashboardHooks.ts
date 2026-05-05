@@ -50,7 +50,7 @@ export function useContactMessages(page = 1) {
 
 export function useAllTestimonials(page = 1) {
   return useQuery({
-    queryKey: ["testimonials", "all", page],
+    queryKey: ["testimonials", "all", "paged", page],
     queryFn: () => dashboardApi.getAllTestimonials(page),
     staleTime: 30 * 1000,
     placeholderData: (prev) => prev,
@@ -61,7 +61,7 @@ export function useToggleTestimonial() {
   return useMutationWithToast<void, string>({
     mutationFn: (id) => dashboardApi.toggleTestimonial(id),
     successMessage: "toast.testimonialToggled",
-    invalidateKeys: [["testimonials", "all"]],
+    invalidateKeys: [["testimonials", "all", "paged"]],
   });
 }
 

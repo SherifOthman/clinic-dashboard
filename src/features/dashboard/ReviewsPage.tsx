@@ -21,7 +21,7 @@ export default function ReviewsPage() {
     <div>
       <PageHeader
         title={t("navigation.reviews")}
-        subtitle={data
+        subtitle={data?.totalCount != null
           ? `${data.totalCount} total · ${published} published · ${hidden} hidden on this page`
           : ""}
       />
