@@ -343,16 +343,16 @@
     "slotBooked": "هذا الوقت محجوز بالفعل",
     "bookedSlots": "الأوقات المحجوزة",
     "statuses": {
-      "Pending": "في الانتظار",
-      "Waiting": "في غرفة الانتظار",
+      "Pending": "بانتظار الحضور",
+      "Waiting": "حضر — ينتظر الدور",
       "InProgress": "قيد الفحص",
       "Completed": "تمّت الاستشارة",
       "Cancelled": "ملغي",
       "NoShow": "لم يحضر"
     },
     "status": {
-      "pending": "في الانتظار",
-      "waiting": "في غرفة الانتظار",
+      "pending": "بانتظار الحضور",
+      "waiting": "حضر — ينتظر الدور",
       "inprogress": "قيد الفحص",
       "completed": "تمّت الاستشارة",
       "cancelled": "ملغي",

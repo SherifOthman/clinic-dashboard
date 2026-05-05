@@ -1,9 +1,8 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
 import { Button, Input } from "@heroui/react";
-import { Search } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useBranches } from "../branches/branchesHooks";
 import { PatientDetailDialog } from "@/features/patients/components/PatientDetailDialog";
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
@@ -12,23 +11,44 @@ import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
 import { getMultiGridClass, resolveViewMode } from "./viewMode";
 import type { AppointmentDto, ViewMode } from "./types";
+import { useState } from "react";
+
+// ── URL param helpers ─────────────────────────────────────────────────────────
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [dateStr, setDateStr] = useState<string>(() => {
-    const d = new Date();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day   = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${month}-${day}`;
-  });
-  const [branchId, setBranchId]               = useState<string | undefined>();
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
-  const [manualViewMode, setManualViewMode]     = useState<ViewMode | null>(null);
-  const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
+  // ── URL-synced state ───────────────────────────────────────────────────────
+  const dateStr         = searchParams.get("date")   ?? todayStr();
+  const selectedDoctorId = searchParams.get("doctor") ?? undefined;
+  const manualViewMode  = (searchParams.get("view") as ViewMode | null) ?? null;
+  const searchTerm      = searchParams.get("q")      ?? "";
+
+  const setParam = (key: string, value: string | null) => {
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (!value) p.delete(key);
+      else p.set(key, value);
+      return p;
+    }, { replace: true });
+  };
+
+  const setDateStr         = (v: string)          => setParam("date",   v === todayStr() ? null : v);
+  const setSelectedDoctorId = (v: string | undefined) => setParam("doctor", v ?? null);
+  const setManualViewMode  = (v: ViewMode | null)  => setParam("view",   v ?? null);
+  const setSearchTerm      = (v: string)           => setParam("q",      v || null);
+
+  // ── Local-only state (dialogs) ─────────────────────────────────────────────
+  const [branchId, setBranchId]                     = useState<string | undefined>();
+  const [preselectedDoctor, setPreselectedDoctor]   = useState<string | undefined>();
   const [editingAppointment, setEditingAppointment] = useState<AppointmentDto | null>(null);
-  const [viewPatientId, setViewPatientId]       = useState<string | null>(null);
-  const [searchTerm, setSearchTerm]             = useState("");
+  const [viewPatientId, setViewPatientId]           = useState<string | null>(null);
 
   const createDialog = useDialogState();
 
@@ -54,7 +74,6 @@ export default function AppointmentsPage() {
 
   const isLoading = doctorsLoading || apptLoading;
 
-  // In multi mode, hide doctors with no appointments
   const displayDoctors = (!isLoading && viewMode === "multi")
     ? visibleDoctors.filter((d) => appointments.some((a) => a.doctorInfoId === d.doctorInfoId))
     : visibleDoctors;
@@ -69,7 +88,6 @@ export default function AppointmentsPage() {
     setSelectedDoctorId(undefined);
   };
 
-  // "View All" from multi mode — switch to single mode for that doctor
   const handleViewAll = (doctorInfoId: string) => {
     setSelectedDoctorId(doctorInfoId);
     setManualViewMode("single");
@@ -102,8 +120,8 @@ export default function AppointmentsPage() {
         onResetViewMode={() => setManualViewMode(null)}
       />
 
-      {/* Search bar — always visible */}
-      <div className="mb-4">
+      {/* Search bar — compact width */}
+      <div className="mb-4 max-w-sm">
         <Input
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
