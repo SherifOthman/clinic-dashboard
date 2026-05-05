@@ -22,9 +22,19 @@ export default function ReviewsPage() {
 
   const num = (n: number) => isRTL ? toArabicNumerals(String(n)) : String(n);
 
-  const subtitle = data?.totalCount != null
-    ? t("reviews.subtitle", { total: num(totalCount), published: num(published), hidden: num(hidden) })
-    : "";
+  // Colored subtitle — each number gets its own color
+  const subtitle = data?.totalCount != null ? (
+    <span className="flex flex-wrap items-center gap-1 text-sm text-muted">
+      <span className="font-semibold text-accent">{num(totalCount)}</span>
+      <span>{t("reviews.subtitleTotal")}</span>
+      <span className="mx-1 text-border">·</span>
+      <span className="font-semibold text-success">{num(published)}</span>
+      <span>{t("reviews.subtitlePublished")}</span>
+      <span className="mx-1 text-border">·</span>
+      <span className="font-semibold text-muted">{num(hidden)}</span>
+      <span>{t("reviews.subtitleHidden")}</span>
+    </span>
+  ) : undefined;
 
   return (
     <div>

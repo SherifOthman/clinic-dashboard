@@ -5,13 +5,15 @@ import { Mail, Phone, Building2, Clock, Circle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { useContactMessages, useContactMessagesUnreadCount } from "./dashboardHooks";
 import { dashboardApi } from "./dashboardApi";
 import type { ContactMessageDto } from "./dashboardApi";
 import type { PagedResult } from "@/core/types";
 
 export default function MessagesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const [page, setPage] = useState(1);
   const { data, isLoading } = useContactMessages(page);
   const { data: unreadCount = 0 } = useContactMessagesUnreadCount();
@@ -87,7 +89,7 @@ export default function MessagesPage() {
               <div className="flex items-center gap-2 border-b border-border px-3 py-2 bg-warning/5">
                 <Circle className="h-2 w-2 fill-warning text-warning" />
                 <span className="text-xs font-medium text-warning">
-                  {unreadInPage} {t("dashboard.messages.unreadOnPage")}
+                  {isRTL ? toArabicNumerals(String(unreadInPage)) : unreadInPage} {t("dashboard.messages.unreadOnPage")}
                 </span>
               </div>
             )}
@@ -104,7 +106,7 @@ export default function MessagesPage() {
             </div>
 
             {data && data.totalPages > 1 && (
-              <div className="border-t border-border px-3">
+              <div className="border-t border-border px-4 py-1">
                 <TablePagination
                   data={data}
                   currentPage={page}

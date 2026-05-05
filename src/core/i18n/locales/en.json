@@ -936,7 +936,10 @@
     "hidden": "Hidden",
     "publish": "Publish",
     "hide": "Hide",
-    "subtitle": "{{total}} total · {{published}} published · {{hidden}} hidden on this page"
+    "subtitle": "{{total}} total · {{published}} published · {{hidden}} hidden on this page",
+    "subtitleTotal": "total",
+    "subtitlePublished": "published",
+    "subtitleHidden": "hidden on this page"
   },
   "messages": {
     "replyViaEmail": "Reply via Email",

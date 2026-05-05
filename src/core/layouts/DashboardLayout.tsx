@@ -45,7 +45,7 @@ export function DashboardLayout() {
           onMenuToggle={() => setMobileMenuOpen((open) => !open)}
         />
 
-        <main className="flex-1 overflow-auto p-4 pb-10 lg:p-6 lg:pb-12">
+        <main className="flex-1 overflow-auto p-4 pb-10 lg:p-8 lg:pb-14">
           <Outlet />
         </main>
       </div>

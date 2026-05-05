@@ -985,7 +985,10 @@
     "hidden": "مخفي",
     "publish": "نشر",
     "hide": "إخفاء",
-    "subtitle": "{{total}} إجمالي · {{published}} منشور · {{hidden}} مخفي في هذه الصفحة"
+    "subtitle": "{{total}} إجمالي · {{published}} منشور · {{hidden}} مخفي في هذه الصفحة",
+    "subtitleTotal": "إجمالي",
+    "subtitlePublished": "منشور",
+    "subtitleHidden": "مخفي في هذه الصفحة"
   },
   "messages": {
     "replyViaEmail": "الرد عبر البريد الإلكتروني",
