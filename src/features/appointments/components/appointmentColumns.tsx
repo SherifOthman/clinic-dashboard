@@ -1,13 +1,23 @@
-import { Chip, Tooltip } from "@heroui/react";
-import { Button } from "@heroui/react";
+import { Button, Chip, Dropdown, Label, Separator, Tooltip } from "@heroui/react";
 import type { TFunction } from "i18next";
-import { CheckCircle, Clock, UserCheck, XCircle } from "lucide-react";
+import {
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  CheckCircle,
+  Clock,
+  MoreHorizontal,
+  Pencil,
+  User,
+  UserCheck,
+  XCircle,
+} from "lucide-react";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
 import type { AppointmentDto, AppointmentStatus } from "../types";
-import type { ViewMode } from "../viewMode";
-import { getVisibleColumns, QUEUE_COLUMNS, TIME_COLUMNS } from "../viewMode";
 
-const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "success" | "danger" | "default"> = {
+// ── Status colour map ─────────────────────────────────────────────────────────
+
+export const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "success" | "danger" | "default"> = {
   Pending:    "default",
   Waiting:    "warning",
   InProgress: "accent",
@@ -16,222 +26,178 @@ const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "success" |
   NoShow:     "default",
 };
 
-interface RenderOptions {
-  t: TFunction;
-  isAr: boolean;
-  viewMode: ViewMode;
-  onStatusChange: (id: string, status: string) => void;
-  isPending: boolean;
-  isQueue: boolean;
-}
+// ── Compact time/queue cell ───────────────────────────────────────────────────
 
-/** Renders a single appointment row — adapts columns based on viewMode */
-export function AppointmentRow({
-  appt,
-  t,
-  isAr,
-  viewMode,
-  onStatusChange,
-  isPending,
-  isQueue,
-  expanded,
-  onToggleExpand,
-}: RenderOptions & {
-  appt: AppointmentDto;
-  expanded: boolean;
-  onToggleExpand: () => void;
-}) {
-  const columns = isQueue ? QUEUE_COLUMNS : TIME_COLUMNS;
-  const visible = getVisibleColumns(columns, viewMode);
-  const hidden  = columns.filter(
-    (c) => c.key !== "actions" && !visible.some((v) => v.key === c.key)
-  );
-  const hasHidden = hidden.length > 0;
-
-  return (
-    <>
-      <tr
-        className={`border-b border-border/40 transition-colors hover:bg-surface-secondary/40 ${
-          expanded ? "bg-surface-secondary/30" : ""
-        }`}
-      >
-        {visible.map((col) => (
-          <td key={col.key} className="px-3 py-2.5 text-sm">
-            {renderCell(col.key, appt, t, isAr, onStatusChange, isPending, hasHidden, expanded, onToggleExpand)}
-          </td>
-        ))}
-      </tr>
-
-      {/* Expandable row — shows hidden columns */}
-      {expanded && hasHidden && (
-        <tr className="border-b border-border/40 bg-surface-secondary/20">
-          <td colSpan={visible.length} className="px-4 pb-3 pt-1">
-            <div className="flex flex-wrap gap-4 text-xs">
-              {hidden.map((col) => (
-                <div key={col.key} className="flex items-center gap-1.5">
-                  <span className="text-muted">{t(col.label)}:</span>
-                  <span className="font-medium">
-                    {renderHiddenValue(col.key, appt, t)}
-                  </span>
-                </div>
-              ))}
-              {/* Actions in expanded row */}
-              <div className="ms-auto flex gap-1">
-                {renderActions(appt, t, onStatusChange, isPending)}
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
-  );
-}
-
-function renderCell(
-  key: string,
-  a: AppointmentDto,
-  t: TFunction,
-  isAr: boolean,
-  onStatusChange: (id: string, status: string) => void,
-  isPending: boolean,
-  hasHidden: boolean,
-  expanded: boolean,
-  onToggleExpand: () => void,
-) {
+export function SlotCell({ a, isAr }: { a: AppointmentDto; isAr: boolean }) {
   const num = (v: string | number) => isAr ? toArabicNumerals(String(v)) : String(v);
 
-  switch (key) {
-    case "queue":
-      return <span className="text-base font-bold text-accent tabular-nums">{num(a.queueNumber ?? "")}</span>;
-
-    case "time":
-      return (
-        <span className="font-bold text-accent tabular-nums" dir="ltr">
-          {a.scheduledTime ?? "—"}
-          {a.endTime && (
-            <span className="text-xs text-muted font-normal"> – {a.endTime}</span>
-          )}
-        </span>
-      );
-
-    case "patient":
-      return (
-        <button
-          type="button"
-          onClick={hasHidden ? onToggleExpand : undefined}
-          className={`text-start ${hasHidden ? "cursor-pointer" : ""}`}
-        >
-          <div className="font-medium leading-tight">
-            {a.patientName}
-            {hasHidden && (
-              <span className="ms-1 text-muted text-xs">{expanded ? "▲" : "▼"}</span>
-            )}
-          </div>
-          {a.patientCode && <div className="text-xs text-muted">{a.patientCode}</div>}
-        </button>
-      );
-
-    case "visitType":
-      return <span className="text-muted">{a.visitTypeName}</span>;
-
-    case "price":
-      return <span className="tabular-nums text-muted">${a.finalPrice.toFixed(0)}</span>;
-
-    case "status":
-      return (
-        <Chip size="sm" variant="soft" color={STATUS_COLOR[a.status]}>
-          {t(`appointments.statuses.${a.status}`)}
-        </Chip>
-      );
-
-    case "actions":
-      // In multi mode with hidden columns, actions are in the expanded row
-      if (hasHidden) return null;
-      return <div className="flex gap-1">{renderActions(a, t, onStatusChange, isPending)}</div>;
-
-    default:
-      return null;
-  }
-}
-
-function renderHiddenValue(key: string, a: AppointmentDto, t: TFunction): React.ReactNode {
-  switch (key) {
-    case "visitType": return a.visitTypeName;
-    case "price":     return `$${a.finalPrice.toFixed(0)}`;
-    case "status":    return (
-      <Chip size="sm" variant="soft" color={STATUS_COLOR[a.status]}>
-        {t(`appointments.statuses.${a.status}`)}
-      </Chip>
+  if (a.type === "Queue") {
+    return (
+      <span className="text-sm font-bold text-accent tabular-nums whitespace-nowrap">
+        #{num(a.queueNumber ?? "—")}
+      </span>
     );
-    default: return "—";
   }
+
+  return (
+    <span className="text-sm font-bold text-accent tabular-nums whitespace-nowrap" dir="ltr">
+      {a.scheduledTime ?? "—"}
+      {a.endTime && <span className="text-xs text-muted font-normal"> – {a.endTime}</span>}
+    </span>
+  );
 }
 
-export function renderActions(
-  a: AppointmentDto,
-  t: TFunction,
-  onStatusChange: (id: string, status: string) => void,
-  isPending: boolean,
-) {
+// ── Patient cell — name + code + age, no avatar ───────────────────────────────
+
+export function PatientCell({
+  a,
+  isAr,
+  onViewPatient,
+}: {
+  a: AppointmentDto;
+  isAr: boolean;
+  onViewPatient?: (id: string) => void;
+}) {
+  const age = a.patientDateOfBirth
+    ? formatDetailedAge(calculateDetailedAge(a.patientDateOfBirth), isAr)
+    : null;
+
   return (
-    <>
-      {/* Queue: Pending → InProgress directly (no check-in, no waiting) */}
-      {a.status === "Pending" && a.type === "Queue" && (
-        <Tooltip delay={300}>
-          <Tooltip.Trigger>
-            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-              onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
-              <Clock className="h-4 w-4 text-accent" />
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
-        </Tooltip>
+    <button
+      type="button"
+      onClick={() => onViewPatient?.(a.patientId)}
+      className="text-start hover:underline focus:outline-none focus:underline"
+    >
+      {/* Unpaid badge */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm font-medium leading-tight">{a.patientName}</span>
+        {!a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow" && (
+          <Tooltip delay={300}>
+            <Tooltip.Trigger>
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning/20 text-warning">
+                <BanknoteArrowDown className="h-2.5 w-2.5" />
+              </span>
+            </Tooltip.Trigger>
+            <Tooltip.Content><p>Unpaid</p></Tooltip.Content>
+          </Tooltip>
+        )}
+      </div>
+      {/* Code + age on same line, muted */}
+      {(a.patientCode || age) && (
+        <div className="flex items-center gap-1 text-xs text-muted" dir={isAr ? "rtl" : "ltr"}>
+          {a.patientCode && <span>{a.patientCode}</span>}
+          {a.patientCode && age && <span>·</span>}
+          {age && <span>{age}</span>}
+        </div>
       )}
-      {/* Time-based: Pending → Waiting (arrived) → InProgress (started) */}
-      {a.status === "Pending" && a.type === "Time" && (
-        <Tooltip delay={300}>
-          <Tooltip.Trigger>
-            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-              onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
-              <UserCheck className="h-4 w-4 text-warning" />
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content><p>{t("appointments.markWaiting")}</p></Tooltip.Content>
-        </Tooltip>
-      )}
-      {a.status === "Waiting" && (
-        <Tooltip delay={300}>
-          <Tooltip.Trigger>
-            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-              onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
-              <Clock className="h-4 w-4 text-accent" />
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
-        </Tooltip>
-      )}
-      {a.status === "InProgress" && (
-        <Tooltip delay={300}>
-          <Tooltip.Trigger>
-            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-              onPress={() => onStatusChange(a.id, "Completed")} aria-label={t("appointments.complete")}>
-              <CheckCircle className="h-4 w-4 text-success" />
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content><p>{t("appointments.complete")}</p></Tooltip.Content>
-        </Tooltip>
-      )}
-      {(a.status === "Pending" || a.status === "Waiting" || a.status === "InProgress") && (
-        <Tooltip delay={300}>
-          <Tooltip.Trigger>
-            <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-              onPress={() => onStatusChange(a.id, "Cancelled")} aria-label={t("appointments.cancel")}>
-              <XCircle className="h-4 w-4 text-danger" />
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content><p>{t("appointments.cancel")}</p></Tooltip.Content>
-        </Tooltip>
-      )}
-    </>
+    </button>
+  );
+}
+
+// ── Actions dropdown ──────────────────────────────────────────────────────────
+
+interface ActionsDropdownProps {
+  a: AppointmentDto;
+  t: TFunction;
+  onStatusChange: (id: string, status: string) => void;
+  onMarkPaid: (id: string) => void;
+  onRefund: (id: string) => void;
+  onViewPatient?: (id: string) => void;
+  onEdit?: (a: AppointmentDto) => void;
+  isPending: boolean;
+}
+
+export function ActionsDropdown({
+  a, t, onStatusChange, onMarkPaid, onRefund, onViewPatient, onEdit, isPending,
+}: ActionsDropdownProps) {
+  const isActive = !["Completed", "Cancelled", "NoShow"].includes(a.status);
+
+  const handleAction = (key: React.Key) => {
+    switch (key) {
+      case "view-patient":  onViewPatient?.(a.patientId); break;
+      case "edit":          onEdit?.(a); break;
+      case "waiting":       onStatusChange(a.id, "Waiting"); break;
+      case "in-progress":   onStatusChange(a.id, "InProgress"); break;
+      case "complete":      onStatusChange(a.id, "Completed"); break;
+      case "cancel":        onStatusChange(a.id, "Cancelled"); break;
+      case "paid":          onMarkPaid(a.id); break;
+      case "refund":        onRefund(a.id); break;
+    }
+  };
+
+  return (
+    <Dropdown>
+      <Dropdown.Trigger>
+        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending} aria-label="Actions">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </Dropdown.Trigger>
+      <Dropdown.Popover placement="bottom end">
+        <Dropdown.Menu onAction={handleAction}>
+
+          {/* ── Patient & appointment ── */}
+          <Dropdown.Section>
+            <Dropdown.Item id="view-patient" textValue={t("appointments.viewPatient")}>
+              <User className="h-3.5 w-3.5 shrink-0 text-muted" />
+              <Label>{t("appointments.viewPatient")}</Label>
+            </Dropdown.Item>
+            {onEdit && isActive && (
+              <Dropdown.Item id="edit" textValue={t("appointments.editAppointment")}>
+                <Pencil className="h-3.5 w-3.5 shrink-0 text-muted" />
+                <Label>{t("appointments.editAppointment")}</Label>
+              </Dropdown.Item>
+            )}
+          </Dropdown.Section>
+
+          {/* ── Status transitions ── */}
+          {isActive && (
+            <>
+              <Separator />
+              <Dropdown.Section>
+                {a.status === "Pending" && a.type === "Time" && (
+                  <Dropdown.Item id="waiting" textValue={t("appointments.markWaiting")}>
+                    <UserCheck className="h-3.5 w-3.5 shrink-0 text-warning" />
+                    <Label>{t("appointments.markWaiting")}</Label>
+                  </Dropdown.Item>
+                )}
+                {(a.status === "Pending" || a.status === "Waiting") && (
+                  <Dropdown.Item id="in-progress" textValue={t("appointments.start")}>
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    <Label>{t("appointments.start")}</Label>
+                  </Dropdown.Item>
+                )}
+                {a.status === "InProgress" && (
+                  <Dropdown.Item id="complete" textValue={t("appointments.complete")}>
+                    <CheckCircle className="h-3.5 w-3.5 shrink-0 text-success" />
+                    <Label>{t("appointments.complete")}</Label>
+                  </Dropdown.Item>
+                )}
+                <Dropdown.Item id="cancel" textValue={t("appointments.cancel")} variant="danger">
+                  <XCircle className="h-3.5 w-3.5 shrink-0 text-danger" />
+                  <Label>{t("appointments.cancel")}</Label>
+                </Dropdown.Item>
+              </Dropdown.Section>
+            </>
+          )}
+
+          {/* ── Payment ── */}
+          <Separator />
+          <Dropdown.Section>
+            {!a.invoiceId ? (
+              <Dropdown.Item id="paid" textValue={t("appointments.markPaid")}>
+                <BanknoteArrowUp className="h-3.5 w-3.5 shrink-0 text-success" />
+                <Label>{t("appointments.markPaid")}</Label>
+              </Dropdown.Item>
+            ) : (
+              <Dropdown.Item id="refund" textValue={t("appointments.refund")} variant="danger">
+                <BanknoteArrowDown className="h-3.5 w-3.5 shrink-0 text-danger" />
+                <Label>{t("appointments.refund")}</Label>
+              </Dropdown.Item>
+            )}
+          </Dropdown.Section>
+
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
   );
 }

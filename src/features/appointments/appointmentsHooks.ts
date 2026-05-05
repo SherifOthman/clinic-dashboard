@@ -8,8 +8,8 @@ import { appointmentsApi } from "./appointmentsApi";
 export function useAppointments(date: string, branchId?: string | null, doctorInfoIds?: string[]) {
   return useQuery({
     queryKey: ["appointments", date, branchId, doctorInfoIds ?? []],
-    queryFn: () => appointmentsApi.getAppointments(date, branchId ?? undefined, doctorInfoIds),
-    staleTime: 30_000,
+    queryFn:  () => appointmentsApi.getAppointments(date, branchId ?? undefined, doctorInfoIds),
+    staleTime:       30_000,
     refetchInterval: 60_000,
     enabled: !!branchId,
   });
@@ -18,15 +18,15 @@ export function useAppointments(date: string, branchId?: string | null, doctorIn
 export function useDoctorsForBranch(branchId: string | null) {
   return useQuery({
     queryKey: ["appointments", "doctors", branchId],
-    queryFn: () => appointmentsApi.getDoctors(branchId!),
-    enabled: !!branchId,
+    queryFn:  () => appointmentsApi.getDoctors(branchId!),
+    enabled:  !!branchId,
     staleTime: 5 * 60_000,
   });
 }
 
 export function useCreateAppointment() {
   return useMutationWithToast<string, Parameters<typeof appointmentsApi.create>[0]>({
-    mutationFn: appointmentsApi.create,
+    mutationFn:    appointmentsApi.create,
     successMessage: "toast.appointmentCreated",
     invalidateKeys: [["appointments"]],
   });
@@ -34,7 +34,7 @@ export function useCreateAppointment() {
 
 export function useUpdateAppointmentStatus() {
   return useMutationWithToast<void, { id: string; status: string }>({
-    mutationFn: ({ id, status }) => appointmentsApi.updateStatus(id, status),
+    mutationFn:    ({ id, status }) => appointmentsApi.updateStatus(id, status),
     successMessage: "toast.appointmentStatusUpdated",
     invalidateKeys: [["appointments"]],
   });
@@ -42,7 +42,7 @@ export function useUpdateAppointmentStatus() {
 
 export function useSetAppointmentType() {
   return useMutationWithToast<void, { memberId: string; branchId: string; type: string }>({
-    mutationFn: ({ memberId, branchId, type }) => appointmentsApi.setAppointmentType(memberId, branchId, type),
+    mutationFn:    ({ memberId, branchId, type }) => appointmentsApi.setAppointmentType(memberId, branchId, type),
     successMessage: "toast.appointmentTypeUpdated",
     invalidateKeys: [["appointments", "doctors"], ["staff"]],
   });
@@ -58,21 +58,34 @@ export function useDoctorCheckIn() {
       appointmentsApi.checkIn(doctorInfoId, branchId),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      if (!result.isLate) {
-        showSuccess("toast.checkedIn");
-      }
+      if (!result.isLate) showSuccess("toast.checkedIn");
     },
-    onError: (err: any) => {
-      // ALREADY_EXISTS = session already open — not a real error, suppress toast
-      if (err?.code === "ALREADY_EXISTS") return;
-      showError(getErrorMessage(err, t));
+    onError: (err: unknown) => {
+      if ((err as any)?.code === "ALREADY_EXISTS") return;
+      showError(getErrorMessage(err as Error, t));
     },
+  });
+}
+
+export function useMarkAppointmentPaid() {
+  return useMutationWithToast<void, string>({
+    mutationFn:    appointmentsApi.markPaid,
+    successMessage: "toast.appointmentPaid",
+    invalidateKeys: [["appointments"]],
+  });
+}
+
+export function useRefundAppointment() {
+  return useMutationWithToast<void, string>({
+    mutationFn:    appointmentsApi.refund,
+    successMessage: "toast.appointmentRefunded",
+    invalidateKeys: [["appointments"]],
   });
 }
 
 export function useHandleDelay() {
   return useMutationWithToast<void, { sessionId: string; option: "AutoShift" | "MarkMissed" | "Manual" }>({
-    mutationFn: ({ sessionId, option }) => appointmentsApi.handleDelay(sessionId, option),
+    mutationFn:    ({ sessionId, option }) => appointmentsApi.handleDelay(sessionId, option),
     successMessage: "toast.appointmentStatusUpdated",
     invalidateKeys: [["appointments"]],
   });

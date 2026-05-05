@@ -20,6 +20,12 @@ export const appointmentsApi = {
   updateStatus: (id: string, status: string): Promise<void> =>
     apiClient.patch(`${BASE}/${id}/status`, { status }),
 
+  markPaid: (id: string): Promise<void> =>
+    apiClient.patch(`${BASE}/${id}/paid`),
+
+  refund: (id: string): Promise<void> =>
+    apiClient.patch(`${BASE}/${id}/refund`),
+
   setAppointmentType: (memberId: string, branchId: string, appointmentType: string): Promise<void> =>
     apiClient.patch(`${BASE}/doctors/${memberId}/appointment-type`, { appointmentType, branchId }),
 

@@ -29,6 +29,7 @@ interface CreateAppointmentDialogProps {
   branchId: string;
   doctors: DoctorForBranch[];
   preselectedDoctorInfoId?: string;
+  editingAppointment?: import("../types").AppointmentDto | null;
 }
 
 export function CreateAppointmentDialog({
@@ -37,6 +38,7 @@ export function CreateAppointmentDialog({
   branchId: initialBranchId,
   doctors: initialDoctors,
   preselectedDoctorInfoId,
+  editingAppointment,
 }: CreateAppointmentDialogProps) {
   const { t } = useTranslation();
   const createAppointment = useCreateAppointment();
@@ -64,16 +66,18 @@ export function CreateAppointmentDialog({
   useEffect(() => {
     if (isOpen) {
       setSelectedBranchId(initialBranchId);
-      setDoctorInfoId(preselectedDoctorInfoId ?? doctors[0]?.doctorInfoId ?? "");
-      setPatientId("");
-      setPatientName("");
+      setDoctorInfoId(editingAppointment?.doctorInfoId ?? preselectedDoctorInfoId ?? doctors[0]?.doctorInfoId ?? "");
+      setPatientId(editingAppointment?.patientId ?? "");
+      setPatientName(editingAppointment?.patientName ?? "");
       setVisitTypeId("");
       setDate(today(getLocalTimeZone()));
-      setTimeValue(null);
+      setTimeValue(editingAppointment?.scheduledTime
+        ? parseTime(editingAppointment.scheduledTime + ":00")
+        : null);
       setDiscountPercent("");
-      setDurationOverride("");
+      setDurationOverride(editingAppointment?.visitDurationMinutes ? String(editingAppointment.visitDurationMinutes) : "");
     }
-  }, [isOpen, preselectedDoctorInfoId, initialDoctors]);
+  }, [isOpen, preselectedDoctorInfoId, initialDoctors, editingAppointment]);
 
   const selectedDoctor = doctors.find((d) => d.doctorInfoId === doctorInfoId);
   const isQueue = selectedDoctor?.appointmentType === "Queue";

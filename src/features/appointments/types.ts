@@ -1,12 +1,6 @@
-export type AppointmentType = "Queue" | "Time";
+export type AppointmentType   = "Queue" | "Time";
 export type AppointmentStatus = "Pending" | "Waiting" | "InProgress" | "Completed" | "Cancelled" | "NoShow";
-
-/**
- * ViewMode drives column visibility and layout:
- * - single:  1 doctor  → full table, all columns
- * - multi:   2–4 docs  → side-by-side cards, priority-1 columns only
- */
-export type ViewMode = "single" | "multi";
+export type ViewMode          = "single" | "multi";
 
 export interface AppointmentDto {
   id: string;
@@ -16,16 +10,17 @@ export interface AppointmentDto {
   patientName: string;
   patientCode?: string;
   queueNumber?: number;
-  scheduledTime?: string;   // "HH:mm"
-  endTime?: string;         // "HH:mm"
+  scheduledTime?: string;       // "HH:mm"
+  endTime?: string;             // "HH:mm"
   visitDurationMinutes?: number;
   type: AppointmentType;
   status: AppointmentStatus;
-  visitTypeName: string;    // single name — no bilingual split
+  visitTypeName: string;
   finalPrice: number;
   createdAt: string;
   patientGender?: string;
   patientDateOfBirth?: string;  // "YYYY-MM-DD"
+  invoiceId?: string | null;    // non-null = paid/invoiced
 }
 
 export interface DoctorForBranch {

@@ -10,7 +10,7 @@ import { AppointmentsToolbar } from "./components/AppointmentsToolbar";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
 import { getMultiGridClass, resolveViewMode } from "./viewMode";
-import type { ViewMode } from "./types";
+import type { AppointmentDto, ViewMode } from "./types";
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
@@ -25,6 +25,7 @@ export default function AppointmentsPage() {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>();
   const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
   const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentDto | null>(null);
   const [viewPatientId, setViewPatientId] = useState<string | null>(null);
 
   const createDialog = useDialogState();
@@ -114,6 +115,7 @@ export default function AppointmentsPage() {
               isLoading={isLoading}
               viewMode={viewMode}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
+              onEditAppointment={(a) => setEditingAppointment(a)}
               onViewPatient={(patientId) => setViewPatientId(patientId)}
               branchId={activeBranchId ?? undefined}
             />
@@ -128,6 +130,18 @@ export default function AppointmentsPage() {
           branchId={activeBranchId}
           doctors={doctors}
           preselectedDoctorInfoId={preselectedDoctor}
+        />
+      )}
+
+      {/* Edit appointment dialog — reuses CreateAppointmentDialog with prefilled data */}
+      {activeBranchId && editingAppointment && (
+        <CreateAppointmentDialog
+          isOpen
+          onClose={() => setEditingAppointment(null)}
+          branchId={activeBranchId}
+          doctors={doctors}
+          preselectedDoctorInfoId={editingAppointment.doctorInfoId}
+          editingAppointment={editingAppointment}
         />
       )}
 

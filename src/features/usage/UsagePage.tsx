@@ -3,6 +3,7 @@ import { Clock, Users, Calendar, FileText, UserCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { useUsageMetrics } from "@/features/dashboard/dashboardHooks";
 import type { UsageLimitDto } from "@/features/dashboard/dashboardApi";
 
@@ -84,7 +85,10 @@ function UsageLimitCard({
   limit: UsageLimitDto;
   icon: React.ReactNode;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+  const num = (n: number) => isRTL ? toArabicNumerals(String(n)) : String(n);
+
   const isUnlimited = limit.max <= 0;
   const percent = isUnlimited ? 0 : Math.min(Math.round((limit.used / limit.max) * 100), 100);
   const color = percent >= 95 ? "danger" : percent >= 80 ? "warning" : "accent";
@@ -101,14 +105,14 @@ function UsageLimitCard({
             <p className="text-sm text-default-500 mb-1">{label}</p>
             {isUnlimited ? (
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold">{limit.used}</span>
+                <span className="text-2xl font-bold">{num(limit.used)}</span>
                 <span className="text-sm text-default-400">/ {t("common.unlimited")}</span>
               </div>
             ) : (
               <>
                 <div className="flex items-baseline justify-between mb-2">
-                  <span className="text-2xl font-bold">{limit.used}</span>
-                  <span className="text-sm text-default-400">/ {limit.max}</span>
+                  <span className="text-2xl font-bold">{num(limit.used)}</span>
+                  <span className="text-sm text-default-400">/ {num(limit.max)}</span>
                 </div>
                 <Meter value={percent} minValue={0} maxValue={100} color={color} size="sm" className="w-full">
                   <Label className="sr-only">{label}</Label>
@@ -116,7 +120,9 @@ function UsageLimitCard({
                     <Meter.Fill />
                   </Meter.Track>
                 </Meter>
-                <p className="mt-1.5 text-xs text-default-400">{percent}% used</p>
+                <p className="mt-1.5 text-xs text-default-400">
+                  {num(percent)}% {t("dashboard.usageMetrics.used")}
+                </p>
               </>
             )}
           </div>

@@ -146,6 +146,8 @@
     "checkedIn": "Doctor checked in successfully",
     "testimonialToggled": "Testimonial status updated",
     "settingsSaved": "Settings saved successfully",
+    "appointmentPaid": "Appointment marked as paid",
+    "appointmentRefunded": "Appointment refunded",
     "specializationCreated": "Specialization created",
     "specializationUpdated": "Specialization updated",
     "specializationDeleted": "Specialization deleted",
@@ -360,6 +362,10 @@
     "manyDoctorsHint": "{{count}} doctors — use selector",
     "checkIn": "Check In",
     "sessionActive": "Session Active",
+    "viewPatient": "View Patient",
+    "editAppointment": "Edit Appointment",
+    "markPaid": "Mark as Paid",
+    "refund": "Refund",
     "visitDuration": "Visit Duration (min)",
     "defaultDuration": "default: {{min}} min",
     "doctorLate": "Doctor is Late",
@@ -604,7 +610,8 @@
       "pageTitle": "Usage & Limits",
       "pageSubtitle": "Track your monthly usage against your subscription plan limits",
       "upgradePrompt": "Need more capacity? Upgrade your plan.",
-      "noData": "No usage data available yet. Data is aggregated daily at 1:00 AM."
+      "noData": "No usage data available yet. Data is aggregated daily at 1:00 AM.",
+      "used": "used"
     }
   },
   "staff": {

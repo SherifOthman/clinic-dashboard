@@ -146,6 +146,8 @@
     "checkedIn": "تم تسجيل الحضور بنجاح",
     "testimonialToggled": "تم تحديث حالة التقييم",
     "settingsSaved": "تم حفظ الإعدادات بنجاح",
+    "appointmentPaid": "تم تسجيل الدفع بنجاح",
+    "appointmentRefunded": "تم استرداد المبلغ بنجاح",
     "specializationCreated": "تم إنشاء التخصص",
     "specializationUpdated": "تم تحديث التخصص",
     "specializationDeleted": "تم حذف التخصص",
@@ -360,6 +362,10 @@
     "manyDoctorsHint": "{{count}} أطباء — استخدم القائمة",
     "checkIn": "تسجيل وصول الطبيب",
     "sessionActive": "الجلسة الطبية نشطة",
+    "viewPatient": "عرض المريض",
+    "editAppointment": "تعديل الموعد",
+    "markPaid": "تسجيل الدفع",
+    "refund": "استرداد المبلغ",
     "visitDuration": "مدة الاستشارة (دقيقة)",
     "defaultDuration": "الافتراضي: {{min}} دقيقة",
     "doctorLate": "تأخر الطبيب",
@@ -634,7 +640,8 @@
       "pageTitle": "الاستخدام والحدود",
       "pageSubtitle": "تتبع استخدامك الشهري مقارنةً بحدود خطة اشتراكك",
       "upgradePrompt": "تحتاج إلى طاقة أكبر؟ قم بترقية خطتك.",
-      "noData": "لا توجد بيانات استخدام بعد. يتم تجميع البيانات يومياً الساعة 1:00 صباحاً."
+      "noData": "لا توجد بيانات استخدام بعد. يتم تجميع البيانات يومياً الساعة 1:00 صباحاً.",
+      "used": "مستخدم"
     }
   },
   "staff": {
