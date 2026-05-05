@@ -123,6 +123,9 @@ export const dashboardApi = {
   getContactMessagesUnreadCount: (): Promise<number> =>
     apiClient.get("/contact/unread-count"),
 
+  markContactMessageRead: (id: string): Promise<void> =>
+    apiClient.patch(`/contact/${id}/read`),
+
   getAllTestimonials: (page = 1, pageSize = 12): Promise<import("@/core/types").PagedResult<AdminTestimonialDto>> =>
     apiClient.get(`/testimonials/all?pageNumber=${page}&pageSize=${pageSize}`),
 

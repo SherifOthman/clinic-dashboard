@@ -6,7 +6,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { useContactMessages, useContactMessagesUnreadCount } from "./dashboardHooks";
+import { dashboardApi } from "./dashboardApi";
 import type { ContactMessageDto } from "./dashboardApi";
+import type { PagedResult } from "@/core/types";
 
 export default function MessagesPage() {
   const { t } = useTranslation();
@@ -17,9 +19,9 @@ export default function MessagesPage() {
   const [selected, setSelected] = useState<ContactMessageDto | null>(null);
   const qc = useQueryClient();
 
-  // Auto-select first message when page loads
+  // Auto-select first message on initial load only
   if (!selected && messages.length > 0 && !isLoading) {
-    setSelected(messages[0]);
+    handleSelect(messages[0]);
   }
 
   const handlePageChange = (p: number) => {
@@ -27,12 +29,35 @@ export default function MessagesPage() {
     setSelected(null);
   };
 
-  // When a message is selected, optimistically mark it read in the local cache
-  // (backend mark-as-read is not implemented yet — this is purely visual)
+  // When a message is selected:
+  // 1. Optimistically flip isRead in the cached list so the UI updates instantly
+  // 2. Fire the PATCH to the backend (fire-and-forget — no spinner needed)
+  // 3. Invalidate the unread count so the sidebar badge refreshes
   const handleSelect = (msg: ContactMessageDto) => {
-    setSelected(msg);
-    // Invalidate unread count so the sidebar badge refreshes
-    qc.invalidateQueries({ queryKey: ["contact", "unread-count"] });
+    setSelected({ ...msg, isRead: true }); // show as read immediately in detail panel
+
+    if (!msg.isRead) {
+      // Optimistically update the list cache so the dot disappears
+      qc.setQueryData<PagedResult<ContactMessageDto>>(
+        ["contact", "messages", page],
+        (old) => old
+          ? { ...old, items: old.items.map((m) => m.id === msg.id ? { ...m, isRead: true } : m) }
+          : old,
+      );
+
+      // Fire backend call — no await, failure is silent (cosmetic feature)
+      dashboardApi.markContactMessageRead(msg.id).then(() => {
+        qc.invalidateQueries({ queryKey: ["contact", "unread-count"] });
+      }).catch(() => {
+        // Revert optimistic update on failure
+        qc.setQueryData<PagedResult<ContactMessageDto>>(
+          ["contact", "messages", page],
+          (old) => old
+            ? { ...old, items: old.items.map((m) => m.id === msg.id ? { ...m, isRead: false } : m) }
+            : old,
+        );
+      });
+    }
   };
 
   const unreadInPage = messages.filter((m) => !m.isRead).length;

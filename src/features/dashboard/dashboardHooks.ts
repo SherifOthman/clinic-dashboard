@@ -2,6 +2,8 @@ import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { dashboardApi } from "./dashboardApi";
 import type { SubmitTestimonialRequest } from "./dashboardApi";
+import { useMe } from "@/features/auth/hooks";
+import { isSuperAdmin } from "@/core/utils/permissions";
 
 export function useDashboardStats() {
   return useQuery({
@@ -49,11 +51,14 @@ export function useContactMessages(page = 1) {
 }
 
 export function useContactMessagesUnreadCount() {
+  const { user } = useMe();
+  const enabled = isSuperAdmin(user);
   return useQuery({
     queryKey: ["contact", "unread-count"],
     queryFn:  dashboardApi.getContactMessagesUnreadCount,
+    enabled,
     staleTime:       30 * 1000,
-    refetchInterval: 60 * 1000, // poll every minute like notifications
+    refetchInterval: enabled ? 60 * 1000 : false,
   });
 }
 
