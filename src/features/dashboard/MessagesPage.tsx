@@ -65,7 +65,7 @@ export default function MessagesPage() {
   const unreadInPage = messages.filter((m) => !m.isRead).length;
 
   return (
-    <div className="flex flex-col h-full">
+    <div>
       <PageHeader
         title={t("navigation.messages")}
         subtitle={
@@ -81,9 +81,9 @@ export default function MessagesPage() {
           <p>{t("dashboard.messages.empty")}</p>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]" style={{ minHeight: 500 }}>
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
           {/* List panel */}
-          <div className="flex flex-col rounded-xl border border-border bg-surface">
+          <div className="flex flex-col rounded-xl border border-border bg-surface" style={{ maxHeight: 600 }}>
             {/* Unread banner inside the list */}
             {unreadInPage > 0 && (
               <div className="flex items-center gap-2 border-b border-border px-3 py-2 bg-warning/5">
