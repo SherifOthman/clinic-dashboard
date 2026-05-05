@@ -118,7 +118,8 @@ export const dashboardApi = {
   },
 
   getContactMessages: (page = 1, pageSize = 20): Promise<ContactMessageDto[]> =>
-    apiClient.get<ContactMessageDto[]>(`/contact?page=${page}&pageSize=${pageSize}`),
+    apiClient.get<{ items: ContactMessageDto[] }>(`/contact?pageNumber=${page}&pageSize=${pageSize}`)
+      .then(r => r.items),
 
   getAllTestimonials: (): Promise<AdminTestimonialDto[]> =>
     apiClient.get<AdminTestimonialDto[]>(`/testimonials/all`),
