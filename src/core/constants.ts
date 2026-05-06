@@ -83,7 +83,7 @@ export const ROUTE_ACCESS: Record<string, UserRole[] | "*"> = {
   "/staff": [USER_ROLES.CLINIC_OWNER],
   "/invitations": [USER_ROLES.CLINIC_OWNER],
   "/branches": [USER_ROLES.CLINIC_OWNER],
-  "/audit": [USER_ROLES.SUPER_ADMIN],
+  "/audit": [USER_ROLES.SUPER_ADMIN, USER_ROLES.CLINIC_OWNER],
   "/messages": [USER_ROLES.SUPER_ADMIN],
   "/reviews":  [USER_ROLES.SUPER_ADMIN],
   "/admin/specializations":     [USER_ROLES.SUPER_ADMIN],

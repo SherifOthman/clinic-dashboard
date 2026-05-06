@@ -1,8 +1,10 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import { isSuperAdmin } from "@/core/utils/permissions";
+import { useMe } from "@/features/auth/hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuditLogs } from "./auditHooks";
+import { useAuditLogs, useMyClinicAuditLogs } from "./auditHooks";
 import { useAuditTableState } from "./auditTableState";
 import { AuditDetailDialog } from "./components/AuditDetailDialog";
 import { AuditFilters } from "./components/AuditFilters";
@@ -12,6 +14,8 @@ import type { AuditLogItem } from "./types";
 export default function AuditPage() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
+  const { user } = useMe();
+  const superAdmin = isSuperAdmin(user);
 
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
 
@@ -29,7 +33,10 @@ export default function AuditPage() {
     clearAllFilters,
   } = useAuditTableState();
 
-  const { data, isLoading } = useAuditLogs(auditState);
+  // SuperAdmin sees all clinics; Clinic Owner sees only their own clinic
+  const superAdminQuery  = useAuditLogs(superAdmin ? auditState : {});
+  const ownerQuery       = useMyClinicAuditLogs(!superAdmin ? auditState : {});
+  const { data, isLoading } = superAdmin ? superAdminQuery : ownerQuery;
 
   return (
     <div className="flex flex-col gap-4 py-4">
@@ -47,8 +54,9 @@ export default function AuditPage() {
         isRTL={isRTL}
         userSearch={userSearch}
         onUserSearchChange={setUserSearch}
-        clinicSearch={clinicSearch}
-        onClinicSearchChange={setClinicSearch}
+        // Clinic search only shown to SuperAdmin — owners are always scoped to their clinic
+        clinicSearch={superAdmin ? clinicSearch : undefined}
+        onClinicSearchChange={superAdmin ? setClinicSearch : undefined}
         entityType={entityType}
         onEntityTypeChange={(v) => updateAuditState({ entityType: v })}
         action={action}

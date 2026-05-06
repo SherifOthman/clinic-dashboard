@@ -5,7 +5,7 @@ import { Button, Chip } from "@heroui/react";
 import { Globe, RotateCcw, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ACTION_COLORS } from "../auditConstants";
-import { extractSubject, parseUserAgent } from "../auditHelpers";
+import { extractSubject, formatEntityType, parseUserAgent } from "../auditHelpers";
 import { useRestorePatient } from "../auditHooks";
 import type { AuditLogItem } from "../types";
 import { JsonViewer } from "./JsonViewer";
@@ -68,7 +68,8 @@ export function AuditDetailDialog({
     const who = log.fullName ?? log.username ?? "Someone";
     const verb = actionLabel(log.action).toLowerCase();
     const subject = extractSubject(log);
-    const what = subject ? `${log.entityType} "${subject}"` : log.entityType;
+    const entityLabel = formatEntityType(log.entityType);
+    const what = subject ? `${entityLabel} "${subject}"` : entityLabel;
     return `${who} ${verb} ${what}`;
   };
 
@@ -94,14 +95,14 @@ export function AuditDetailDialog({
   ) : undefined;
 
   return (
-    <Dialog isOpen={!!item} onClose={onClose} size="lg" footer={restoreFooter} ariaLabel={item?.entityType ?? t("audit.title")}>
+    <Dialog isOpen={!!item} onClose={onClose} size="lg" footer={restoreFooter} ariaLabel={item ? formatEntityType(item.entityType) : t("audit.title")}>
       {item && (
         <div className="flex flex-col gap-5">
           {/* ── Header ── */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-foreground text-xl font-bold">
-                {item.entityType}
+                {formatEntityType(item.entityType)}
               </h2>
               <p className="text-muted text-sm">{buildSummary(item)}</p>
             </div>

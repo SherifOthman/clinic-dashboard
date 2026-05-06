@@ -10,8 +10,9 @@ interface AuditFiltersProps {
   isRTL: boolean;
   userSearch: string;
   onUserSearchChange: (v: string) => void;
-  clinicSearch: string;
-  onClinicSearchChange: (v: string) => void;
+  /** Only shown to SuperAdmin — omit for Clinic Owners */
+  clinicSearch?: string;
+  onClinicSearchChange?: (v: string) => void;
   entityType: string | undefined;
   onEntityTypeChange: (v: string | null) => void;
   action: AuditAction | undefined;
@@ -50,6 +51,8 @@ export function AuditFilters({
     clinicSearch
   );
 
+  const showClinicSearch = clinicSearch !== undefined && onClinicSearchChange !== undefined;
+
   const actionLabel = (a: AuditAction) => t(`audit.actions.${a}`);
 
   return (
@@ -68,19 +71,21 @@ export function AuditFilters({
         </SearchField.Group>
       </SearchField>
 
-      <SearchField
-        value={clinicSearch}
-        onChange={onClinicSearchChange}
-        aria-label={t("audit.searchClinic")}
-        className="w-full lg:w-64"
-      >
-        <Label className="sr-only">{t("audit.searchClinic")}</Label>
-        <SearchField.Group>
-          <SearchField.SearchIcon className="ms-3" />
-          <SearchField.Input placeholder={t("audit.searchClinic")} />
-          <SearchField.ClearButton />
-        </SearchField.Group>
-      </SearchField>
+      {showClinicSearch && (
+        <SearchField
+          value={clinicSearch}
+          onChange={onClinicSearchChange}
+          aria-label={t("audit.searchClinic")}
+          className="w-full lg:w-64"
+        >
+          <Label className="sr-only">{t("audit.searchClinic")}</Label>
+          <SearchField.Group>
+            <SearchField.SearchIcon className="ms-3" />
+            <SearchField.Input placeholder={t("audit.searchClinic")} />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
+      )}
 
       <div className="flex gap-3">
         <Select

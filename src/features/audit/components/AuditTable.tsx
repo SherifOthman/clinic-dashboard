@@ -3,49 +3,9 @@ import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { Chip } from "@heroui/react";
 import { useTranslation } from "react-i18next";
+import { ACTION_COLORS } from "../auditConstants";
+import { extractSubject, formatEntityType } from "../auditHelpers";
 import type { AuditAction, AuditLogItem, AuditLogsResponse } from "../types";
-
-const ACTION_COLORS: Record<
-  AuditAction,
-  "success" | "warning" | "danger" | "accent" | "default"
-> = {
-  Create: "success",
-  Update: "warning",
-  Delete: "danger",
-  Security: "accent",
-  Restore: "default",
-};
-
-const AUTH_EVENT_LABELS: Record<string, string> = {
-  LoginSuccess: "Login",
-  LoginFailed: "Failed login",
-  LoginBlocked: "Login blocked",
-  AccountLocked: "Account locked",
-  Logout: "Logout",
-};
-
-/** Extract the most meaningful identifier from the changes JSON snapshot */
-function extractSubject(item: AuditLogItem): string | null {
-  if (!item.changes) return null;
-  try {
-    const parsed = JSON.parse(item.changes);
-    if (item.entityType === "Auth")
-      return parsed.event
-        ? (AUTH_EVENT_LABELS[parsed.event] ?? parsed.event)
-        : null;
-    const name =
-      parsed["Full Name"] ?? parsed.FullName ?? parsed.Name ?? parsed.name;
-    if (name && typeof name === "string") return name;
-    const nameChange = parsed["Full Name"] ?? parsed.FullName;
-    if (nameChange && typeof nameChange === "object" && "New" in nameChange)
-      return nameChange.New;
-    const email = parsed.Email ?? parsed.email ?? parsed.UserEmail;
-    if (email && typeof email === "string") return email;
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 interface AuditTableProps {
   data: AuditLogsResponse | undefined;
@@ -94,8 +54,12 @@ export function AuditTable({
         const subject = extractSubject(item);
         return (
           <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">{item.entityType}</span>
-            {subject && <span className="text-muted text-xs">{subject}</span>}
+            <span className="text-sm font-medium">
+              {formatEntityType(item.entityType)}
+            </span>
+            {subject && (
+              <span className="text-muted text-xs">{subject}</span>
+            )}
           </div>
         );
       },

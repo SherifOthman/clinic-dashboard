@@ -9,8 +9,17 @@ import type { AuditSearchParams } from "./types";
 
 export function useAuditLogs(params: AuditSearchParams) {
   return useQuery({
-    queryKey: ["audit", params],
+    queryKey: ["audit", "superadmin", params],
     queryFn: () => auditApi.getLogs(params),
+    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useMyClinicAuditLogs(params: AuditSearchParams) {
+  return useQuery({
+    queryKey: ["audit", "my-clinic", params],
+    queryFn: () => auditApi.getMyClinicLogs(params),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
   });
