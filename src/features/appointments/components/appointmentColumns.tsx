@@ -203,11 +203,16 @@ export function ActionsDropdown({
 
   return (
     <Dropdown>
-      <Dropdown.Trigger>
-        <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending} aria-label="More actions">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </Dropdown.Trigger>
+      <Button
+        slot="trigger"
+        size="sm"
+        variant="ghost"
+        isIconOnly
+        isDisabled={isPending}
+        aria-label="More actions"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
       <Dropdown.Popover placement="bottom end">
         <Dropdown.Menu onAction={handleAction}>
 
