@@ -49,6 +49,33 @@ export function useSetAppointmentType() {
   });
 }
 
+export function useBulkCancelAppointments() {
+  return useMutationWithToast<number, { doctorInfoId: string; branchId: string; date: string }>({
+    mutationFn: ({ doctorInfoId, branchId, date }) =>
+      appointmentsApi.bulkCancel(doctorInfoId, branchId, date),
+    successMessage: "toast.appointmentsBulkCancelled",
+    invalidateKeys: [["appointments"]],
+  });
+}
+
+export function useRescheduleAppointment() {
+  return useMutationWithToast<void, { appointmentId: string; newDate: string }>({
+    mutationFn: ({ appointmentId, newDate }) =>
+      appointmentsApi.rescheduleAppointment(appointmentId, newDate),
+    successMessage: "toast.appointmentRescheduled",
+    invalidateKeys: [["appointments"]],
+  });
+}
+
+export function useRescheduleDoctorAppointments() {
+  return useMutationWithToast<number, { doctorInfoId: string; branchId: string; date: string }>({
+    mutationFn: ({ doctorInfoId, branchId, date }) =>
+      appointmentsApi.rescheduleDoctor(doctorInfoId, branchId, date),
+    successMessage: "toast.appointmentsRescheduled",
+    invalidateKeys: [["appointments"]],
+  });
+}
+
 export function useDoctorCheckOut() {
   const { showSuccess, showError } = useToast();
   const { t } = useTranslation();

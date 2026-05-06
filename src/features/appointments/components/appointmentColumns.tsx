@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import {
   BanknoteArrowDown,
   BanknoteArrowUp,
+  CalendarClock,
   CheckCircle,
   Clock,
   MoreHorizontal,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
-import { to12h } from "@/core/utils/timeFormat";
 import type { AppointmentDto, AppointmentStatus } from "../types";
 
 // ── Status colour map ─────────────────────────────────────────────────────────
@@ -27,38 +27,13 @@ export const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "suc
   NoShow:     "default",
 };
 
-// ── Compact time/queue cell ───────────────────────────────────────────────────
+// ── Compact queue cell ────────────────────────────────────────────────────────
 
-export function SlotCell({ a, isAr, compact = false }: { a: AppointmentDto; isAr: boolean; compact?: boolean }) {
+export function SlotCell({ a, isAr }: { a: AppointmentDto; isAr: boolean }) {
   const num = (v: string | number) => isAr ? toArabicNumerals(String(v)) : String(v);
-
-  if (a.type === "Queue") {
-    return (
-      <span className="text-sm font-bold text-accent tabular-nums" dir="ltr">
-        #{num(a.queueNumber ?? "—")}
-      </span>
-    );
-  }
-
-  if (compact) {
-    // Multi-mode: start time only, end time on second line
-    return (
-      <div className="flex flex-col leading-tight" dir="ltr">
-        <span className="text-sm font-bold text-accent tabular-nums">
-          {a.scheduledTime ? to12h(a.scheduledTime) : "—"}
-        </span>
-        {a.endTime && (
-          <span className="text-xs text-muted tabular-nums">{to12h(a.endTime)}</span>
-        )}
-      </div>
-    );
-  }
-
-  // Single/table mode: start – end on one line
   return (
     <span className="text-sm font-bold text-accent tabular-nums" dir="ltr">
-      {a.scheduledTime ? to12h(a.scheduledTime) : "—"}
-      {a.endTime && <span className="text-xs text-muted font-normal"> – {to12h(a.endTime)}</span>}
+      #{num(a.queueNumber ?? "—")}
     </span>
   );
 }
@@ -122,7 +97,8 @@ export function NextStatusButton({
   onStatusChange: (id: string, status: string) => void;
   isPending: boolean;
 }) {
-  if (a.status === "Pending" && a.type === "Queue") {
+  // Pending → Waiting (patient arrived)
+  if (a.status === "Pending") {
     return (
       <Tooltip delay={300}>
         <Tooltip.Trigger>
@@ -135,19 +111,7 @@ export function NextStatusButton({
       </Tooltip>
     );
   }
-  if (a.status === "Pending" && a.type === "Time") {
-    return (
-      <Tooltip delay={300}>
-        <Tooltip.Trigger>
-          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-            onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
-            <UserCheck className="h-3.5 w-3.5 text-warning" />
-          </Button>
-        </Tooltip.Trigger>
-        <Tooltip.Content><p>{t("appointments.markWaiting")}</p></Tooltip.Content>
-      </Tooltip>
-    );
-  }
+  // Waiting → InProgress (called in by doctor)
   if (a.status === "Waiting") {
     return (
       <Tooltip delay={300}>
@@ -161,6 +125,7 @@ export function NextStatusButton({
       </Tooltip>
     );
   }
+  // InProgress → Completed
   if (a.status === "InProgress") {
     return (
       <Tooltip delay={300}>
@@ -171,6 +136,34 @@ export function NextStatusButton({
           </Button>
         </Tooltip.Trigger>
         <Tooltip.Content><p>{t("appointments.complete")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  // NoShow → Waiting (patient arrived late — recovery)
+  if (a.status === "NoShow") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.patientArrived")}>
+            <UserCheck className="h-3.5 w-3.5 text-warning" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.patientArrived")}</p></Tooltip.Content>
+      </Tooltip>
+    );
+  }
+  // Cancelled → Pending (patient called back — recovery)
+  if (a.status === "Cancelled") {
+    return (
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
+            onPress={() => onStatusChange(a.id, "Pending")} aria-label={t("appointments.reactivate")}>
+            <UserCheck className="h-3.5 w-3.5 text-muted" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content><p>{t("appointments.reactivate")}</p></Tooltip.Content>
       </Tooltip>
     );
   }
@@ -187,18 +180,21 @@ interface ActionsDropdownProps {
   onRefund: (id: string) => void;
   onViewPatient?: (id: string) => void;
   onEdit?: (a: AppointmentDto) => void;
+  onReschedule?: (a: AppointmentDto) => void;
   isPending: boolean;
 }
 
 export function ActionsDropdown({
-  a, t, onStatusChange, onMarkPaid, onRefund, onViewPatient, onEdit, isPending,
+  a, t, onStatusChange, onMarkPaid, onRefund, onViewPatient, onEdit, onReschedule, isPending,
 }: ActionsDropdownProps) {
   const isActive = !["Completed", "Cancelled", "NoShow"].includes(a.status);
+  const canReschedule = a.status === "Pending" || a.status === "Waiting";
 
   const handleAction = (key: React.Key) => {
     switch (key) {
       case "view-patient": onViewPatient?.(a.patientId); break;
       case "edit":         onEdit?.(a); break;
+      case "reschedule":   onReschedule?.(a); break;
       case "cancel":       onStatusChange(a.id, "Cancelled"); break;
       case "paid":         onMarkPaid(a.id); break;
       case "refund":       onRefund(a.id); break;
@@ -225,6 +221,12 @@ export function ActionsDropdown({
               <Dropdown.Item id="edit" textValue={t("appointments.editAppointment")}>
                 <Pencil className="h-3.5 w-3.5 shrink-0 text-muted" />
                 <Label>{t("appointments.editAppointment")}</Label>
+              </Dropdown.Item>
+            )}
+            {onReschedule && canReschedule && (
+              <Dropdown.Item id="reschedule" textValue={t("appointments.reschedulePatient")}>
+                <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted" />
+                <Label>{t("appointments.reschedulePatient")}</Label>
               </Dropdown.Item>
             )}
           </Dropdown.Section>

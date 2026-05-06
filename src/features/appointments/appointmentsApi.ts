@@ -43,6 +43,15 @@ export const appointmentsApi = {
   checkOut: (doctorInfoId: string, branchId: string): Promise<void> =>
     apiClient.post(`${BASE}/sessions/check-out`, { doctorInfoId, branchId }),
 
+  bulkCancel: (doctorInfoId: string, branchId: string, date: string): Promise<number> =>
+    apiClient.post<number>(`${BASE}/bulk-cancel`, { doctorInfoId, branchId, date }),
+
+  rescheduleDoctor: (doctorInfoId: string, branchId: string, date: string): Promise<number> =>
+    apiClient.post<number>(`${BASE}/reschedule-doctor`, { doctorInfoId, branchId, date }),
+
+  rescheduleAppointment: (appointmentId: string, newDate: string): Promise<void> =>
+    apiClient.patch(`${BASE}/${appointmentId}/reschedule`, { newDate }),
+
   handleDelay: (sessionId: string, option: "AutoShift" | "MarkMissed" | "Manual" | "Cancel"): Promise<void> =>
     apiClient.post(`${BASE}/sessions/${sessionId}/handle-delay`, { option }),
 };

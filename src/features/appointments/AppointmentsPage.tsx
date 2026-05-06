@@ -139,6 +139,7 @@ export default function AppointmentsPage() {
               isLoading={isLoading}
               viewMode={viewMode}
               searchTerm={searchTerm}
+              dateStr={dateStr}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
               onEditAppointment={(a) => setEditingAppointment(a)}
               onViewPatient={(patientId) => setViewPatientId(patientId)}
