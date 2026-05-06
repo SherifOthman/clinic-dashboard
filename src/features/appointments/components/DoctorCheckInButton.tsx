@@ -1,7 +1,7 @@
-import { Button, Chip } from "@heroui/react";
-import { CheckCircle, LogIn } from "lucide-react";
+import { Button, Tooltip } from "@heroui/react";
+import { LogIn, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useDoctorCheckIn } from "../appointmentsHooks";
+import { useDoctorCheckIn, useDoctorCheckOut } from "../appointmentsHooks";
 import type { AppointmentType, DoctorCheckInResult } from "../types";
 
 interface DoctorCheckInButtonProps {
@@ -21,17 +21,34 @@ export function DoctorCheckInButton({
   onLate,
 }: DoctorCheckInButtonProps) {
   const { t } = useTranslation();
-  const checkIn = useDoctorCheckIn();
+  const checkIn  = useDoctorCheckIn();
+  const checkOut = useDoctorCheckOut();
 
+  // Session active → show checkout button
   if (hasSessionToday) {
     return (
-      <Chip size="sm" variant="soft" color="success" className="gap-1">
-        <CheckCircle className="h-3 w-3" />
-        {t("appointments.sessionActive")}
-      </Chip>
+      <Tooltip delay={300}>
+        <Tooltip.Trigger>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => checkOut.mutate({ doctorInfoId, branchId })}
+            isPending={checkOut.isPending}
+            className="gap-1 text-success hover:bg-success/10"
+            aria-label={t("appointments.checkOut")}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs">{t("appointments.sessionActive")}</span>
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content>
+          <p>{t("appointments.checkOutDesc")}</p>
+        </Tooltip.Content>
+      </Tooltip>
     );
   }
 
+  // No session → show check-in button
   return (
     <Button
       size="sm"
@@ -42,7 +59,6 @@ export function DoctorCheckInButton({
           {
             onSuccess: (result) => {
               // Only Time-based doctors have scheduled appointments that can be shifted.
-              // Queue doctors don't have fixed times — the delay dialog is irrelevant for them.
               if (result.isLate && appointmentType === "Time") {
                 onLate(result);
               }

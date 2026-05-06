@@ -49,6 +49,24 @@ export function useSetAppointmentType() {
   });
 }
 
+export function useDoctorCheckOut() {
+  const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ doctorInfoId, branchId }: { doctorInfoId: string; branchId: string }) =>
+      appointmentsApi.checkOut(doctorInfoId, branchId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      showSuccess("toast.checkedOut");
+    },
+    onError: (err: unknown) => {
+      showError(getErrorMessage(err as Error, t));
+    },
+  });
+}
+
 /**
  * Check-in mutation — does NOT invalidate queries automatically.
  * The caller decides when to invalidate (after the delay dialog is resolved,

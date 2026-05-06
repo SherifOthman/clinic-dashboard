@@ -40,6 +40,9 @@ export const appointmentsApi = {
   checkIn: (doctorInfoId: string, branchId: string) =>
     apiClient.post<import("./types").DoctorCheckInResult>(`${BASE}/sessions/check-in`, { doctorInfoId, branchId }),
 
+  checkOut: (doctorInfoId: string, branchId: string): Promise<void> =>
+    apiClient.post(`${BASE}/sessions/check-out`, { doctorInfoId, branchId }),
+
   handleDelay: (sessionId: string, option: "AutoShift" | "MarkMissed" | "Manual" | "Cancel"): Promise<void> =>
     apiClient.post(`${BASE}/sessions/${sessionId}/handle-delay`, { option }),
 };
