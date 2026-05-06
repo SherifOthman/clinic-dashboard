@@ -1,10 +1,11 @@
 ﻿import { DataTable } from "@/core/components/ui/DataTable";
+import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { TablePagination } from "@/core/components/ui/TablePagination";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { useDebounce } from "@/core/hooks/useDebounce";
 import { canCreatePatient, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
-import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
+import { Button, Label, SearchField } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAdminPaginatedPatients, usePaginatedPatients, usePatientsTableState } from "../patientsHooks";
@@ -25,7 +26,6 @@ export function PatientsList({
 }: PatientsListProps) {
   const { t, i18n } = useTranslation();
   const { formatDateShort } = useDateFormat();
-  const isRTL = i18n.language === "ar";
   const { user } = useMe();
   const superAdmin = isSuperAdmin(user);
 
@@ -87,43 +87,25 @@ export function PatientsList({
           </SearchField>
 
           {/* Gender filter */}
-          <Select
-            className="w-full sm:w-44"
-            placeholder={t("patients.allGenders")}
+          <FilterSelect
             value={
-              patientsState.gender === "Male" ||
-              patientsState.gender === "Female"
+              patientsState.gender === "Male" || patientsState.gender === "Female"
                 ? patientsState.gender
-                : null
+                : undefined
             }
             onChange={(v) =>
               updatePatientsState({
                 gender: v === "Male" || v === "Female" ? v : undefined,
               })
             }
-            aria-label={t("patients.filterByGender")}
-          >
-            <Select.Trigger>
-              <Select.Value className={isRTL ? "text-right" : ""} />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox dir="ltr">
-                <ListBox.Item id="all" textValue={t("patients.allGenders")}>
-                  {t("patients.allGenders")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="Male" textValue={t("common.fields.male")}>
-                  {t("common.fields.male")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="Female" textValue={t("common.fields.female")}>
-                  {t("common.fields.female")}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
+            placeholder={t("patients.allGenders")}
+            ariaLabel={t("patients.filterByGender")}
+            options={[
+              { id: "Male",   label: t("common.fields.male") },
+              { id: "Female", label: t("common.fields.female") },
+            ]}
+            className="w-full sm:w-44"
+          />
 
           {/* Country â†’ State â†’ City: each step only appears after the previous is selected */}
           <PatientCountryFilter
