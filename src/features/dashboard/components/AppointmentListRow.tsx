@@ -54,7 +54,7 @@ export function AppointmentListRow({ appointment: appt, showDoctor }: Appointmen
         </span>
         <span className={`flex items-center gap-1 text-xs font-medium ${cfg.color}`}>
           {cfg.icon}
-          {t(`appointments.status.${appt.status.toLowerCase()}`, { defaultValue: appt.status })}
+          {t(`appointments.statuses.${appt.status}`, { defaultValue: appt.status })}
         </span>
       </div>
     </div>

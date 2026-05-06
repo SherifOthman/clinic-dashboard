@@ -49,7 +49,7 @@ export function NotificationBell() {
   }
 
   return (
-    <Popover isOpen={open} onOpenChange={handleOpen} placement="bottom end">
+    <Popover isOpen={open} onOpenChange={handleOpen}>
       <Popover.Trigger>
         <Button isIconOnly variant="ghost" aria-label={t("notifications.title")}>
           <div className="relative">
@@ -63,7 +63,7 @@ export function NotificationBell() {
         </Button>
       </Popover.Trigger>
 
-      <Popover.Content className="w-80 p-0 shadow-lg">
+      <Popover.Content placement="bottom end" className="w-80 p-0 shadow-lg">
         <NotificationPanel
           notifications={notifications}
           isLoading={isLoading}

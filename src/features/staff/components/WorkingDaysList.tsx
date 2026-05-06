@@ -1,12 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useWorkingDays } from "../staffHooks";
-
-function formatTime12h(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
-}
+import { to12h } from "@/core/utils/timeFormat";
 
 function dayLabel(day: number, locale: string) {
   const date = new Date(2024, 0, 7 + day);
@@ -53,7 +47,7 @@ export function WorkingDaysList({
         >
           <span className="text-sm font-medium">{dayLabel(d.day, locale)}</span>
           <span className="text-default-500 text-xs" dir="ltr">
-            {formatTime12h(d.startTime)} — {formatTime12h(d.endTime)}
+            {to12h(d.startTime)} — {to12h(d.endTime)}
           </span>
         </div>
       ))}

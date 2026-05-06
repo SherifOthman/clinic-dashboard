@@ -1,4 +1,4 @@
-import { Button, Chip, Dropdown, Label, Separator, Tooltip } from "@heroui/react";
+import { Button, Dropdown, Label, Separator, Tooltip } from "@heroui/react";
 import type { TFunction } from "i18next";
 import {
   BanknoteArrowDown,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
+import { to12h } from "@/core/utils/timeFormat";
 import type { AppointmentDto, AppointmentStatus } from "../types";
 
 // ── Status colour map ─────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ export const STATUS_COLOR: Record<AppointmentStatus, "warning" | "accent" | "suc
 
 // ── Compact time/queue cell ───────────────────────────────────────────────────
 
-export function SlotCell({ a, isAr }: { a: AppointmentDto; isAr: boolean }) {
+export function SlotCell({ a, isAr, compact = false }: { a: AppointmentDto; isAr: boolean; compact?: boolean }) {
   const num = (v: string | number) => isAr ? toArabicNumerals(String(v)) : String(v);
 
   if (a.type === "Queue") {
@@ -39,10 +40,25 @@ export function SlotCell({ a, isAr }: { a: AppointmentDto; isAr: boolean }) {
     );
   }
 
+  if (compact) {
+    // Multi-mode: start time only, end time on second line
+    return (
+      <div className="flex flex-col leading-tight" dir="ltr">
+        <span className="text-sm font-bold text-accent tabular-nums">
+          {a.scheduledTime ? to12h(a.scheduledTime) : "—"}
+        </span>
+        {a.endTime && (
+          <span className="text-xs text-muted tabular-nums">{to12h(a.endTime)}</span>
+        )}
+      </div>
+    );
+  }
+
+  // Single/table mode: start – end on one line
   return (
     <span className="text-sm font-bold text-accent tabular-nums" dir="ltr">
-      {a.scheduledTime ?? "—"}
-      {a.endTime && <span className="text-xs text-muted font-normal"> – {a.endTime}</span>}
+      {a.scheduledTime ? to12h(a.scheduledTime) : "—"}
+      {a.endTime && <span className="text-xs text-muted font-normal"> – {to12h(a.endTime)}</span>}
     </span>
   );
 }
@@ -111,11 +127,11 @@ export function NextStatusButton({
       <Tooltip delay={300}>
         <Tooltip.Trigger>
           <Button size="sm" variant="ghost" isIconOnly isDisabled={isPending}
-            onPress={() => onStatusChange(a.id, "InProgress")} aria-label={t("appointments.start")}>
-            <Clock className="h-3.5 w-3.5 text-accent" />
+            onPress={() => onStatusChange(a.id, "Waiting")} aria-label={t("appointments.markWaiting")}>
+            <UserCheck className="h-3.5 w-3.5 text-warning" />
           </Button>
         </Tooltip.Trigger>
-        <Tooltip.Content><p>{t("appointments.start")}</p></Tooltip.Content>
+        <Tooltip.Content><p>{t("appointments.markWaiting")}</p></Tooltip.Content>
       </Tooltip>
     );
   }

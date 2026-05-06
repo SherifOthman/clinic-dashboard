@@ -12,9 +12,10 @@ interface PatientSearchFieldProps {
   value: string;        // selected patient ID
   patientName: string;  // display name of selected patient
   onChange: (id: string, name: string) => void;
+  isDisabled?: boolean;
 }
 
-export function PatientSearchField({ value, patientName, onChange }: PatientSearchFieldProps) {
+export function PatientSearchField({ value, patientName, onChange, isDisabled }: PatientSearchFieldProps) {
   const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -82,11 +83,12 @@ export function PatientSearchField({ value, patientName, onChange }: PatientSear
             ref={inputRef}
             type="text"
             value={value ? patientName : search}
-            readOnly={!!value}
-            onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-            onFocus={() => { if (!value) setOpen(true); }}
+            readOnly={!!value || isDisabled}
+            onChange={(e) => { if (!isDisabled) { setSearch(e.target.value); setOpen(true); } }}
+            onFocus={() => { if (!value && !isDisabled) setOpen(true); }}
             placeholder={t("appointments.searchPatient")}
-            className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${value ? "text-foreground font-medium" : ""}`}
+            disabled={isDisabled}
+            className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${value ? "text-foreground font-medium" : ""} ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
           />
           {value && (
             <button type="button" onClick={handleClear}

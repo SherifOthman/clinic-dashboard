@@ -99,7 +99,7 @@ export function ReferenceFormDialog({ title, initial, isSaving, onSave, onClose 
         {/* Active toggle — only shown when editing */}
         {isEdit && (
           <div className="flex items-center gap-3">
-            <Switch isSelected={isActive} onChange={e => setIsActive(e.target.checked)} />
+            <Switch isSelected={isActive} onChange={(checked) => setIsActive(checked)} />
             <span className="text-sm">
               {isActive ? t("common.status.active") : t("common.status.inactive")}
             </span>

@@ -1,5 +1,6 @@
 import { apiClient } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
+import { todayStr } from "@/core/utils/dateUtils";
 import type { AppointmentDto } from "../appointments/types";
 
 // ── Testimonial types (owned by dashboard feature) ────────────────────────────
@@ -90,11 +91,6 @@ export interface AdminTestimonialDto {
   avatarUrl?: string;
   isApproved: boolean;
   createdAt: string;
-}
-
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export const dashboardApi = {

@@ -16,12 +16,14 @@ import { useTranslation } from "react-i18next";
 import {
   useAppointments,
   useCreateAppointment,
+  useUpdateAppointment,
   useDoctorsForBranch,
 } from "../appointmentsHooks";
 import type { DoctorForBranch } from "../types";
 import { PatientSearchField } from "./PatientSearchField";
 import { useBranches } from "@/features/branches/branchesHooks";
 import { useVisitTypes, useWorkingDays } from "@/features/staff/staffQueries";
+import { to12h } from "@/core/utils/timeFormat";
 
 interface CreateAppointmentDialogProps {
   isOpen: boolean;
@@ -42,6 +44,8 @@ export function CreateAppointmentDialog({
 }: CreateAppointmentDialogProps) {
   const { t } = useTranslation();
   const createAppointment = useCreateAppointment();
+  const updateAppointment = useUpdateAppointment();
+  const isEditing = !!editingAppointment;
   const { data: branches = [] } = useBranches();
 
   const [selectedBranchId, setSelectedBranchId] = useState(initialBranchId);
@@ -135,21 +139,36 @@ export function CreateAppointmentDialog({
   const handleSubmit = () => {
     if (!doctorInfoId || !patientId || !visitTypeId || !date) return;
 
-    createAppointment.mutate(
-      {
-        branchId,
-        patientId,
-        doctorInfoId,
-        visitTypeId,
-        date: dateStr,
-        type: isQueue ? "Queue" : "Time",
-        scheduledTime: !isQueue && selectedTimeStr ? selectedTimeStr : undefined,
-        discountPercent: discountPercent ? parseFloat(discountPercent) : undefined,
-        visitDurationMinutes: durationOverride ? parseInt(durationOverride) : undefined,
-      },
-      { onSuccess: onClose },
-    );
+    if (isEditing && editingAppointment) {
+      updateAppointment.mutate(
+        {
+          id: editingAppointment.id,
+          visitTypeId,
+          scheduledTime: !isQueue && selectedTimeStr ? selectedTimeStr : undefined,
+          discountPercent: discountPercent ? parseFloat(discountPercent) : undefined,
+          visitDurationMinutes: durationOverride ? parseInt(durationOverride) : undefined,
+        },
+        { onSuccess: onClose },
+      );
+    } else {
+      createAppointment.mutate(
+        {
+          branchId,
+          patientId,
+          doctorInfoId,
+          visitTypeId,
+          date: dateStr,
+          type: isQueue ? "Queue" : "Time",
+          scheduledTime: !isQueue && selectedTimeStr ? selectedTimeStr : undefined,
+          discountPercent: discountPercent ? parseFloat(discountPercent) : undefined,
+          visitDurationMinutes: durationOverride ? parseInt(durationOverride) : undefined,
+        },
+        { onSuccess: onClose },
+      );
+    }
   };
+
+  const isPending = createAppointment.isPending || updateAppointment.isPending;
 
   const canSubmit =
     !!doctorInfoId &&
@@ -172,13 +191,15 @@ export function CreateAppointmentDialog({
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
             <CalendarClock className="h-5 w-5 text-accent" />
           </div>
-          <h2 className="text-lg font-bold">{t("appointments.newAppointment")}</h2>
+          <h2 className="text-lg font-bold">
+            {isEditing ? t("appointments.editAppointment") : t("appointments.newAppointment")}
+          </h2>
         </div>
       }
     >
       <div className="flex flex-col gap-4">
         {/* Branch — only shown when there are multiple branches */}
-        {branches.length > 1 && (
+        {branches.length > 1 && !isEditing && (
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("appointments.selectBranch")}</label>
             <Select
@@ -213,6 +234,7 @@ export function CreateAppointmentDialog({
             value={doctorInfoId}
             onChange={(v) => { setDoctorInfoId(String(v)); setVisitTypeId(""); setTimeValue(null); }}
             aria-label={t("appointments.doctor")}
+            isDisabled={isEditing}
           >
             <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
             <Select.Popover>
@@ -235,6 +257,7 @@ export function CreateAppointmentDialog({
             value={patientId}
             patientName={patientName}
             onChange={(id, name) => { setPatientId(id); setPatientName(name); }}
+            isDisabled={isEditing}
           />
         </div>
 
@@ -262,6 +285,7 @@ export function CreateAppointmentDialog({
         </div>
 
         {/* Date */}
+        {!isEditing && (
         <div className="flex flex-col gap-1">
           <AppDatePicker
             label={t("appointments.date")}
@@ -281,6 +305,7 @@ export function CreateAppointmentDialog({
             </p>
           )}
         </div>
+        )}
 
         {/* Time — HeroUI TimeField, only for time-based doctors */}
         {!isQueue && (
@@ -288,7 +313,7 @@ export function CreateAppointmentDialog({
             <TimeField
               value={timeValue}
               onChange={setTimeValue}
-              hourCycle={24}
+              hourCycle={12}
               granularity="minute"
               isInvalid={isTimeBooked}
               minValue={workingHours ? parseTime(workingHours.startTime) : undefined}
@@ -310,7 +335,7 @@ export function CreateAppointmentDialog({
               )}
               {!isTimeBooked && bookedTimes.size > 0 && (
                 <p className="mt-1 text-xs text-muted">
-                  {t("appointments.bookedSlots")}: {[...bookedTimes].sort().join(", ")}
+                  {t("appointments.bookedSlots")}: {[...bookedTimes].sort().map(to12h).join(", ")}
                 </p>
               )}
             </TimeField>
@@ -354,9 +379,9 @@ export function CreateAppointmentDialog({
           <Button variant="outline" onPress={onClose}>{t("common.cancel")}</Button>
           <Button
             variant="primary" onPress={handleSubmit}
-            isDisabled={!canSubmit} isPending={createAppointment.isPending}
+            isDisabled={!canSubmit} isPending={isPending}
           >
-            {t("appointments.book")}
+            {isEditing ? t("common.save") : t("appointments.book")}
           </Button>
         </div>
       </div>

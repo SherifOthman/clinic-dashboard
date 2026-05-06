@@ -1,86 +1,60 @@
 import { Button, Chip } from "@heroui/react";
 import { CheckCircle, LogIn } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDoctorCheckIn } from "../appointmentsHooks";
 import type { AppointmentType, DoctorCheckInResult } from "../types";
-import { DelayHandlingDialog } from "./DelayHandlingDialog";
 
 interface DoctorCheckInButtonProps {
   doctorInfoId: string;
   branchId: string;
-  doctorName: string;
   hasSessionToday: boolean;
-  appointmentType?: AppointmentType;
+  appointmentType: AppointmentType;
+  /** Called with the API result when check-in succeeds, doctor is late, and type is Time. */
+  onLate: (result: DoctorCheckInResult) => void;
 }
 
 export function DoctorCheckInButton({
   doctorInfoId,
   branchId,
-  doctorName,
   hasSessionToday,
   appointmentType,
+  onLate,
 }: DoctorCheckInButtonProps) {
   const { t } = useTranslation();
   const checkIn = useDoctorCheckIn();
-  const [delayResult, setDelayResult] = useState<DoctorCheckInResult | null>(null);
-  const [checkedIn, setCheckedIn] = useState(hasSessionToday);
 
-  const handleCheckIn = () => {
-    checkIn.mutate(
-      { doctorInfoId, branchId },
-      {
-        onSuccess: (result) => {
-          setCheckedIn(true);
-          if (result.isLate && appointmentType !== "Queue") {
-            setDelayResult(result);
-          }
-        },
-        onError: (err: any) => {
-          if (err?.code === "ALREADY_EXISTS") setCheckedIn(true);
-        },
-      },
-    );
-  };
-
-  // Render delay dialog regardless of checkedIn state so it survives the re-render
-  const delayDialog = delayResult ? (
-    <DelayHandlingDialog
-      isOpen
-      sessionId={delayResult.sessionId}
-      delayMinutes={delayResult.delayMinutes ?? 0}
-      scheduledTime={delayResult.scheduledStartTime}
-      doctorName={doctorName}
-      onClose={() => setDelayResult(null)}
-    />
-  ) : null;
-
-  // Already checked in today — show a green badge instead of the button
-  if (checkedIn) {
+  if (hasSessionToday) {
     return (
-      <>
-        <Chip size="sm" variant="soft" color="success" className="gap-1">
-          <CheckCircle className="h-3 w-3" />
-          {t("appointments.sessionActive")}
-        </Chip>
-        {delayDialog}
-      </>
+      <Chip size="sm" variant="soft" color="success" className="gap-1">
+        <CheckCircle className="h-3 w-3" />
+        {t("appointments.sessionActive")}
+      </Chip>
     );
   }
 
   return (
-    <>
-      <Button
-        size="sm"
-        variant="outline"
-        onPress={handleCheckIn}
-        isPending={checkIn.isPending}
-        className="gap-1.5"
-      >
-        <LogIn className="h-3.5 w-3.5" />
-        {t("appointments.checkIn")}
-      </Button>
-      {delayDialog}
-    </>
+    <Button
+      size="sm"
+      variant="outline"
+      onPress={() =>
+        checkIn.mutate(
+          { doctorInfoId, branchId },
+          {
+            onSuccess: (result) => {
+              // Only Time-based doctors have scheduled appointments that can be shifted.
+              // Queue doctors don't have fixed times — the delay dialog is irrelevant for them.
+              if (result.isLate && appointmentType === "Time") {
+                onLate(result);
+              }
+            },
+          },
+        )
+      }
+      isPending={checkIn.isPending}
+      className="gap-1.5"
+    >
+      <LogIn className="h-3.5 w-3.5" />
+      {t("appointments.checkIn")}
+    </Button>
   );
 }

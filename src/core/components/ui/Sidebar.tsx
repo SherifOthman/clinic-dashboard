@@ -4,10 +4,9 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
 import { siteConfig } from "@/core/config";
-import { canAccessRouteWithPermissions } from "@/core/utils/permissions";
+import { canAccessRouteWithPermissions, isSuperAdmin } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
 import { useContactMessagesUnreadCount } from "@/features/dashboard/dashboardHooks";
-import { isSuperAdmin } from "@/core/utils/permissions";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 
 interface SidebarProps {

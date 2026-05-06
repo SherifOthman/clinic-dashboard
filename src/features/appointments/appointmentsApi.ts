@@ -26,12 +26,20 @@ export const appointmentsApi = {
   refund: (id: string): Promise<void> =>
     apiClient.patch(`${BASE}/${id}/refund`),
 
+  update: (id: string, data: {
+    visitTypeId: string;
+    scheduledTime?: string;
+    discountPercent?: number;
+    visitDurationMinutes?: number;
+  }): Promise<void> =>
+    apiClient.put(`${BASE}/${id}`, data),
+
   setAppointmentType: (memberId: string, branchId: string, appointmentType: string): Promise<void> =>
     apiClient.patch(`${BASE}/doctors/${memberId}/appointment-type`, { appointmentType, branchId }),
 
   checkIn: (doctorInfoId: string, branchId: string) =>
     apiClient.post<import("./types").DoctorCheckInResult>(`${BASE}/sessions/check-in`, { doctorInfoId, branchId }),
 
-  handleDelay: (sessionId: string, option: "AutoShift" | "MarkMissed" | "Manual"): Promise<void> =>
+  handleDelay: (sessionId: string, option: "AutoShift" | "MarkMissed" | "Manual" | "Cancel"): Promise<void> =>
     apiClient.post(`${BASE}/sessions/${sessionId}/handle-delay`, { option }),
 };

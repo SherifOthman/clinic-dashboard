@@ -1,6 +1,7 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
-import { Button, Input } from "@heroui/react";
+import { todayStr } from "@/core/utils/dateUtils";
+import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useBranches } from "../branches/branchesHooks";
@@ -8,17 +9,11 @@ import { PatientDetailDialog } from "@/features/patients/components/PatientDetai
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
 import { AppointmentsToolbar } from "./components/AppointmentsToolbar";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
+import { DelayHandlingDialog } from "./components/DelayHandlingDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
 import { getMultiGridClass, resolveViewMode } from "./viewMode";
-import type { AppointmentDto, ViewMode } from "./types";
+import type { AppointmentDto, DoctorCheckInResult, ViewMode } from "./types";
 import { useState } from "react";
-
-// ── URL param helpers ─────────────────────────────────────────────────────────
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
@@ -49,6 +44,7 @@ export default function AppointmentsPage() {
   const [preselectedDoctor, setPreselectedDoctor]   = useState<string | undefined>();
   const [editingAppointment, setEditingAppointment] = useState<AppointmentDto | null>(null);
   const [viewPatientId, setViewPatientId]           = useState<string | null>(null);
+  const [pendingDelay, setPendingDelay]             = useState<{ result: DoctorCheckInResult; doctorName: string } | null>(null);
 
   const createDialog = useDialogState();
 
@@ -118,18 +114,9 @@ export default function AppointmentsPage() {
         manualViewMode={manualViewMode}
         onViewModeChange={setManualViewMode}
         onResetViewMode={() => setManualViewMode(null)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
       />
-
-      {/* Search bar — compact width */}
-      <div className="mb-4 max-w-sm">
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={t("appointments.searchPlaceholder")}
-          aria-label={t("appointments.searchPlaceholder")}
-          fullWidth
-        />
-      </div>
 
       {/* Doctor panels */}
       {visibleDoctors.length === 0 && !isLoading ? (
@@ -156,6 +143,7 @@ export default function AppointmentsPage() {
               onEditAppointment={(a) => setEditingAppointment(a)}
               onViewPatient={(patientId) => setViewPatientId(patientId)}
               onViewAll={handleViewAll}
+              onDoctorLate={(result, doctorName) => setPendingDelay({ result, doctorName })}
               branchId={activeBranchId ?? undefined}
             />
           ))}
@@ -187,6 +175,17 @@ export default function AppointmentsPage() {
         patientId={viewPatientId}
         onClose={() => setViewPatientId(null)}
       />
+
+      {pendingDelay && (
+        <DelayHandlingDialog
+          isOpen
+          sessionId={pendingDelay.result.sessionId}
+          delayMinutes={pendingDelay.result.delayMinutes ?? 0}
+          scheduledTime={pendingDelay.result.scheduledStartTime}
+          doctorName={pendingDelay.doctorName}
+          onClose={() => setPendingDelay(null)}
+        />
+      )}
     </div>
   );
 }

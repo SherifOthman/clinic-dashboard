@@ -4,6 +4,7 @@ import { getErrorMessage } from "@/core/utils/apiErrorHandler";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { appointmentsApi } from "./appointmentsApi";
+import type { DoctorCheckInResult } from "./types";
 
 export function useAppointments(date: string, branchId?: string | null, doctorInfoIds?: string[]) {
   return useQuery({
@@ -48,6 +49,11 @@ export function useSetAppointmentType() {
   });
 }
 
+/**
+ * Check-in mutation — does NOT invalidate queries automatically.
+ * The caller decides when to invalidate (after the delay dialog is resolved,
+ * or immediately if the doctor is on time).
+ */
 export function useDoctorCheckIn() {
   const { showError, showSuccess } = useToast();
   const { t } = useTranslation();
@@ -56,14 +62,31 @@ export function useDoctorCheckIn() {
   return useMutation({
     mutationFn: ({ doctorInfoId, branchId }: { doctorInfoId: string; branchId: string }) =>
       appointmentsApi.checkIn(doctorInfoId, branchId),
-    onSuccess: (result) => {
+    onSuccess: (result: DoctorCheckInResult) => {
+      // Always invalidate so the badge updates immediately.
+      // For Time doctors that are late, the page-level delay dialog also handles
+      // a second invalidation after the dialog is resolved.
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      if (!result.isLate) showSuccess("toast.checkedIn");
+      if (!result.isLate) {
+        showSuccess("toast.checkedIn");
+      }
     },
     onError: (err: unknown) => {
-      if ((err as any)?.code === "ALREADY_EXISTS") return;
+      if ((err as any)?.code === "ALREADY_EXISTS") {
+        // Already checked in — sync the badge
+        queryClient.invalidateQueries({ queryKey: ["appointments", "doctors"] });
+        return;
+      }
       showError(getErrorMessage(err as Error, t));
     },
+  });
+}
+
+export function useUpdateAppointment() {
+  return useMutationWithToast<void, { id: string; visitTypeId: string; scheduledTime?: string; discountPercent?: number; visitDurationMinutes?: number }>({
+    mutationFn:    ({ id, ...data }) => appointmentsApi.update(id, data),
+    successMessage: "toast.appointmentUpdated",
+    invalidateKeys: [["appointments"]],
   });
 }
 
@@ -84,9 +107,18 @@ export function useRefundAppointment() {
 }
 
 export function useHandleDelay() {
-  return useMutationWithToast<void, { sessionId: string; option: "AutoShift" | "MarkMissed" | "Manual" }>({
-    mutationFn:    ({ sessionId, option }) => appointmentsApi.handleDelay(sessionId, option),
-    successMessage: "toast.appointmentStatusUpdated",
-    invalidateKeys: [["appointments"]],
+  const queryClient = useQueryClient();
+  const { showSuccess } = useToast();
+
+  return useMutation({
+    mutationFn: ({ sessionId, option }: { sessionId: string; option: "AutoShift" | "MarkMissed" | "Manual" | "Cancel" }) =>
+      appointmentsApi.handleDelay(sessionId, option),
+    onSuccess: (_data, variables) => {
+      // Always refresh after delay is handled (or cancelled)
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      if (variables.option !== "Cancel") {
+        showSuccess("toast.delayHandled");
+      }
+    },
   });
 }

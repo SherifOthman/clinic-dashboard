@@ -3,6 +3,7 @@ import { Button } from "@heroui/react";
 import { AlertTriangle, ArrowRight, Clock, UserX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useHandleDelay } from "../appointmentsHooks";
+import { to12h } from "@/core/utils/timeFormat";
 
 interface DelayHandlingDialogProps {
   isOpen: boolean;
@@ -28,6 +29,12 @@ export function DelayHandlingDialog({
     handleDelay.mutate({ sessionId, option }, { onSuccess: onClose });
   };
 
+  // When the dialog is dismissed without choosing, cancel the session
+  // so the doctor appears as not checked in (no orphaned session)
+  const handleClose = () => {
+    handleDelay.mutate({ sessionId, option: "Cancel" }, { onSuccess: onClose, onError: onClose });
+  };
+
   const hours   = Math.floor(delayMinutes / 60);
   const minutes = delayMinutes % 60;
   const delayStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -35,7 +42,7 @@ export function DelayHandlingDialog({
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       size="md"
       ariaLabel={t("appointments.doctorLate")}
       header={
@@ -58,7 +65,7 @@ export function DelayHandlingDialog({
           </p>
           {scheduledTime && (
             <p className="text-xs text-muted mt-1">
-              {t("appointments.scheduledAt")} {scheduledTime}
+              {t("appointments.scheduledAt")} {to12h(scheduledTime)}
             </p>
           )}
         </div>
@@ -113,7 +120,7 @@ export function DelayHandlingDialog({
           </div>
         </button>
 
-        <Button variant="ghost" onPress={onClose} className="self-end">
+        <Button variant="ghost" onPress={handleClose} className="self-end">
           {t("common.cancel")}
         </Button>
       </div>

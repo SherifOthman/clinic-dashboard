@@ -4,6 +4,7 @@ export * from "./arabicNumerals";
 export * from "./authNavigation";
 export * from "./buildQuery";
 export * from "./cn";
+export * from "./dateUtils";
 export * from "./fileUtils";
 export * from "./formUtils";
 export * from "./i18nUtils";

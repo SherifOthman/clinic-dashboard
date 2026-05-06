@@ -11,7 +11,7 @@ import {
   useRefundAppointment,
   useUpdateAppointmentStatus,
 } from "../appointmentsHooks";
-import type { AppointmentDto, AppointmentStatus, DoctorForBranch } from "../types";
+import type { AppointmentDto, AppointmentStatus, DoctorCheckInResult, DoctorForBranch } from "../types";
 import type { ViewMode } from "../viewMode";
 import { buildClientPage } from "@/features/admin/utils/clientPagination";
 import { ActionsDropdown, NextStatusButton, PatientCell, SlotCell, STATUS_COLOR } from "./appointmentColumns";
@@ -26,7 +26,8 @@ interface DoctorAppointmentsPanelProps {
   onAddAppointment?: () => void;
   onEditAppointment?: (a: AppointmentDto) => void;
   onViewPatient?: (patientId: string) => void;
-  onViewAll?: (doctorInfoId: string) => void;  // switch to single mode for this doctor
+  onViewAll?: (doctorInfoId: string) => void;
+  onDoctorLate?: (result: DoctorCheckInResult, doctorName: string) => void;
   branchId?: string;
 }
 
@@ -37,12 +38,13 @@ const TERMINAL = new Set<AppointmentStatus>(["Completed", "Cancelled", "NoShow"]
 // ── Panel header ──────────────────────────────────────────────────────────────
 
 function PanelHeader({
-  doctor, count, branchId, onAddAppointment,
+  doctor, count, branchId, onAddAppointment, onDoctorLate,
 }: {
   doctor: DoctorForBranch;
   count: number;
   branchId?: string;
   onAddAppointment?: () => void;
+  onDoctorLate?: (result: DoctorCheckInResult, doctorName: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const isAr    = i18n.language === "ar";
@@ -68,9 +70,9 @@ function PanelHeader({
           <DoctorCheckInButton
             doctorInfoId={doctor.doctorInfoId}
             branchId={branchId}
-            doctorName={doctor.fullName}
             hasSessionToday={doctor.hasSessionToday}
             appointmentType={doctor.appointmentType}
+            onLate={(result) => onDoctorLate?.(result, doctor.fullName)}
           />
         )}
         {onAddAppointment && (
@@ -93,7 +95,7 @@ function PanelHeader({
 
 export function DoctorAppointmentsPanel({
   doctor, appointments, isLoading, viewMode, searchTerm = "",
-  onAddAppointment, onEditAppointment, onViewPatient, onViewAll, branchId,
+  onAddAppointment, onEditAppointment, onViewPatient, onViewAll, onDoctorLate, branchId,
 }: DoctorAppointmentsPanelProps) {
   const { t, i18n } = useTranslation();
   const isAr     = i18n.language === "ar";
@@ -107,14 +109,12 @@ export function DoctorAppointmentsPanel({
 
   const onStatusChange = (id: string, status: string) => updateStatus.mutate({ id, status });
 
-  // Sort: active first, terminal at the end
   const sorted = useMemo(() => {
     const active   = appointments.filter((a) => !TERMINAL.has(a.status));
     const terminal = appointments.filter((a) => TERMINAL.has(a.status));
     return [...active, ...terminal];
   }, [appointments]);
 
-  // Filter by search term (name, code, phone — client-side since all loaded)
   const filtered = useMemo(() => {
     if (!searchTerm.trim()) return sorted;
     const q = searchTerm.toLowerCase();
@@ -130,7 +130,7 @@ export function DoctorAppointmentsPanel({
   if (isLoading) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        <PanelHeader doctor={doctor} count={0} branchId={branchId} onAddAppointment={onAddAppointment} />
+        <PanelHeader doctor={doctor} count={0} branchId={branchId} onAddAppointment={onAddAppointment} onDoctorLate={onDoctorLate} />
         <div className="flex flex-col gap-1.5 p-3">
           {[1, 2, 3].map((i) => <div key={i} className="h-9 animate-pulse rounded-lg bg-surface-secondary" />)}
         </div>
@@ -143,7 +143,7 @@ export function DoctorAppointmentsPanel({
     if (!isSingle) return null;
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        <PanelHeader doctor={doctor} count={0} branchId={branchId} onAddAppointment={onAddAppointment} />
+        <PanelHeader doctor={doctor} count={0} branchId={branchId} onAddAppointment={onAddAppointment} onDoctorLate={onDoctorLate} />
         <div className="py-8 text-center text-sm text-muted">{t("appointments.noAppointments")}</div>
       </div>
     );
@@ -205,7 +205,7 @@ export function DoctorAppointmentsPanel({
 
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
-        <PanelHeader doctor={doctor} count={appointments.length} branchId={branchId} onAddAppointment={onAddAppointment} />
+        <PanelHeader doctor={doctor} count={appointments.length} branchId={branchId} onAddAppointment={onAddAppointment} onDoctorLate={onDoctorLate} />
         {filtered.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted">{t("common.noResults")}</div>
         ) : (
@@ -228,15 +228,15 @@ export function DoctorAppointmentsPanel({
   }
 
   // ── Multi mode: compact list, top 10 + "View All" link ────────────────────
-  const preview    = filtered.slice(0, MULTI_PREVIEW);
-  const hasMore    = filtered.length > MULTI_PREVIEW;
+  const preview = filtered.slice(0, MULTI_PREVIEW);
+  const hasMore = filtered.length > MULTI_PREVIEW;
 
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
-      <PanelHeader doctor={doctor} count={appointments.length} branchId={branchId} onAddAppointment={onAddAppointment} />
+      <PanelHeader doctor={doctor} count={appointments.length} branchId={branchId} onAddAppointment={onAddAppointment} onDoctorLate={onDoctorLate} />
 
       {/* Column headers */}
-      <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-2 border-b border-border/50 bg-surface-secondary/30 px-3 py-1.5">
+      <div className="grid grid-cols-[5rem_1fr_auto_auto] gap-x-3 border-b border-border/50 bg-surface-secondary/30 px-3 py-1.5">
         <span className="text-xs font-medium text-muted">
           {doctor.appointmentType === "Queue" ? "#" : t("appointments.columns.time")}
         </span>
@@ -245,15 +245,15 @@ export function DoctorAppointmentsPanel({
         <span />
       </div>
 
-      {/* Rows — top 10 only */}
+      {/* Rows */}
       <div className="flex flex-col">
         {preview.map((appt) => (
           <div
             key={appt.id}
-            className="grid grid-cols-[auto_1fr_auto_auto] gap-x-2 items-center border-b border-border/40 px-3 py-2 hover:bg-surface-secondary/30 transition-colors"
+            className="grid grid-cols-[5rem_1fr_auto_auto] gap-x-3 items-center border-b border-border/40 px-3 py-2 hover:bg-surface-secondary/30 transition-colors"
           >
-            <div className="min-w-[3.5rem]">
-              <SlotCell a={appt} isAr={isAr} />
+            <div className="shrink-0">
+              <SlotCell a={appt} isAr={isAr} compact />
             </div>
             <div className="min-w-0">
               <PatientCell a={appt} isAr={isAr} onViewPatient={onViewPatient} t={t} />
@@ -279,7 +279,6 @@ export function DoctorAppointmentsPanel({
         ))}
       </div>
 
-      {/* "View All" footer — only when there are more than 10 */}
       {hasMore && onViewAll && (
         <button
           type="button"

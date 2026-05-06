@@ -1,21 +1,24 @@
 import { StatsCard } from "@/core/components/ui/StatsCard";
-import { useBranches } from "@/features/branches/branchesHooks";
 import { Activity, Calendar, Mail, TrendingUp, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
-import { useBranchTodayAppointments, useDashboardStats } from "../dashboardHooks";
+import { useDashboardStats } from "../dashboardHooks";
 import { SubscriptionCard } from "./SubscriptionCard";
+import type { AppointmentDto } from "../../appointments/types";
+
+interface DashboardStatsProps {
+  todayAppointments: AppointmentDto[];
+  apptLoading: boolean;
+}
 
 /**
  * Stats overview for the Clinic Owner dashboard.
- * Shows patients, staff, invitations, today's appointments, subscription, and revenue.
+ * Receives today's appointments as props — ClinicDashboard already fetches them.
  */
-export function DashboardStats() {
+export function DashboardStats({ todayAppointments, apptLoading }: DashboardStatsProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   const { data, isLoading } = useDashboardStats();
-  const { data: branches = [] } = useBranches();
-  const { data: todayAppts = [], isLoading: apptLoading } = useBranchTodayAppointments(branches[0]?.id);
 
   const patientTrend = (() => {
     if (!data || data.patientsLastMonth === 0) return undefined;
@@ -25,12 +28,12 @@ export function DashboardStats() {
     return { value: Math.abs(pct), isPositive: pct >= 0 };
   })();
 
-  const todayCompleted = todayAppts.filter((a) => a.status === "Completed").length;
+  const todayCompleted = todayAppointments.filter((a) => a.status === "Completed").length;
 
   // Format "completed/total" — reversed in Arabic (total/completed reads naturally RTL)
   const apptValue = apptLoading ? "—" : isRTL
-    ? `${toArabicNumerals(String(todayAppts.length))}/${toArabicNumerals(String(todayCompleted))}`
-    : `${todayCompleted}/${todayAppts.length}`;
+    ? `${toArabicNumerals(String(todayAppointments.length))}/${toArabicNumerals(String(todayCompleted))}`
+    : `${todayCompleted}/${todayAppointments.length}`;
 
   return (
     <div className="flex flex-col gap-6">
