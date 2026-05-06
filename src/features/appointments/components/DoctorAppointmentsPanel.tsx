@@ -285,7 +285,10 @@ export function DoctorAppointmentsPanel({
           onClick={() => onViewAll(doctor.doctorInfoId)}
           className="flex w-full items-center justify-center gap-1.5 border-t border-border/50 px-3 py-2.5 text-xs font-medium text-accent hover:bg-accent/5 transition-colors"
         >
-          {t("appointments.viewAllCount", { count: num(filtered.length) })}
+          {t("appointments.viewAllCount", { count: filtered.length }).replace(
+            String(filtered.length),
+            num(filtered.length),
+          )}
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
       )}

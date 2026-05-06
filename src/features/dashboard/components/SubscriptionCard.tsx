@@ -25,8 +25,11 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
   const daysLabel = (() => {
     if (!data?.daysRemaining && data?.daysRemaining !== 0) return null;
     if (data.daysRemaining === 0) return t("dashboard.expirestoday");
-    const count = isRTL ? toArabicNumerals(String(data.daysRemaining)) : data.daysRemaining;
-    return t("dashboard.daysRemaining", { count });
+    // Pass count as number (required by i18next), then replace with Arabic numerals for display
+    const label = t("dashboard.daysRemaining", { count: data.daysRemaining });
+    return isRTL
+      ? label.replace(String(data.daysRemaining), toArabicNumerals(String(data.daysRemaining)))
+      : label;
   })();
 
   return (
