@@ -143,6 +143,7 @@
     "appointmentsBulkCancelled": "All pending appointments cancelled",
     "appointmentsRescheduled": "Appointments rescheduled to next available days",
     "appointmentRescheduled": "Appointment moved to new date",
+    "appointmentCreated": "Appointment booked successfully",
     "appointmentUpdated": "Appointment updated successfully",
     "appointmentStatusUpdated": "Appointment status updated",
     "appointmentTypeUpdated": "Appointment type updated",

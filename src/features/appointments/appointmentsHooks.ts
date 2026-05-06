@@ -72,9 +72,9 @@ export function useRefundAppointment() {
 // ── Reschedule / bulk operations ──────────────────────────────────────────────
 
 export function useRescheduleAppointment() {
-  return useMutationWithToast<void, { appointmentId: string; newDate: string }>({
-    mutationFn: ({ appointmentId, newDate }) =>
-      appointmentsApi.rescheduleAppointment(appointmentId, newDate),
+  return useMutationWithToast<void, { appointmentId: string; newDate: string; newBranchId?: string }>({
+    mutationFn: ({ appointmentId, newDate, newBranchId }) =>
+      appointmentsApi.rescheduleAppointment(appointmentId, newDate, newBranchId),
     successMessage: "toast.appointmentRescheduled",
     invalidateKeys: [["appointments"]],
   });

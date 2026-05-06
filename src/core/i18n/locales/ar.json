@@ -143,6 +143,7 @@
     "appointmentsBulkCancelled": "تم إلغاء جميع المواعيد المعلقة",
     "appointmentsRescheduled": "تم تحويل المواعيد إلى أقرب أيام متاحة",
     "appointmentRescheduled": "تم تحويل الموعد إلى التاريخ الجديد",
+    "appointmentCreated": "تم حجز الموعد بنجاح",
     "appointmentUpdated": "تم تحديث الموعد بنجاح",
     "appointmentStatusUpdated": "تم تحديث حالة الموعد",
     "appointmentTypeUpdated": "تم تحديث نوع المواعيد",

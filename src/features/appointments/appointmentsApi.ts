@@ -44,8 +44,8 @@ export const appointmentsApi = {
   rescheduleDoctor: (doctorInfoId: string, branchId: string, date: string): Promise<number> =>
     apiClient.post<number>(`${BASE}/reschedule-doctor`, { doctorInfoId, branchId, date }),
 
-  rescheduleAppointment: (appointmentId: string, newDate: string): Promise<void> =>
-    apiClient.patch(`${BASE}/${appointmentId}/reschedule`, { newDate }),
+  rescheduleAppointment: (appointmentId: string, newDate: string, newBranchId?: string): Promise<void> =>
+    apiClient.patch(`${BASE}/${appointmentId}/reschedule`, { newDate, newBranchId }),
 
   handleDelay: (sessionId: string, option: "AutoShift" | "MarkMissed" | "Manual" | "Cancel"): Promise<void> =>
     apiClient.post(`${BASE}/sessions/${sessionId}/handle-delay`, { option }),

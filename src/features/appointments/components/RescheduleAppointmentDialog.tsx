@@ -1,12 +1,14 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
+import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import type { DateValue } from "@heroui/react";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { Button } from "@heroui/react";
 import { CalendarClock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useWorkingDays } from "@/features/staff/staffQueries";
+import { useBranches } from "@/features/branches/branchesHooks";
 import { useRescheduleAppointment } from "../appointmentsHooks";
 import type { AppointmentDto } from "../types";
 
@@ -18,9 +20,8 @@ interface RescheduleAppointmentDialogProps {
 }
 
 /**
- * Lets the receptionist move a specific appointment to a future date.
- * Use case: doctor decides to see the last 5 patients tomorrow instead of today.
- * The appointment keeps its queue number; the date changes.
+ * Lets the receptionist move a specific appointment to a future date,
+ * optionally to a different branch.
  */
 export function RescheduleAppointmentDialog({
   appointment,
@@ -30,17 +31,27 @@ export function RescheduleAppointmentDialog({
 }: RescheduleAppointmentDialogProps) {
   const { t } = useTranslation();
   const reschedule = useRescheduleAppointment();
+  const { data: branches = [] } = useBranches();
 
   const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
-  const [newDate, setNewDate] = useState<DateValue | null>(tomorrow);
+  const [newDate, setNewDate]       = useState<DateValue | null>(tomorrow);
+  const [newBranchId, setNewBranchId] = useState<string | null>(null);
 
-  const { data: workingDays = [] } = useWorkingDays(doctorMemberId, branchId ?? undefined);
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (appointment) {
+      setNewDate(tomorrow);
+      setNewBranchId(null); // null = keep current branch
+    }
+  }, [appointment?.id]);
+
+  const effectiveBranchId = newBranchId ?? branchId;
+
+  const { data: workingDays = [] } = useWorkingDays(doctorMemberId, effectiveBranchId ?? undefined);
   const workingDayNumbers = new Set(workingDays.filter((d) => d.isAvailable).map((d) => d.day));
 
   const isDateUnavailable = (d: DateValue) => {
-    // Can't pick today or past
     if (d.compare(today(getLocalTimeZone())) <= 0) return true;
-    // Must be a working day
     const dow = d.toDate(getLocalTimeZone()).getDay();
     return workingDays.length > 0 && !workingDayNumbers.has(dow);
   };
@@ -48,14 +59,19 @@ export function RescheduleAppointmentDialog({
   const handleSubmit = () => {
     if (!appointment || !newDate) return;
     const dateStr = `${newDate.year}-${String(newDate.month).padStart(2, "0")}-${String(newDate.day).padStart(2, "0")}`;
-    reschedule.mutate({ appointmentId: appointment.id, newDate: dateStr }, { onSuccess: onClose });
+    reschedule.mutate(
+      {
+        appointmentId: appointment.id,
+        newDate: dateStr,
+        newBranchId: newBranchId ?? undefined,
+      },
+      { onSuccess: onClose },
+    );
   };
-
-  const isOpen = !!appointment;
 
   return (
     <Dialog
-      isOpen={isOpen}
+      isOpen={!!appointment}
       onClose={onClose}
       size="sm"
       ariaLabel={t("appointments.reschedulePatient")}
@@ -73,6 +89,22 @@ export function RescheduleAppointmentDialog({
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted">{t("appointments.reschedulePatientDesc")}</p>
+
+        {/* Branch selector — only shown when clinic has multiple branches */}
+        {branches.length > 1 && (
+          <FilterSelect
+            value={newBranchId ?? branchId ?? undefined}
+            onChange={(v) => {
+              setNewBranchId(v ?? null);
+              // Reset date when branch changes — working days may differ
+              setNewDate(tomorrow);
+            }}
+            options={branches.map((b) => ({ id: b.id, label: b.name }))}
+            placeholder={t("appointments.selectBranch")}
+            ariaLabel={t("appointments.selectBranch")}
+            className="w-full"
+          />
+        )}
 
         <AppDatePicker
           label={t("appointments.newDate")}
