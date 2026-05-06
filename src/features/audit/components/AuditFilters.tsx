@@ -1,7 +1,7 @@
 import { Button, Label, ListBox, SearchField, Select } from "@heroui/react";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { AUDIT_ACTIONS, ENTITY_TYPES } from "../auditConstants";
+import { AUDIT_ACTIONS, ENTITY_TYPE_LABELS, ENTITY_TYPES } from "../auditConstants";
 import { parseDateSafe } from "../auditHelpers";
 import type { AuditAction } from "../types";
 import { AuditDatePicker } from "./AuditDatePicker";
@@ -106,8 +106,8 @@ export function AuditFilters({
                 <ListBox.ItemIndicator />
               </ListBox.Item>
               {ENTITY_TYPES.map((e) => (
-                <ListBox.Item key={e} id={e} textValue={e}>
-                  {e}
+                <ListBox.Item key={e} id={e} textValue={ENTITY_TYPE_LABELS[e] ?? e}>
+                  {ENTITY_TYPE_LABELS[e] ?? e}
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
               ))}

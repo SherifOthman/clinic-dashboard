@@ -67,19 +67,20 @@ export function hasAnyPermission(
 // ── Patient permissions ───────────────────────────────────────────────────────
 
 export function canViewPatients(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.VIEW_PATIENTS);
+  return hasPermission(user, PERMISSIONS.VIEW_PATIENTS) || isClinicOwner(user);
 }
 
 export function canCreatePatient(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.CREATE_PATIENT);
+  // ClinicOwner has implicit access — backend bypasses permission check for them
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.CREATE_PATIENT);
 }
 
 export function canEditPatient(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.EDIT_PATIENT);
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.EDIT_PATIENT);
 }
 
 export function canDeletePatient(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.DELETE_PATIENT);
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.DELETE_PATIENT);
 }
 
 // ── Staff permissions ─────────────────────────────────────────────────────────

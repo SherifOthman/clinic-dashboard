@@ -112,12 +112,12 @@ function UsageLimitCard({
               <>
                 <div className="flex items-baseline justify-between mb-2">
                   <span className="text-2xl font-bold">{num(limit.used)}</span>
-                  <span className="text-sm text-default-400">/ {num(limit.max)}</span>
+                  <span className="text-sm text-default-400">{t("dashboard.usageMetrics.outOf")} {num(limit.max)}</span>
                 </div>
                 <Meter value={percent} minValue={0} maxValue={100} color={color} size="sm" className="w-full">
                   <Label className="sr-only">{label}</Label>
                   <Meter.Track>
-                    <Meter.Fill />
+                    <Meter.Fill style={{ width: `${percent}%` }} />
                   </Meter.Track>
                 </Meter>
                 <p className="mt-1.5 text-xs text-default-400">

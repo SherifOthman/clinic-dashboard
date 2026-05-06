@@ -636,7 +636,8 @@
       "pageSubtitle": "Track your monthly usage against your subscription plan limits",
       "upgradePrompt": "Need more capacity? Upgrade your plan.",
       "noData": "No usage data available yet. Data is aggregated daily at 1:00 AM.",
-      "used": "used"
+      "used": "used",
+      "outOf": "out of"
     }
   },
   "staff": {

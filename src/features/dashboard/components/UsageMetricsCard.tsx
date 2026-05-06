@@ -98,7 +98,7 @@ function UsageMeter({ label, limit }: { label: string; limit: UsageLimitDto }) {
         </span>
       </div>
       <Meter.Track>
-        <Meter.Fill />
+        <Meter.Fill style={{ width: `${percent}%` }} />
       </Meter.Track>
     </Meter>
   );
