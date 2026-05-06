@@ -28,14 +28,9 @@ export const appointmentsApi = {
 
   update: (id: string, data: {
     visitTypeId: string;
-    scheduledTime?: string;
     discountPercent?: number;
-    visitDurationMinutes?: number;
   }): Promise<void> =>
     apiClient.put(`${BASE}/${id}`, data),
-
-  setAppointmentType: (memberId: string, branchId: string, appointmentType: string): Promise<void> =>
-    apiClient.patch(`${BASE}/doctors/${memberId}/appointment-type`, { appointmentType, branchId }),
 
   checkIn: (doctorInfoId: string, branchId: string) =>
     apiClient.post<import("./types").DoctorCheckInResult>(`${BASE}/sessions/check-in`, { doctorInfoId, branchId }),
