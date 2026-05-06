@@ -75,6 +75,7 @@ export function AppDatePicker({
         isInvalid={isInvalid}
         isDisabled={isDisabled}
         shouldForceLeadingZeros
+        aria-label={calLabel}
         className={className}
       >
         {label && <Label>{label}</Label>}
