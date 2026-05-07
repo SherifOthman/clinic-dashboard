@@ -1,51 +1,44 @@
 import { Loading } from "@/core/components/ui/Loading";
 import { siteConfig } from "@/core/config";
-import {
-  canAccessRoute,
-  canAccessRouteWithPermissions,
-} from "@/core/utils/permissions";
+import { canAccessRouteWithPermissions } from "@/core/utils/permissions";
 import { canAccessOnboarding } from "@/core/utils/authNavigation";
 import { useMe } from "@/features/auth/hooks";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 /**
- * Route guard that checks:
- * 1. Role access (ROUTE_ACCESS) — coarse-grained, e.g. only ClinicOwner can see /staff
- * 2. Permission access — fine-grained, e.g. user must have ViewPatients to see /patients
+ * Route guard — two checks in one pass:
  *
- * If either check fails → redirect to /unauthorized.
+ * 1. Role gate (via ROUTE_ACCESS in constants):
+ *    Coarse-grained structural access — e.g. only ClinicOwner sees /staff,
+ *    only SuperAdmin sees /audit. ClinicOwner bypasses all permission checks.
+ *
+ * 2. Permission gate (via siteConfig.sidebarItems.requiredPermission):
+ *    Fine-grained feature access for staff members — e.g. a receptionist
+ *    needs ViewPatients to see /patients.
+ *
+ * Why keep roles at all?
+ *   - ClinicOwner has no permissions in the DB (implicit full access).
+ *     Without the role check they'd be blocked from every permission-gated route.
+ *   - SuperAdmin is cross-clinic with no MemberId/permissions — role-only.
+ *   - Onboarding gate is role+state: isClinicOwner && !onboardingCompleted.
+ *   Roles and permissions answer different questions and must coexist.
  */
 export function RequireRole() {
   const { user, isLoading } = useMe();
   const location = useLocation();
 
-  if (isLoading) {
-    return <Loading className="h-screen" />;
-  }
+  if (isLoading) return <Loading className="h-screen" />;
+  if (!user)     return <Navigate to="/unauthorized" replace />;
 
-  if (!user) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  // Clinic owner who hasn't completed onboarding → send to wizard
+  if (canAccessOnboarding(user)) return <Navigate to="/onboarding" replace />;
 
-  // New user hasn't completed onboarding — send them there before any API calls fire
-  if (canAccessOnboarding(user)) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  // Combined role + permission check (canAccessRouteWithPermissions calls canAccessRoute internally)
+  const requiredPermission =
+    siteConfig.sidebarItems.find((item) => item.href === location.pathname)
+      ?.requiredPermission ?? null;
 
-  // Role check
-  if (!canAccessRoute(user, location.pathname)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  // Permission check — look up the requiredPermission for this route from siteConfig
-  const sidebarItem = siteConfig.sidebarItems.find(
-    (item) => item.href === location.pathname,
-  );
-  const requiredPermission = sidebarItem?.requiredPermission ?? null;
-
-  if (
-    !canAccessRouteWithPermissions(user, location.pathname, requiredPermission)
-  ) {
+  if (!canAccessRouteWithPermissions(user, location.pathname, requiredPermission)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

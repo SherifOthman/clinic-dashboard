@@ -2,18 +2,11 @@ import type { User } from "@/features/auth/types";
 import { isClinicOwner } from "./permissions";
 
 /**
- * Determines the appropriate route for an authenticated user based on their state
- * Single source of truth for authentication-based navigation
+ * Determines the appropriate route for an authenticated user.
+ * Email verification is handled by the website — not the dashboard.
  */
 export function getAuthenticatedUserRoute(user: User): string {
-  if (!user.emailConfirmed) {
-    return `/verify-email/${encodeURIComponent(user.email)}`;
-  }
-
-  if (canAccessOnboarding(user)) {
-    return "/onboarding";
-  }
-
+  if (canAccessOnboarding(user)) return "/onboarding";
   return "/dashboard";
 }
 
