@@ -2,23 +2,11 @@ import { DashboardLayout } from "@/core/layouts/DashboardLayout";
 import { AuthLayout } from "@/core/layouts/AuthLayout";
 import { NotFoundPage, UnauthorizedPage } from "@/core/pages";
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary";
 import { Loading } from "../components/ui/Loading";
 import { RequireAuth } from "./RequireAuth";
 import { RequireRole } from "./RequireRole";
-
-/**
- * Redirects old dashboard invitation links to the website.
- * The API now sends invitation emails pointing to the website directly,
- * but this handles any old links that still point to the dashboard.
- */
-function AcceptInvitationRedirect() {
-  const { token } = useParams<{ token: string }>();
-  const websiteUrl = import.meta.env.VITE_AUTH_URL?.replace("/en/login", "") ?? "http://localhost:3001";
-  window.location.replace(`${websiteUrl}/en/accept-invitation/${token}`);
-  return null;
-}
 
 // Dashboard pages — lazy loaded
 const DashboardPage    = lazy(() => import("@/features/dashboard/DashboardPage"));
@@ -39,14 +27,10 @@ const AdminChronicDiseasesPage = lazy(() => import("@/features/admin/ChronicDise
 
 export function AppRouter() {
   return (
-    // Top-level ErrorBoundary catches any unhandled error in the entire app
     <ErrorBoundary>
       <Suspense fallback={<Loading className="h-screen" />}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-          {/* Old invitation links — redirect to website */}
-          <Route path="/accept-invitation/:token" element={<AcceptInvitationRedirect />} />
 
           {/* Protected routes */}
           <Route element={<RequireAuth />}>
@@ -55,7 +39,6 @@ export function AppRouter() {
               <Route path="/onboarding" element={<OnboardingWizard />} />
             </Route>
 
-            {/* All dashboard routes — single ErrorBoundary on the layout parent */}
             <Route element={<RequireRole />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/appointments" element={<AppointmentsPage />} />

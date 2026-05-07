@@ -116,6 +116,3 @@ export function useDeleteProfileImage() {
   });
 }
 
-// ── No-op kept for call-site compatibility ────────────────────────────────────
-/** @deprecated No-op — backend handles token refresh automatically via cookies. */
-export function useEnsureClinicOwnerToken(_user: ReturnType<typeof useMe>["user"]) {}

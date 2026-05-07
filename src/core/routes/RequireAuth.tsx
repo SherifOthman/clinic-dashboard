@@ -1,6 +1,6 @@
 import { Loading } from "@/core/components/ui/Loading";
 import { canAccessOnboarding, getAuthenticatedUserRoute } from "@/core/utils/authNavigation";
-import { useEnsureClinicOwnerToken, useMe } from "@/features/auth/hooks";
+import { useMe } from "@/features/auth/hooks";
 import { useRef } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
