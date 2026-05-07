@@ -75,6 +75,22 @@ export function CreateAppointmentDialog({
     return workingDays.length > 0 && !workingDayNumbers.has(dow);
   };
 
+  // When working days load, snap the default date to the next available working day
+  // so the picker never opens with a disabled date pre-selected
+  useEffect(() => {
+    if (!isOpen || isEditing || workingDays.length === 0) return;
+    const todayVal = today(getLocalTimeZone());
+    if (!isDateUnavailable(todayVal)) return; // today is a working day — keep it
+    // Walk forward up to 7 days to find the next working day
+    for (let i = 1; i <= 7; i++) {
+      const candidate = todayVal.add({ days: i });
+      if (!isDateUnavailable(candidate)) {
+        setDate(candidate);
+        return;
+      }
+    }
+  }, [workingDays, isOpen, isEditing]);
+
   const dateStr = date
     ? `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`
     : "";
