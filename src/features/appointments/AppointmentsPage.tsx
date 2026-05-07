@@ -12,7 +12,7 @@ import { AppointmentsToolbar } from "./components/AppointmentsToolbar";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DelayHandlingDialog } from "./components/DelayHandlingDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
-import type { AppointmentDto, DoctorCheckInResult, ViewMode } from "./types";
+import type { AppointmentDto, DoctorCheckInResult } from "./types";
 import { useState } from "react";
 import type { DateValue } from "@internationalized/date";
 import { getLocalTimeZone } from "@internationalized/date";
