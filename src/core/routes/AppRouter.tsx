@@ -20,7 +20,7 @@ function AcceptInvitationRedirect() {
   return null;
 }
 
-// Dashboard pages
+// Dashboard pages — lazy loaded
 const DashboardPage    = lazy(() => import("@/features/dashboard/DashboardPage"));
 const OnboardingWizard = lazy(() => import("@/features/onboarding/OnboardingWizard"));
 const PatientsPage     = lazy(() => import("@/features/patients/PatientsPage"));
@@ -39,6 +39,7 @@ const AdminChronicDiseasesPage = lazy(() => import("@/features/admin/ChronicDise
 
 export function AppRouter() {
   return (
+    // Top-level ErrorBoundary catches any unhandled error in the entire app
     <ErrorBoundary>
       <Suspense fallback={<Loading className="h-screen" />}>
         <Routes>
@@ -54,22 +55,23 @@ export function AppRouter() {
               <Route path="/onboarding" element={<OnboardingWizard />} />
             </Route>
 
+            {/* All dashboard routes — single ErrorBoundary on the layout parent */}
             <Route element={<RequireRole />}>
               <Route element={<DashboardLayout />}>
-                <Route path="/appointments" element={<ErrorBoundary><AppointmentsPage /></ErrorBoundary>} />
-                <Route path="/dashboard"    element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
-                <Route path="/patients"     element={<ErrorBoundary><PatientsPage /></ErrorBoundary>} />
-                <Route path="/staff"        element={<ErrorBoundary><StaffPage /></ErrorBoundary>} />
-                <Route path="/invitations"  element={<ErrorBoundary><InvitationsPage /></ErrorBoundary>} />
-                <Route path="/audit"        element={<ErrorBoundary><AuditPage /></ErrorBoundary>} />
-                <Route path="/branches"     element={<ErrorBoundary><BranchesPage /></ErrorBoundary>} />
-                <Route path="/profile"      element={<ErrorBoundary><ProfilePage /></ErrorBoundary>} />
-                <Route path="/messages"     element={<ErrorBoundary><MessagesPage /></ErrorBoundary>} />
-                <Route path="/reviews"      element={<ErrorBoundary><ReviewsPage /></ErrorBoundary>} />
-                <Route path="/settings"     element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
-                <Route path="/usage"        element={<ErrorBoundary><UsagePage /></ErrorBoundary>} />
-                <Route path="/admin/specializations"  element={<ErrorBoundary><AdminSpecializationsPage /></ErrorBoundary>} />
-                <Route path="/admin/chronic-diseases" element={<ErrorBoundary><AdminChronicDiseasesPage /></ErrorBoundary>} />
+                <Route path="/appointments" element={<AppointmentsPage />} />
+                <Route path="/dashboard"    element={<DashboardPage />} />
+                <Route path="/patients"     element={<PatientsPage />} />
+                <Route path="/staff"        element={<StaffPage />} />
+                <Route path="/invitations"  element={<InvitationsPage />} />
+                <Route path="/audit"        element={<AuditPage />} />
+                <Route path="/branches"     element={<BranchesPage />} />
+                <Route path="/profile"      element={<ProfilePage />} />
+                <Route path="/messages"     element={<MessagesPage />} />
+                <Route path="/reviews"      element={<ReviewsPage />} />
+                <Route path="/settings"     element={<SettingsPage />} />
+                <Route path="/usage"        element={<UsagePage />} />
+                <Route path="/admin/specializations"  element={<AdminSpecializationsPage />} />
+                <Route path="/admin/chronic-diseases" element={<AdminChronicDiseasesPage />} />
               </Route>
             </Route>
           </Route>
