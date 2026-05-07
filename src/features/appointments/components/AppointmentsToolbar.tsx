@@ -1,29 +1,25 @@
 import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
 import { FilterSelect } from "@/core/components/ui/FilterSelect";
-import { Button, Input, Tooltip } from "@heroui/react";
+import { Input } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
-import { LayoutGrid, LayoutList } from "lucide-react";
+import type { DateValue } from "@internationalized/date";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { BranchDto } from "../../branches/branchesApi";
-import type { AppointmentDto, DoctorForBranch, ViewMode } from "../types";
+import type { AppointmentDto, DoctorForBranch } from "../types";
 
 interface AppointmentsToolbarProps {
   dateStr: string;
   onDateChange: (dateStr: string) => void;
+  isDateUnavailable?: (date: DateValue) => boolean;
   branches: BranchDto[];
   activeBranchId: string | null;
   onBranchChange: (branchId: string | undefined) => void;
   doctors: DoctorForBranch[];
   effectiveDoctorId: string | undefined;
   onDoctorChange: (doctorId: string | undefined) => void;
-  viewMode: ViewMode;
-  manualViewMode: ViewMode | null;
-  onViewModeChange: (mode: ViewMode) => void;
-  onResetViewMode: () => void;
   searchTerm: string;
   onSearchChange: (v: string) => void;
-  // New filters
   visitTypeFilter: string;
   onVisitTypeFilterChange: (v: string) => void;
   paymentFilter: string;
@@ -33,19 +29,17 @@ interface AppointmentsToolbarProps {
 }
 
 export function AppointmentsToolbar({
-  dateStr, onDateChange,
+  dateStr, onDateChange, isDateUnavailable,
   branches, activeBranchId, onBranchChange,
   doctors, effectiveDoctorId, onDoctorChange,
-  viewMode, manualViewMode, onViewModeChange, onResetViewMode,
   searchTerm, onSearchChange,
   visitTypeFilter, onVisitTypeFilterChange,
   paymentFilter, onPaymentFilterChange,
   appointments,
 }: AppointmentsToolbarProps) {
   const { t } = useTranslation();
-  const isSingle = viewMode === "single";
 
-  const handleDateChange = (d: import("@internationalized/date").DateValue | null) => {
+  const handleDateChange = (d: DateValue | null) => {
     if (!d) return;
     onDateChange(`${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`);
   };
@@ -68,12 +62,13 @@ export function AppointmentsToolbar({
 
   return (
     <div className="mb-5 flex flex-col gap-3">
-      {/* Row 1 — date, branch, doctor, visit type, payment, layout toggle */}
+      {/* Row 1 — date, branch, doctor, visit type, payment */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Date picker */}
+        {/* Date picker — non-working days disabled */}
         <AppDatePicker
           value={parseDate(dateStr)}
           onChange={handleDateChange}
+          isDateUnavailable={isDateUnavailable}
           ariaLabel={t("common.fields.date")}
           className="w-44 min-w-[11rem]"
         />
@@ -90,8 +85,8 @@ export function AppointmentsToolbar({
           />
         )}
 
-        {/* Doctor selector — single mode only */}
-        {isSingle && doctors.length > 1 && (
+        {/* Doctor selector — only when multiple doctors */}
+        {doctors.length > 1 && (
           <FilterSelect
             value={effectiveDoctorId}
             onChange={(v) => onDoctorChange(v)}
@@ -123,40 +118,6 @@ export function AppointmentsToolbar({
           ariaLabel={t("appointments.filterByPayment")}
           className="w-40"
         />
-
-        {/* Layout toggle */}
-        <div className="ms-auto flex gap-1">
-          <Tooltip delay={300}>
-            <Tooltip.Trigger>
-              <Button size="sm" variant={viewMode === "multi" ? "primary" : "outline"} isIconOnly
-                onPress={() => onViewModeChange("multi")} aria-label={t("appointments.multiDoctorView")}>
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content><p>{t("appointments.multiDoctorView")}</p></Tooltip.Content>
-          </Tooltip>
-
-          <Tooltip delay={300}>
-            <Tooltip.Trigger>
-              <Button size="sm" variant={viewMode === "single" ? "primary" : "outline"} isIconOnly
-                onPress={() => onViewModeChange("single")} aria-label={t("appointments.singleDoctorView")}>
-                <LayoutList className="h-4 w-4" />
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content><p>{t("appointments.singleDoctorView")}</p></Tooltip.Content>
-          </Tooltip>
-
-          {manualViewMode && (
-            <Tooltip delay={300}>
-              <Tooltip.Trigger>
-                <Button size="sm" variant="ghost" onPress={onResetViewMode} className="text-xs text-muted">
-                  {t("appointments.autoView")}
-                </Button>
-              </Tooltip.Trigger>
-              <Tooltip.Content><p>{t("appointments.autoViewDesc")}</p></Tooltip.Content>
-            </Tooltip>
-          )}
-        </div>
       </div>
 
       {/* Row 2 — patient search (full width) */}
