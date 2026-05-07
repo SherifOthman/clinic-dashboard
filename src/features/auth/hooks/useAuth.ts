@@ -5,16 +5,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { authApi } from "../api/authApi";
-import type { ChangePassword, ConfirmEmail, UpdateProfile } from "../schemas";
+import type { ChangePassword, UpdateProfile } from "../schemas";
 
 /**
  * Auth hooks for the dashboard.
  *
- * Login and Register are handled by the Next.js app.
+ * Login, Register, ForgotPassword, ResetPassword, EmailVerification
+ * are all handled by the Next.js website.
+ *
  * The dashboard only needs to:
- *   - Read the current user via /me (cookie is sent automatically)
+ *   - Read the current user via /me (cookie sent automatically)
  *   - Logout (clears cookies on the backend)
- *   - Manage profile
+ *   - Change password and manage profile
  */
 
 // ── Queries ───────────────────────────────────────────────────────────────────
@@ -40,20 +42,6 @@ export function useMe() {
   };
 }
 
-/**
- * For clinic owners who completed onboarding, the JWT issued at login time
- * may not contain the ClinicId claim (e.g. Google OAuth users who onboarded
- * before the token was refreshed). This hook fires a one-time silent refresh
- * on mount so the new token includes ClinicId and RequireClinicOwner passes.
- *
- * NOTE: The backend handles token refresh automatically via the cookie middleware.
- * This hook is intentionally a no-op — kept for reference only.
- */
-export function useEnsureClinicOwnerToken(_user: ReturnType<typeof useMe>["user"]) {
-  // No-op: backend refreshes the token automatically via HttpOnly cookie middleware.
-  // Calling /auth/refresh manually here caused 400 errors when the token was already valid.
-}
-
 // ── Auth mutations ────────────────────────────────────────────────────────────
 
 export function useLogout() {
@@ -69,41 +57,6 @@ export function useLogout() {
   });
 }
 
-export function useConfirmEmail() {
-  const queryClient = useQueryClient();
-  const { showSuccess } = useToast();
-
-  return useMutation({
-    mutationFn: (data: ConfirmEmail) => authApi.confirmEmail(data),
-    onSuccess: () => {
-      showSuccess("toast.emailConfirmedSuccessfully");
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-    },
-  });
-}
-
-export function useForgotPassword() {
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: authApi.forgotPassword,
-    onSuccess: () => showSuccess("toast.passwordResetEmailSent"),
-    onError: createErrorHandler(showError, t),
-  });
-}
-
-export function useResetPassword() {
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: authApi.resetPassword,
-    onSuccess: () => showSuccess("toast.passwordResetSuccessful"),
-    onError: createErrorHandler(showError, t),
-  });
-}
-
 export function useChangePassword() {
   const { showSuccess, showError } = useToast();
   const { t } = useTranslation();
@@ -111,17 +64,6 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (data: ChangePassword) => authApi.changePassword(data),
     onSuccess: () => showSuccess("toast.passwordChangedSuccessfully"),
-    onError: createErrorHandler(showError, t),
-  });
-}
-
-export function useResendEmailVerification() {
-  const { showSuccess, showError } = useToast();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: authApi.resendEmailVerification,
-    onSuccess: () => showSuccess("toast.emailConfirmedSuccessfully"),
     onError: createErrorHandler(showError, t),
   });
 }
@@ -173,3 +115,7 @@ export function useDeleteProfileImage() {
     onError: createErrorHandler(showError, t),
   });
 }
+
+// ── No-op kept for call-site compatibility ────────────────────────────────────
+/** @deprecated No-op — backend handles token refresh automatically via cookies. */
+export function useEnsureClinicOwnerToken(_user: ReturnType<typeof useMe>["user"]) {}

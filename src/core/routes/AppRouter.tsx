@@ -2,11 +2,23 @@ import { DashboardLayout } from "@/core/layouts/DashboardLayout";
 import { AuthLayout } from "@/core/layouts/AuthLayout";
 import { NotFoundPage, UnauthorizedPage } from "@/core/pages";
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary";
 import { Loading } from "../components/ui/Loading";
 import { RequireAuth } from "./RequireAuth";
 import { RequireRole } from "./RequireRole";
+
+/**
+ * Redirects old dashboard invitation links to the website.
+ * The API now sends invitation emails pointing to the website directly,
+ * but this handles any old links that still point to the dashboard.
+ */
+function AcceptInvitationRedirect() {
+  const { token } = useParams<{ token: string }>();
+  const websiteUrl = import.meta.env.VITE_AUTH_URL?.replace("/en/login", "") ?? "http://localhost:3001";
+  window.location.replace(`${websiteUrl}/en/accept-invitation/${token}`);
+  return null;
+}
 
 // Dashboard pages
 const DashboardPage    = lazy(() => import("@/features/dashboard/DashboardPage"));
@@ -22,12 +34,8 @@ const ReviewsPage      = lazy(() => import("@/features/dashboard/ReviewsPage"));
 const AppointmentsPage = lazy(() => import("@/features/appointments/AppointmentsPage"));
 const SettingsPage     = lazy(() => import("@/features/settings/SettingsPage"));
 const UsagePage        = lazy(() => import("@/features/usage/UsagePage"));
-const AdminSpecializationsPage    = lazy(() => import("@/features/admin/SpecializationsPage"));
-const AdminChronicDiseasesPage    = lazy(() => import("@/features/admin/ChronicDiseasesPage"));
-
-// Email verification — still handled here (deep link from email)
-const ConfirmEmailPage = lazy(() => import("@/features/auth/pages/ConfirmEmailPage"));
-const VerifyEmailPage  = lazy(() => import("@/features/auth/pages/VerifyEmailPage"));
+const AdminSpecializationsPage = lazy(() => import("@/features/admin/SpecializationsPage"));
+const AdminChronicDiseasesPage = lazy(() => import("@/features/admin/ChronicDiseasesPage"));
 
 export function AppRouter() {
   return (
@@ -36,14 +44,12 @@ export function AppRouter() {
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Email verification — accessible without auth */}
-          <Route element={<AuthLayout />}>
-            <Route path="/confirm-email" element={<ConfirmEmailPage />} />
-            <Route path="/verify-email/:email" element={<VerifyEmailPage />} />
-          </Route>
+          {/* Old invitation links — redirect to website */}
+          <Route path="/accept-invitation/:token" element={<AcceptInvitationRedirect />} />
 
-          {/* All protected routes */}
+          {/* Protected routes */}
           <Route element={<RequireAuth />}>
+            {/* Onboarding — uses AuthLayout (centered, no sidebar) */}
             <Route element={<AuthLayout />}>
               <Route path="/onboarding" element={<OnboardingWizard />} />
             </Route>
@@ -51,19 +57,19 @@ export function AppRouter() {
             <Route element={<RequireRole />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/appointments" element={<ErrorBoundary><AppointmentsPage /></ErrorBoundary>} />
-                <Route path="/dashboard"   element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
-                <Route path="/patients"    element={<ErrorBoundary><PatientsPage /></ErrorBoundary>} />
-                <Route path="/staff"       element={<ErrorBoundary><StaffPage /></ErrorBoundary>} />
-                <Route path="/invitations" element={<ErrorBoundary><InvitationsPage /></ErrorBoundary>} />
-                <Route path="/audit"       element={<ErrorBoundary><AuditPage /></ErrorBoundary>} />
-                <Route path="/branches"    element={<ErrorBoundary><BranchesPage /></ErrorBoundary>} />
-                <Route path="/profile"     element={<ErrorBoundary><ProfilePage /></ErrorBoundary>} />
-                <Route path="/messages"    element={<ErrorBoundary><MessagesPage /></ErrorBoundary>} />
-                <Route path="/reviews"     element={<ErrorBoundary><ReviewsPage /></ErrorBoundary>} />
-                <Route path="/settings"    element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
-                <Route path="/usage"       element={<ErrorBoundary><UsagePage /></ErrorBoundary>} />
-                <Route path="/admin/specializations"    element={<ErrorBoundary><AdminSpecializationsPage /></ErrorBoundary>} />
-                <Route path="/admin/chronic-diseases"   element={<ErrorBoundary><AdminChronicDiseasesPage /></ErrorBoundary>} />
+                <Route path="/dashboard"    element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
+                <Route path="/patients"     element={<ErrorBoundary><PatientsPage /></ErrorBoundary>} />
+                <Route path="/staff"        element={<ErrorBoundary><StaffPage /></ErrorBoundary>} />
+                <Route path="/invitations"  element={<ErrorBoundary><InvitationsPage /></ErrorBoundary>} />
+                <Route path="/audit"        element={<ErrorBoundary><AuditPage /></ErrorBoundary>} />
+                <Route path="/branches"     element={<ErrorBoundary><BranchesPage /></ErrorBoundary>} />
+                <Route path="/profile"      element={<ErrorBoundary><ProfilePage /></ErrorBoundary>} />
+                <Route path="/messages"     element={<ErrorBoundary><MessagesPage /></ErrorBoundary>} />
+                <Route path="/reviews"      element={<ErrorBoundary><ReviewsPage /></ErrorBoundary>} />
+                <Route path="/settings"     element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
+                <Route path="/usage"        element={<ErrorBoundary><UsagePage /></ErrorBoundary>} />
+                <Route path="/admin/specializations"  element={<ErrorBoundary><AdminSpecializationsPage /></ErrorBoundary>} />
+                <Route path="/admin/chronic-diseases" element={<ErrorBoundary><AdminChronicDiseasesPage /></ErrorBoundary>} />
               </Route>
             </Route>
           </Route>

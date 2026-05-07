@@ -24,7 +24,7 @@ export function RequireRole() {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // New user hasn't completed onboarding — send them there before any API calls fire
