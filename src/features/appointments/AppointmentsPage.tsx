@@ -12,7 +12,6 @@ import { AppointmentsToolbar } from "./components/AppointmentsToolbar";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DelayHandlingDialog } from "./components/DelayHandlingDialog";
 import { DoctorAppointmentsPanel } from "./components/DoctorAppointmentsPanel";
-import { getMultiGridClass, resolveViewMode } from "./viewMode";
 import type { AppointmentDto, DoctorCheckInResult, ViewMode } from "./types";
 import { useState } from "react";
 import type { DateValue } from "@internationalized/date";
@@ -25,7 +24,6 @@ export default function AppointmentsPage() {
   // ── URL-synced state ───────────────────────────────────────────────────────
   const dateStr          = searchParams.get("date")        ?? todayStr();
   const selectedDoctorId = searchParams.get("doctor")      ?? undefined;
-  const manualViewMode   = (searchParams.get("view") as ViewMode | null) ?? null;
   const searchTerm       = searchParams.get("q")           ?? "";
   const visitTypeFilter  = searchParams.get("visitType")   ?? "";
   const paymentFilter    = searchParams.get("payment")     ?? "";   // "paid" | "unpaid" | ""
@@ -60,9 +58,6 @@ export default function AppointmentsPage() {
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctorsForBranch(activeBranchId);
 
   // Always force single mode — multi is only useful with 2+ doctors
-  const viewMode: ViewMode = "single";
-  const isSingle = true;
-
   const effectiveDoctorId = selectedDoctorId ?? doctors[0]?.doctorInfoId;
   const visibleDoctors = doctors.length > 1
     ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
@@ -99,10 +94,6 @@ export default function AppointmentsPage() {
   const handleBranchChange = (id: string | undefined) => {
     setBranchId(id);
     setSelectedDoctorId(undefined);
-  };
-
-  const handleViewAll = (doctorInfoId: string) => {
-    setSelectedDoctorId(doctorInfoId);
   };
 
   return (

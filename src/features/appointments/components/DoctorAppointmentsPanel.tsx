@@ -124,8 +124,6 @@ export function DoctorAppointmentsPanel({
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const [page, setPage] = useState(1);
-
-  // Dialog state
   const [absentOpen, setAbsentOpen]                         = useState(false);
   const [reschedulingAppt, setReschedulingAppt]             = useState<AppointmentDto | null>(null);
 
@@ -170,8 +168,6 @@ export function DoctorAppointmentsPanel({
 
     return result;
   }, [sorted, searchTerm, visitTypeFilter, paymentFilter]);
-
-  const num = (n: number) => isAr ? toArabicNumerals(String(n)) : String(n);
 
   const hasActiveAppointments = appointments.some(
     (a) => a.status === "Pending" || a.status === "Waiting"

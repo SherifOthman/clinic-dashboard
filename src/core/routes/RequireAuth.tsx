@@ -12,9 +12,6 @@ export function RequireAuth() {
   const location = useLocation();
   const redirecting = useRef(false);
 
-  // Silently refresh the JWT for onboarded clinic owners so ClinicId claim is present
-  useEnsureClinicOwnerToken(user);
-
   if (isLoading) return <Loading className="h-screen" />;
 
   // Not authenticated → redirect to Next.js login page (hard nav, cross-origin)
