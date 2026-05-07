@@ -1,5 +1,4 @@
 import { useValidation } from "@/core/hooks/useValidation";
-import { Card } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -30,18 +29,16 @@ export default function OnboardingWizard() {
     completeOnboarding.mutate(data);
   };
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return <Loading className="h-screen" />;
   if (error) return <ErrorMessage message={error.message} />;
 
   const steps = [
     {
-      title: "Clinic Info",
       component: (
         <ClinicInfoStep plans={plans || []} onNext={() => setCurrentStep(1)} />
       ),
     },
     {
-      title: "Branch Details",
       component: (
         <BranchDetailsStep
           onNext={methods.handleSubmit(onSubmit)}
@@ -54,19 +51,20 @@ export default function OnboardingWizard() {
 
   return (
     <div className="w-full">
+      {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-foreground mb-2 text-3xl font-bold">
-          {t("onboarding.title")}
-        </h1>
-        <p className="text-default-500 text-sm">{t("onboarding.subtitle")}</p>
+        <div className="mb-4 flex items-center justify-center gap-2">
+          <img src="/logo.svg" alt="ClinicCare" className="h-8 w-8" />
+          <span className="text-xl font-bold">ClinicCare</span>
+        </div>
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("onboarding.title")}</h1>
+        <p className="mt-2 text-sm text-muted sm:text-base">{t("onboarding.subtitle")}</p>
       </div>
 
-      <Card className="mb-6">
-        <Card.Content className="p-6">
-          <ProgressIndicator currentStep={currentStep} totalSteps={2} />
-        </Card.Content>
-      </Card>
+      {/* Progress */}
+      <ProgressIndicator currentStep={currentStep} totalSteps={2} />
 
+      {/* Step content */}
       <FormProvider {...methods}>
         <form>{steps[currentStep].component}</form>
       </FormProvider>

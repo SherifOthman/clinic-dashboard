@@ -1,7 +1,6 @@
 import type { Permission } from "@/core/constants";
 import { useToast } from "@/core/hooks/useToast";
 import { createErrorHandler } from "@/core/utils/apiErrorHandler";
-import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -46,22 +45,13 @@ export function useMe() {
  * may not contain the ClinicId claim (e.g. Google OAuth users who onboarded
  * before the token was refreshed). This hook fires a one-time silent refresh
  * on mount so the new token includes ClinicId and RequireClinicOwner passes.
+ *
+ * NOTE: The backend handles token refresh automatically via the cookie middleware.
+ * This hook is intentionally a no-op — kept for reference only.
  */
-export function useEnsureClinicOwnerToken(user: ReturnType<typeof useMe>["user"]) {
-  const queryClient = useQueryClient();
-  const refreshed = useRef(false);
-
-  useEffect(() => {
-    if (refreshed.current) return;
-    if (!user) return;
-    if (!user.roles?.includes("ClinicOwner")) return;
-    if (!user.onboardingCompleted) return;
-
-    refreshed.current = true;
-    authApi.refreshToken()
-      .then(() => queryClient.invalidateQueries({ queryKey: ["auth", "me"] }))
-      .catch(() => { /* silent — if refresh fails the user will get 401 and be redirected */ });
-  }, [user, queryClient]);
+export function useEnsureClinicOwnerToken(_user: ReturnType<typeof useMe>["user"]) {
+  // No-op: backend refreshes the token automatically via HttpOnly cookie middleware.
+  // Calling /auth/refresh manually here caused 400 errors when the token was already valid.
 }
 
 // ── Auth mutations ────────────────────────────────────────────────────────────

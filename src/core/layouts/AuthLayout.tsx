@@ -15,7 +15,7 @@ export function AuthLayout() {
         <ThemeSwitch />
       </div>
 
-      <div className={cn("w-full", isOnboarding ? "max-w-3xl" : "max-w-md")}>
+      <div className={cn("w-full", isOnboarding ? "max-w-3xl pt-16" : "max-w-md")}>
         <Outlet />
       </div>
     </div>

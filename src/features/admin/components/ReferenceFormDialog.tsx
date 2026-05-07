@@ -40,7 +40,7 @@ export function ReferenceFormDialog({ title, initial, isSaving, onSave, onClose 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
         {/* Names */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="nameEn" className="text-xs font-medium text-muted">
               Name (English) <span className="text-danger">*</span>
@@ -70,7 +70,7 @@ export function ReferenceFormDialog({ title, initial, isSaving, onSave, onClose 
         </div>
 
         {/* Descriptions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
             <Label htmlFor="descEn" className="text-xs font-medium text-muted">Description (English)</Label>
             <TextArea

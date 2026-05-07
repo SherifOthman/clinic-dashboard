@@ -1,7 +1,5 @@
-import { Separator } from "@heroui/react";
 import { Building2, Check, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
 import { cn } from "@/core/utils";
 
 interface ProgressIndicatorProps {
@@ -26,8 +24,8 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
   ];
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-center">
+    <div className="mb-10">
+      <div className="flex items-center justify-center gap-0">
         {steps.map((step, index) => {
           const isCompleted = currentStep > index;
           const isActive = currentStep === index;
@@ -35,52 +33,43 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
 
           return (
             <div key={index} className="flex items-center">
-              {/* Step */}
+              {/* Step bubble + label */}
               <div className="flex flex-col items-center">
-                {/* Icon/Number */}
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
-                    isCompleted || isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-default-100 text-default-400",
+                    "flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300",
+                    isCompleted
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : isActive
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-surface text-muted",
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="h-6 w-6" />
+                    <Check className="h-5 w-5" />
                   ) : (
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-5 w-5" />
                   )}
                 </div>
-
-                {/* Label */}
-                <div className="mt-3 text-center">
-                  <p
-                    className={cn(
-                      "text-sm font-semibold",
-                      isActive || isCompleted
-                        ? "text-foreground"
-                        : "text-default-400",
-                    )}
-                  >
+                <div className="mt-2 text-center">
+                  <p className={cn(
+                    "text-xs font-semibold",
+                    isActive || isCompleted ? "text-foreground" : "text-muted",
+                  )}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-default-500 mt-1 max-w-[120px]">
+                  <p className="mt-0.5 max-w-[100px] text-xs text-muted">
                     {step.description}
                   </p>
                 </div>
               </div>
 
-              {/* Connector Line */}
+              {/* Connector */}
               {index < steps.length - 1 && (
-                <div className="px-8 pb-8">
-                  <Separator
-                    className={cn(
-                      "w-24",
-                      isCompleted ? "bg-primary" : "bg-default-200",
-                    )}
-                  />
-                </div>
+                <div className={cn(
+                  "mx-4 mb-8 h-0.5 w-24 transition-all duration-300",
+                  isCompleted ? "bg-accent" : "bg-border",
+                )} />
               )}
             </div>
           );
@@ -89,4 +78,3 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
     </div>
   );
 }
-
