@@ -68,8 +68,8 @@ export function PatientCell({
         {isUnpaid && (
           <Tooltip delay={300}>
             <Tooltip.Trigger>
-              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-danger/15 text-danger shrink-0">
-                <BanknoteArrowDown className="h-2 w-2" />
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-danger/15 text-danger shrink-0">
+                <BanknoteArrowDown className="h-3 w-3" />
               </span>
             </Tooltip.Trigger>
             <Tooltip.Content><p>{t("appointments.unpaid")}</p></Tooltip.Content>

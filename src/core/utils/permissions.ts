@@ -86,15 +86,15 @@ export function canDeletePatient(user: User | null | undefined): boolean {
 // ── Staff permissions ─────────────────────────────────────────────────────────
 
 export function canViewStaff(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.VIEW_STAFF);
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.VIEW_STAFF);
 }
 
 export function canInviteStaff(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.INVITE_STAFF);
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.INVITE_STAFF);
 }
 
 export function canToggleStaffStatus(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_STAFF_STATUS);
+  return isClinicOwner(user) || hasPermission(user, PERMISSIONS.MANAGE_STAFF_STATUS);
 }
 
 // ── Branch permissions ────────────────────────────────────────────────────────

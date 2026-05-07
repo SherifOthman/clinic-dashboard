@@ -25,6 +25,8 @@ interface DoctorAppointmentsPanelProps {
   isLoading: boolean;
   viewMode: ViewMode;
   searchTerm?: string;
+  visitTypeFilter?: string;
+  paymentFilter?: string;
   dateStr: string;
   onAddAppointment?: () => void;
   onEditAppointment?: (a: AppointmentDto) => void;
@@ -110,7 +112,9 @@ function PanelHeader({
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export function DoctorAppointmentsPanel({
-  doctor, appointments, isLoading, viewMode, searchTerm = "", dateStr,
+  doctor, appointments, isLoading, viewMode, searchTerm = "",
+  visitTypeFilter = "", paymentFilter = "",
+  dateStr,
   onAddAppointment, onEditAppointment, onViewPatient, onViewAll, onDoctorLate, branchId,
 }: DoctorAppointmentsPanelProps) {
   const { t, i18n } = useTranslation();
@@ -136,13 +140,33 @@ export function DoctorAppointmentsPanel({
   }, [appointments]);
 
   const filtered = useMemo(() => {
-    if (!searchTerm.trim()) return sorted;
-    const q = searchTerm.toLowerCase();
-    return sorted.filter((a) =>
-      a.patientName.toLowerCase().includes(q) ||
-      (a.patientCode ?? "").toLowerCase().includes(q)
-    );
-  }, [sorted, searchTerm]);
+    let result = sorted;
+
+    // Text search — patient name or code
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((a) =>
+        a.patientName.toLowerCase().includes(q) ||
+        (a.patientCode ?? "").toLowerCase().includes(q)
+      );
+    }
+
+    // Visit type filter
+    if (visitTypeFilter) {
+      result = result.filter((a) => a.visitTypeName === visitTypeFilter);
+    }
+
+    // Payment status filter
+    if (paymentFilter === "unpaid") {
+      result = result.filter((a) =>
+        !a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow"
+      );
+    } else if (paymentFilter === "paid") {
+      result = result.filter((a) => !!a.invoiceId);
+    }
+
+    return result;
+  }, [sorted, searchTerm, visitTypeFilter, paymentFilter]);
 
   const num = (n: number) => isAr ? toArabicNumerals(String(n)) : String(n);
 

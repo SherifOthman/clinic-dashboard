@@ -20,10 +20,12 @@ export default function AppointmentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ── URL-synced state ───────────────────────────────────────────────────────
-  const dateStr         = searchParams.get("date")   ?? todayStr();
-  const selectedDoctorId = searchParams.get("doctor") ?? undefined;
-  const manualViewMode  = (searchParams.get("view") as ViewMode | null) ?? null;
-  const searchTerm      = searchParams.get("q")      ?? "";
+  const dateStr          = searchParams.get("date")        ?? todayStr();
+  const selectedDoctorId = searchParams.get("doctor")      ?? undefined;
+  const manualViewMode   = (searchParams.get("view") as ViewMode | null) ?? null;
+  const searchTerm       = searchParams.get("q")           ?? "";
+  const visitTypeFilter  = searchParams.get("visitType")   ?? "";
+  const paymentFilter    = searchParams.get("payment")     ?? "";   // "paid" | "unpaid" | ""
 
   const setParam = (key: string, value: string | null) => {
     setSearchParams((prev) => {
@@ -34,10 +36,12 @@ export default function AppointmentsPage() {
     }, { replace: true });
   };
 
-  const setDateStr         = (v: string)          => setParam("date",   v === todayStr() ? null : v);
-  const setSelectedDoctorId = (v: string | undefined) => setParam("doctor", v ?? null);
-  const setManualViewMode  = (v: ViewMode | null)  => setParam("view",   v ?? null);
-  const setSearchTerm      = (v: string)           => setParam("q",      v || null);
+  const setDateStr          = (v: string)          => setParam("date",      v === todayStr() ? null : v);
+  const setSelectedDoctorId = (v: string | undefined) => setParam("doctor",    v ?? null);
+  const setManualViewMode   = (v: ViewMode | null)  => setParam("view",      v ?? null);
+  const setSearchTerm       = (v: string)           => setParam("q",         v || null);
+  const setVisitTypeFilter  = (v: string)           => setParam("visitType", v || null);
+  const setPaymentFilter    = (v: string)           => setParam("payment",   v || null);
 
   // ── Local-only state (dialogs) ─────────────────────────────────────────────
   const [branchId, setBranchId]                     = useState<string | undefined>();
@@ -116,6 +120,11 @@ export default function AppointmentsPage() {
         onResetViewMode={() => setManualViewMode(null)}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        visitTypeFilter={visitTypeFilter}
+        onVisitTypeFilterChange={setVisitTypeFilter}
+        paymentFilter={paymentFilter}
+        onPaymentFilterChange={setPaymentFilter}
+        appointments={appointments}
       />
 
       {/* Doctor panels */}
@@ -139,6 +148,8 @@ export default function AppointmentsPage() {
               isLoading={isLoading}
               viewMode={viewMode}
               searchTerm={searchTerm}
+              visitTypeFilter={visitTypeFilter}
+              paymentFilter={paymentFilter}
               dateStr={dateStr}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
               onEditAppointment={(a) => setEditingAppointment(a)}
