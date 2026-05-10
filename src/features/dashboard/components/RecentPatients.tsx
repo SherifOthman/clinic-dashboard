@@ -1,6 +1,6 @@
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
-import { Card } from "@heroui/react";
+import { Card, Text } from "@heroui/react";
 import { ArrowRight, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -18,7 +18,7 @@ export function RecentPatients() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="text-accent h-5 w-5" />
-            <h3 className="font-semibold">{t("dashboard.recentPatients")}</h3>
+            <Text type="body" weight="semibold">{t("dashboard.recentPatients")}</Text>
           </div>
           <Link
             to="/patients"
@@ -46,9 +46,9 @@ export function RecentPatients() {
             ))}
           </div>
         ) : data?.length === 0 ? (
-          <p className="text-default-400 px-5 py-6 text-center text-sm">
+          <Text type="body-sm" color="muted" align="center" className="px-5 py-6">
             {t("patients.noPatients")}
-          </p>
+          </Text>
         ) : (
           <div className="flex flex-col gap-0">
             {data?.map((patient) => (

@@ -1,4 +1,4 @@
-import { Card, Skeleton } from "@heroui/react";
+import { Card, Skeleton, Text } from "@heroui/react";
 import { Clock, TrendingDown, TrendingUp } from "lucide-react";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,7 +40,7 @@ export function StatsCard({
       <Card.Content className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-default-500 mb-2 text-sm">{title}</p>
+            <Text type="body-sm" color="muted" className="mb-2">{title}</Text>
 
             {isLoading ? (
               <Skeleton className="h-9 w-20 rounded-md" />
@@ -50,7 +50,7 @@ export function StatsCard({
                 <span className="text-sm font-medium">{value}</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold">{displayValue}</p>
+              <Text type="h3" weight="bold" className="text-3xl">{displayValue}</Text>
             )}
 
             {trend && !comingSoon && !isLoading && (

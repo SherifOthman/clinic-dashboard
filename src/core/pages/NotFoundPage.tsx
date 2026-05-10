@@ -1,4 +1,4 @@
-import { Button, Card } from "@heroui/react";
+import { Button, Card, Text } from "@heroui/react";
 import { ArrowLeft, Home, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -21,15 +21,15 @@ export default function NotFoundPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="mb-2 text-3xl font-bold">
+            <Text type="h2" weight="bold" className="mb-2 text-3xl">
               {t("errors.pageNotFound")}
-            </h2>
-            <p className="text-foreground-500 mb-2">
+            </Text>
+            <Text type="body" color="muted" className="mb-2">
               {t("errors.pageNotFoundMessage")}
-            </p>
-            <p className="text-foreground-400 text-sm">
+            </Text>
+            <Text type="body-sm" color="muted">
               {t("errors.pageNotFoundHelp")}
-            </p>
+            </Text>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
@@ -54,9 +54,9 @@ export default function NotFoundPage() {
           </div>
 
           <div className="border-divider mt-8 border-t pt-6">
-            <p className="text-foreground-400 text-xs">
+            <Text type="body-xs" color="muted">
               {t("errors.contactSupport")}
-            </p>
+            </Text>
           </div>
         </Card.Content>
       </Card>

@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Text } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -9,11 +9,11 @@ export default function UnauthorizedPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="text-danger mb-4 text-9xl font-bold">403</h1>
-        <h2 className="mb-2 text-3xl font-semibold">
+        <Text type="h1" weight="bold" className="text-danger mb-4 text-9xl">403</Text>
+        <Text type="h2" weight="semibold" className="mb-2 text-3xl">
           {t("errors.accessDenied")}
-        </h2>
-        <p className="text-foreground-500 mb-8">{t("errors.noPermission")}</p>
+        </Text>
+        <Text type="body" color="muted" className="mb-8">{t("errors.noPermission")}</Text>
         <div className="flex justify-center gap-4">
           <Button
             type="button"
