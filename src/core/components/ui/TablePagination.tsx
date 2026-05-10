@@ -10,7 +10,6 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TablePaginationProps {
-  /** Pagination metadata from the backend — everything except items */
   data: Omit<PagedResult<unknown>, "items"> | undefined;
   currentPage: number;
   onPageChange: (page: number) => void;
@@ -21,10 +20,6 @@ interface TablePaginationProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Builds the page number list with ellipsis markers.
- * e.g. page 5 of 12 → [1, "ellipsis", 4, 5, 6, "ellipsis", 12]
- */
 function getPageItems(current: number, total: number): (number | "ellipsis")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const items: (number | "ellipsis")[] = [1];
@@ -47,14 +42,7 @@ interface PageLinksProps {
   onPageChange: (page: number) => void;
 }
 
-/** Numbered page links + ellipsis — shared between desktop and mobile */
-function PageLinks({
-  pageItems,
-  currentPage,
-  isDisabled,
-  isRTL,
-  onPageChange,
-}: PageLinksProps) {
+function PageLinks({ pageItems, currentPage, isDisabled, isRTL, onPageChange }: PageLinksProps) {
   return (
     <>
       {pageItems.map((p, i) =>
@@ -68,11 +56,7 @@ function PageLinks({
               isActive={p === currentPage}
               isDisabled={isDisabled}
               onPress={() => onPageChange(p)}
-              className={
-                p === currentPage
-                  ? "bg-accent text-accent-foreground font-semibold"
-                  : ""
-              }
+              className={p === currentPage ? "bg-accent text-accent-foreground font-semibold" : ""}
             >
               {isRTL ? toArabicNumerals(String(p)) : p}
             </Pagination.Link>
@@ -83,7 +67,6 @@ function PageLinks({
   );
 }
 
-/** Page-size dropdown */
 function SizeSelector({
   pageSize,
   onPageSizeChange,
@@ -152,32 +135,23 @@ export function TablePagination({
     onPageChange,
   };
 
-  // ── Shared pieces ──────────────────────────────────────────────────────────
-
   const summary = showTotal ? (
     <Pagination.Summary className="text-default-500 text-sm">
       {isRTL ? (
         <>
           عرض{" "}
-          <span className="text-accent font-semibold">
-            {toArabicNumerals(String(startItem))}
-          </span>{" "}
+          <span className="text-accent font-semibold">{toArabicNumerals(String(startItem))}</span>{" "}
           إلى{" "}
-          <span className="text-accent font-semibold">
-            {toArabicNumerals(String(endItem))}
-          </span>{" "}
+          <span className="text-accent font-semibold">{toArabicNumerals(String(endItem))}</span>{" "}
           من{" "}
-          <span className="text-accent font-semibold">
-            {toArabicNumerals(String(totalCount))}
-          </span>{" "}
+          <span className="text-accent font-semibold">{toArabicNumerals(String(totalCount))}</span>{" "}
           نتيجة
         </>
       ) : (
         <>
-          Showing <span className="text-accent font-semibold">{startItem}</span>{" "}
-          to <span className="text-accent font-semibold">{endItem}</span> of{" "}
-          <span className="text-accent font-semibold">{totalCount}</span>{" "}
-          results
+          Showing <span className="text-accent font-semibold">{startItem}</span> to{" "}
+          <span className="text-accent font-semibold">{endItem}</span> of{" "}
+          <span className="text-accent font-semibold">{totalCount}</span> results
         </>
       )}
     </Pagination.Summary>
@@ -192,143 +166,80 @@ export function TablePagination({
     />
   ) : null;
 
-  // ── Desktop layout ─────────────────────────────────────────────────────────
-  // [ Showing X–Y of Z ]        [ < Previous  1 … 5 … 90  Next > ]        [ per page 10 ]
-  //
-  // The nav is absolutely centered so it stays in the middle regardless of
-  // how wide the summary or size selector are.
+  /**
+   * Nav buttons — icon only, no text.
+   * RTL: Next (←) on the left, Previous (→) on the right.
+   * LTR: Previous (←) on the left, Next (→) on the right.
+   */
+  const nav = (
+    <Pagination>
+      <Pagination.Content className="gap-1">
+        {isRTL ? (
+          <>
+            {/* RTL left button: goes to next page, points left ← */}
+            <Pagination.Item>
+              <Pagination.Next
+                isDisabled={!hasNextPage || isDisabled}
+                onPress={() => onPageChange(currentPage + 1)}
+              >
+                <Pagination.PreviousIcon />
+              </Pagination.Next>
+            </Pagination.Item>
 
+            <PageLinks {...pageLinksProps} />
+
+            {/* RTL right button: goes to previous page, points right → */}
+            <Pagination.Item>
+              <Pagination.Previous
+                isDisabled={!hasPreviousPage || isDisabled}
+                onPress={() => onPageChange(currentPage - 1)}
+              >
+                <Pagination.NextIcon />
+              </Pagination.Previous>
+            </Pagination.Item>
+          </>
+        ) : (
+          <>
+            {/* LTR left button: goes to previous page, points left ← */}
+            <Pagination.Item>
+              <Pagination.Previous
+                isDisabled={!hasPreviousPage || isDisabled}
+                onPress={() => onPageChange(currentPage - 1)}
+              >
+                <Pagination.PreviousIcon />
+              </Pagination.Previous>
+            </Pagination.Item>
+
+            <PageLinks {...pageLinksProps} />
+
+            {/* LTR right button: goes to next page, points right → */}
+            <Pagination.Item>
+              <Pagination.Next
+                isDisabled={!hasNextPage || isDisabled}
+                onPress={() => onPageChange(currentPage + 1)}
+              >
+                <Pagination.NextIcon />
+              </Pagination.Next>
+            </Pagination.Item>
+          </>
+        )}
+      </Pagination.Content>
+    </Pagination>
+  );
+
+  // ── Desktop: summary left | nav center | size selector right ──────────────
   const desktopLayout = (
     <div className="relative hidden items-center py-4 sm:flex">
-      {/* Left: summary */}
       <div className="flex-1 whitespace-nowrap">{summary}</div>
-
-      {/* Center: full nav with text labels — absolutely centered */}
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <Pagination>
-          <Pagination.Content className="gap-1">
-            {isRTL ? (
-              <>
-                {/* RTL: Next on the left (start), Previous on the right (end) */}
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={!hasNextPage || isDisabled}
-                    onPress={() => onPageChange(currentPage + 1)}
-                  >
-                    <Pagination.PreviousIcon />
-                    <span>{t("common.next")}</span>
-                  </Pagination.Next>
-                </Pagination.Item>
-
-                <PageLinks {...pageLinksProps} />
-
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={!hasPreviousPage || isDisabled}
-                    onPress={() => onPageChange(currentPage - 1)}
-                  >
-                    <span>{t("common.previous")}</span>
-                    <Pagination.NextIcon />
-                  </Pagination.Previous>
-                </Pagination.Item>
-              </>
-            ) : (
-              <>
-                {/* LTR: Previous on the left, Next on the right */}
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={!hasPreviousPage || isDisabled}
-                    onPress={() => onPageChange(currentPage - 1)}
-                  >
-                    <Pagination.PreviousIcon />
-                    <span>{t("common.previous")}</span>
-                  </Pagination.Previous>
-                </Pagination.Item>
-
-                <PageLinks {...pageLinksProps} />
-
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={!hasNextPage || isDisabled}
-                    onPress={() => onPageChange(currentPage + 1)}
-                  >
-                    <span>{t("common.next")}</span>
-                    <Pagination.NextIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-              </>
-            )}
-          </Pagination.Content>
-        </Pagination>
-      </div>
-
-      {/* Right: size selector */}
+      <div className="absolute left-1/2 -translate-x-1/2">{nav}</div>
       <div className="flex flex-1 justify-end">{sizeSelector}</div>
     </div>
   );
 
-  // ── Mobile layout ──────────────────────────────────────────────────────────
-  // [ <  1 … 5 … 90  > ]
-  // [ Showing X–Y of Z ]   [ per page 10 ]
-
+  // ── Mobile: nav centered | summary + size selector below ──────────────────
   const mobileLayout = (
     <div className="flex flex-col items-center gap-2 py-4 sm:hidden">
-      {/* Icon-only prev + page numbers + icon-only next — one centered row */}
-      <div className="flex items-center justify-center overflow-x-auto">
-        <Pagination>
-          <Pagination.Content className="gap-1">
-            {isRTL ? (
-              <>
-                {/* RTL: Next on the left, Previous on the right */}
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={!hasNextPage || isDisabled}
-                    onPress={() => onPageChange(currentPage + 1)}
-                  >
-                    <Pagination.PreviousIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-
-                <PageLinks {...pageLinksProps} />
-
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={!hasPreviousPage || isDisabled}
-                    onPress={() => onPageChange(currentPage - 1)}
-                  >
-                    <Pagination.NextIcon />
-                  </Pagination.Previous>
-                </Pagination.Item>
-              </>
-            ) : (
-              <>
-                {/* LTR: Previous on the left, Next on the right */}
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={!hasPreviousPage || isDisabled}
-                    onPress={() => onPageChange(currentPage - 1)}
-                  >
-                    <Pagination.PreviousIcon />
-                  </Pagination.Previous>
-                </Pagination.Item>
-
-                <PageLinks {...pageLinksProps} />
-
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={!hasNextPage || isDisabled}
-                    onPress={() => onPageChange(currentPage + 1)}
-                  >
-                    <Pagination.NextIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-              </>
-            )}
-          </Pagination.Content>
-        </Pagination>
-      </div>
-
-      {/* Summary left, size selector right */}
+      <div className="overflow-x-auto">{nav}</div>
       <div className="flex w-full items-center justify-between">
         {summary}
         {sizeSelector}
