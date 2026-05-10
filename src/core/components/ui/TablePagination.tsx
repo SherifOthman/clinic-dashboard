@@ -176,25 +176,25 @@ export function TablePagination({
       <Pagination.Content className="gap-1">
         {isRTL ? (
           <>
-            {/* RTL left button: goes to next page, points left ← */}
+            {/* RTL left button: goes to next page, points right → */}
             <Pagination.Item>
               <Pagination.Next
                 isDisabled={!hasNextPage || isDisabled}
                 onPress={() => onPageChange(currentPage + 1)}
               >
-                <Pagination.PreviousIcon />
+                <Pagination.NextIcon />
               </Pagination.Next>
             </Pagination.Item>
 
             <PageLinks {...pageLinksProps} />
 
-            {/* RTL right button: goes to previous page, points right → */}
+            {/* RTL right button: goes to previous page, points left ← */}
             <Pagination.Item>
               <Pagination.Previous
                 isDisabled={!hasPreviousPage || isDisabled}
                 onPress={() => onPageChange(currentPage - 1)}
               >
-                <Pagination.NextIcon />
+                <Pagination.PreviousIcon />
               </Pagination.Previous>
             </Pagination.Item>
           </>
