@@ -25,7 +25,6 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
   const daysLabel = (() => {
     if (!data?.daysRemaining && data?.daysRemaining !== 0) return null;
     if (data.daysRemaining === 0) return t("dashboard.expirestoday");
-    // Pass count as number (required by i18next), then replace with Arabic numerals for display
     const label = t("dashboard.daysRemaining", { count: data.daysRemaining });
     return isRTL
       ? label.replace(String(data.daysRemaining), toArabicNumerals(String(data.daysRemaining)))
@@ -37,13 +36,13 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
       <Card.Content className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <Text type="body-sm" color="muted" className="mb-2">{t("dashboard.subscription")}</Text>
+            <p className="mb-2 text-sm text-muted">{t("dashboard.subscription")}</p>
 
             {isLoading ? (
               <div className="h-7 w-32 animate-pulse rounded bg-default-100" />
             ) : data ? (
               <div className="flex flex-col gap-2">
-                <Text type="body" weight="bold" className="text-xl">{data.planName}</Text>
+                <Text type="h3" weight="bold" className="text-xl">{data.planName}</Text>
                 <div className="flex flex-wrap items-center gap-2">
                   <Chip size="sm" variant="soft" color={statusColor}>
                     {data.isTrial
@@ -62,11 +61,10 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
                 </div>
               </div>
             ) : (
-              <Text type="body-sm" color="muted">{t("common.notProvided")}</Text>
+              <p className="text-sm text-muted">{t("common.notProvided")}</p>
             )}
           </div>
 
-          {/* Icon — shrink-0 prevents it from being squished in RTL */}
           <div className="ms-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-default-100 text-accent">
             <CreditCard className="h-6 w-6" />
           </div>

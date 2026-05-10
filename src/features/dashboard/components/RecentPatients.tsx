@@ -18,7 +18,7 @@ export function RecentPatients() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="text-accent h-5 w-5" />
-            <Text type="body" weight="semibold">{t("dashboard.recentPatients")}</Text>
+            <Text type="h3" weight="semibold" className="text-base">{t("dashboard.recentPatients")}</Text>
           </div>
           <Link
             to="/patients"
@@ -46,9 +46,9 @@ export function RecentPatients() {
             ))}
           </div>
         ) : data?.length === 0 ? (
-          <Text type="body-sm" color="muted" align="center" className="px-5 py-6">
+          <p className="text-muted px-5 py-6 text-center text-sm">
             {t("patients.noPatients")}
-          </Text>
+          </p>
         ) : (
           <div className="flex flex-col gap-0">
             {data?.map((patient) => (
@@ -92,4 +92,3 @@ export function RecentPatients() {
     </Card>
   );
 }
-

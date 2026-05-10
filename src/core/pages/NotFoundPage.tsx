@@ -24,43 +24,26 @@ export default function NotFoundPage() {
             <Text type="h2" weight="bold" className="mb-2 text-3xl">
               {t("errors.pageNotFound")}
             </Text>
-            <Text type="body" color="muted" className="mb-2">
-              {t("errors.pageNotFoundMessage")}
-            </Text>
-            <Text type="body-sm" color="muted">
-              {t("errors.pageNotFoundHelp")}
-            </Text>
+            <p className="text-muted mb-2">{t("errors.pageNotFoundMessage")}</p>
+            <p className="text-muted text-sm">{t("errors.pageNotFoundHelp")}</p>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onPress={() => navigate("/")}
-            >
+            <Button variant="primary" size="lg" fullWidth onPress={() => navigate("/")}>
               <Home className="h-5 w-5" />
               {t("errors.goToDashboard")}
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              fullWidth
-              onPress={() => window.history.back()}
-            >
+            <Button variant="outline" size="lg" fullWidth onPress={() => window.history.back()}>
               <ArrowLeft className="h-5 w-5" />
               {t("errors.goBack")}
             </Button>
           </div>
 
           <div className="border-divider mt-8 border-t pt-6">
-            <Text type="body-xs" color="muted">
-              {t("errors.contactSupport")}
-            </Text>
+            <p className="text-muted text-xs">{t("errors.contactSupport")}</p>
           </div>
         </Card.Content>
       </Card>
     </div>
   );
 }
-

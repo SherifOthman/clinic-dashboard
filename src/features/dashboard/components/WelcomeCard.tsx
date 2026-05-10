@@ -11,7 +11,7 @@ export function WelcomeCard() {
         <Text type="h2" weight="semibold" className="mb-2 text-2xl">
           {t("dashboard.comingSoon")}
         </Text>
-        <Text type="body" color="muted">{t("dashboard.featuresImplemented")}</Text>
+        <p className="text-muted">{t("dashboard.featuresImplemented")}</p>
       </Card.Content>
     </Card>
   );

@@ -13,22 +13,12 @@ export default function UnauthorizedPage() {
         <Text type="h2" weight="semibold" className="mb-2 text-3xl">
           {t("errors.accessDenied")}
         </Text>
-        <Text type="body" color="muted" className="mb-8">{t("errors.noPermission")}</Text>
+        <p className="text-muted mb-8">{t("errors.noPermission")}</p>
         <div className="flex justify-center gap-4">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onPress={() => navigate("/dashboard")}
-          >
+          <Button type="button" size="sm" variant="outline" onPress={() => navigate("/dashboard")}>
             {t("errors.goToDashboard")}
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onPress={() => navigate("/")}
-          >
+          <Button type="button" size="sm" variant="ghost" onPress={() => navigate("/")}>
             {t("errors.goHome")}
           </Button>
         </div>
@@ -36,4 +26,3 @@ export default function UnauthorizedPage() {
     </div>
   );
 }
-

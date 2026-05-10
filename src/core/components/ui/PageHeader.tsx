@@ -17,7 +17,7 @@ export function PageHeader({ title, subtitle, action, children }: PageHeaderProp
         <Text type="h1" weight="bold" className="mb-1 text-2xl sm:text-3xl">{title}</Text>
         {subtitle && (
           typeof subtitle === "string"
-            ? <Text type="body-sm" color="muted">{subtitle}</Text>
+            ? <p className="text-sm text-muted">{subtitle}</p>
             : <div className="text-sm text-muted">{subtitle}</div>
         )}
         {children}

@@ -26,7 +26,6 @@ export function StatsCard({
   const { i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
-  // Convert numeric values to Arabic numerals when in Arabic mode
   const displayValue = isRTL && typeof value === "number"
     ? toArabicNumerals(String(value))
     : value;
@@ -40,7 +39,7 @@ export function StatsCard({
       <Card.Content className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <Text type="body-sm" color="muted" className="mb-2">{title}</Text>
+            <p className="text-muted mb-2 text-sm">{title}</p>
 
             {isLoading ? (
               <Skeleton className="h-9 w-20 rounded-md" />
@@ -81,4 +80,3 @@ export function StatsCard({
     </Card>
   );
 }
-
