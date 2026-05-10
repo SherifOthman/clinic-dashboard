@@ -207,47 +207,57 @@ export function TablePagination({
       <div className="absolute left-1/2 -translate-x-1/2">
         <Pagination>
           <Pagination.Content className="gap-1">
-            {/* Previous — icon + text */}
-            <Pagination.Item>
-              <Pagination.Previous
-                isDisabled={!hasPreviousPage || isDisabled}
-                onPress={() => onPageChange(currentPage - 1)}
-              >
-                {isRTL ? (
-                  <>
+            {isRTL ? (
+              <>
+                {/* RTL: Next on the left (start), Previous on the right (end) */}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={!hasNextPage || isDisabled}
+                    onPress={() => onPageChange(currentPage + 1)}
+                  >
+                    <Pagination.PreviousIcon />
                     <span>{t("common.next")}</span>
+                  </Pagination.Next>
+                </Pagination.Item>
+
+                <PageLinks {...pageLinksProps} />
+
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={!hasPreviousPage || isDisabled}
+                    onPress={() => onPageChange(currentPage - 1)}
+                  >
+                    <span>{t("common.previous")}</span>
                     <Pagination.NextIcon />
-                  </>
-                ) : (
-                  <>
+                  </Pagination.Previous>
+                </Pagination.Item>
+              </>
+            ) : (
+              <>
+                {/* LTR: Previous on the left, Next on the right */}
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={!hasPreviousPage || isDisabled}
+                    onPress={() => onPageChange(currentPage - 1)}
+                  >
                     <Pagination.PreviousIcon />
                     <span>{t("common.previous")}</span>
-                  </>
-                )}
-              </Pagination.Previous>
-            </Pagination.Item>
+                  </Pagination.Previous>
+                </Pagination.Item>
 
-            <PageLinks {...pageLinksProps} />
+                <PageLinks {...pageLinksProps} />
 
-            {/* Next — icon + text */}
-            <Pagination.Item>
-              <Pagination.Next
-                isDisabled={!hasNextPage || isDisabled}
-                onPress={() => onPageChange(currentPage + 1)}
-              >
-                {isRTL ? (
-                  <>
-                    <Pagination.PreviousIcon />
-                    <span>{t("common.previous")}</span>
-                  </>
-                ) : (
-                  <>
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={!hasNextPage || isDisabled}
+                    onPress={() => onPageChange(currentPage + 1)}
+                  >
                     <span>{t("common.next")}</span>
                     <Pagination.NextIcon />
-                  </>
-                )}
-              </Pagination.Next>
-            </Pagination.Item>
+                  </Pagination.Next>
+                </Pagination.Item>
+              </>
+            )}
           </Pagination.Content>
         </Pagination>
       </div>
@@ -267,27 +277,53 @@ export function TablePagination({
       <div className="flex items-center justify-center overflow-x-auto">
         <Pagination>
           <Pagination.Content className="gap-1">
-            {/* Previous — icon only */}
-            <Pagination.Item>
-              <Pagination.Previous
-                isDisabled={!hasPreviousPage || isDisabled}
-                onPress={() => onPageChange(currentPage - 1)}
-              >
-                {isRTL ? <Pagination.NextIcon /> : <Pagination.PreviousIcon />}
-              </Pagination.Previous>
-            </Pagination.Item>
+            {isRTL ? (
+              <>
+                {/* RTL: Next on the left, Previous on the right */}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={!hasNextPage || isDisabled}
+                    onPress={() => onPageChange(currentPage + 1)}
+                  >
+                    <Pagination.PreviousIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
 
-            <PageLinks {...pageLinksProps} />
+                <PageLinks {...pageLinksProps} />
 
-            {/* Next — icon only */}
-            <Pagination.Item>
-              <Pagination.Next
-                isDisabled={!hasNextPage || isDisabled}
-                onPress={() => onPageChange(currentPage + 1)}
-              >
-                {isRTL ? <Pagination.PreviousIcon /> : <Pagination.NextIcon />}
-              </Pagination.Next>
-            </Pagination.Item>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={!hasPreviousPage || isDisabled}
+                    onPress={() => onPageChange(currentPage - 1)}
+                  >
+                    <Pagination.NextIcon />
+                  </Pagination.Previous>
+                </Pagination.Item>
+              </>
+            ) : (
+              <>
+                {/* LTR: Previous on the left, Next on the right */}
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={!hasPreviousPage || isDisabled}
+                    onPress={() => onPageChange(currentPage - 1)}
+                  >
+                    <Pagination.PreviousIcon />
+                  </Pagination.Previous>
+                </Pagination.Item>
+
+                <PageLinks {...pageLinksProps} />
+
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={!hasNextPage || isDisabled}
+                    onPress={() => onPageChange(currentPage + 1)}
+                  >
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </>
+            )}
           </Pagination.Content>
         </Pagination>
       </div>
