@@ -22,7 +22,7 @@ export function FormPasswordInput({
   const [show, setShow] = useState(false);
 
   return (
-    <TextField isRequired={isRequired} isInvalid={!!error}>
+    <TextField isRequired={isRequired} isInvalid={!!error} variant="secondary">
       <Label>{label}</Label>
       <InputGroup>
         <InputGroup.Input
