@@ -1,4 +1,4 @@
-import { apiClient, apiFetch } from "@/core/api";
+import { apiClient, apiFetch, unwrap } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
 import { buildQuery } from "@/core/utils/buildQuery";
 import type { PagedResult } from "@/core/types";
@@ -62,10 +62,10 @@ export const staffApi = {
 
   // Public endpoint — no auth cookie needed
   acceptInvitationWithRegistration: (token: string, data: AcceptInvitationWithRegistration): Promise<void> =>
-    apiFetch(`${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`, {
+    apiFetch<void>(`${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`, {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    }).then(unwrap),
 
   cancelInvitation: (id: string): Promise<void> =>
     apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/cancel`),

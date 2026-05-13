@@ -1,23 +1,28 @@
-/**
- * API client using native fetch.
- * Both access and refresh tokens live in HttpOnly cookies — the browser
- * sends them automatically on every request. No manual token management needed.
- *
- * On 401: the backend tries to refresh automatically via the cookie middleware.
- * If refresh also fails, we redirect to the Next.js login page.
- */
-
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 const LOGIN_URL = (import.meta.env.VITE_AUTH_URL as string | undefined)
   ?? "https://clinic-website-lime.vercel.app/en/login";
 
+export interface ApiProblemDetails {
+  type: string;
+  title: string;
+  status: number;
+  detail: string | null;
+  code: string | null;
+  errors: Record<string, string[]> | null;
+  traceId: string | null;
+}
+
+export type ApiResult<T = void> =
+  | { ok: true; data: T }
+  | { ok: false; problem: ApiProblemDetails };
+
 export async function apiFetch<T = unknown>(
   path: string,
   options: RequestInit = {},
-): Promise<T> {
+): Promise<ApiResult<T>> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    credentials: "include", // sends HttpOnly cookies automatically
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
@@ -25,35 +30,37 @@ export async function apiFetch<T = unknown>(
   });
 
   if (res.status === 401) {
-    // Backend couldn't refresh — send user to login
     redirectToLogin();
-    throw new Error("Unauthorized");
+    return { ok: false, problem: null! };
   }
 
-  if (res.status === 403) {
-    // Don't redirect — let route guards (RequireAuth/RequireRole) handle navigation.
-    // Throwing lets the calling component decide how to handle it.
-    const err = await res.json().catch(() => ({}));
-    const message = err.detail ?? err.title ?? "Forbidden";
-    throw Object.assign(new Error(message), { code: err.code, status: 403 });
+  if (res.ok) {
+    const text = await res.text();
+    return { ok: true, data: (text ? JSON.parse(text) : undefined) as T };
   }
 
-  if (res.status === 429) {
-    throw Object.assign(
-      new Error("Too many requests. Please slow down."),
-      { code: "RATE_LIMITED", status: 429 },
-    );
-  }
+  const err = await res.json().catch(() => ({})) as Partial<ApiProblemDetails>;
+  return {
+    ok: false,
+    problem: {
+      type: err.type ?? "",
+      title: err.title ?? `Error ${res.status}`,
+      status: err.status ?? res.status,
+      detail: err.detail ?? null,
+      code: err.code ?? null,
+      errors: err.errors ?? null,
+      traceId: err.traceId ?? null,
+    },
+  };
+}
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const message = err.detail ?? err.title ?? `Error ${res.status}`;
-    const error = Object.assign(new Error(message), { code: err.code, errors: err.errors, status: res.status });
-    throw error;
-  }
-
-  const text = await res.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+export function unwrap<T>(result: ApiResult<T>): T {
+  if (result.ok) return result.data;
+  const error = Object.assign(
+    new Error(result.problem.detail ?? result.problem.title),
+    { problem: result.problem, status: result.problem.status },
+  );
+  throw error;
 }
 
 let _redirecting = false;
@@ -67,19 +74,21 @@ function redirectToLogin(): void {
   }
 }
 
-// ── Convenience methods ───────────────────────────────────────────────────────
-
 export const apiClient = {
-  get: <T>(path: string) => apiFetch<T>(path),
-  post: <T>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
-  put: <T>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
-  patch: <T>(path: string, body?: unknown) =>
-    apiFetch<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+  get: <T>(path: string) => apiFetch<T>(path).then(unwrap),
 
-  /** POST JSON and return the last segment of the Location response header (e.g. created resource ID). */
+  post: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }).then(unwrap),
+
+  put: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }).then(unwrap),
+
+  patch: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }).then(unwrap),
+
+  delete: <T>(path: string) =>
+    apiFetch<T>(path, { method: "DELETE" }).then(unwrap),
+
   postForId: async (path: string, body?: unknown): Promise<string> => {
     const res = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
@@ -89,14 +98,22 @@ export const apiClient = {
     });
     if (res.status === 401) { redirectToLogin(); throw new Error("Unauthorized"); }
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(err.detail ?? err.title ?? `Error ${res.status}`), { status: res.status });
+      const err = await res.json().catch(() => ({})) as Partial<ApiProblemDetails>;
+      const problem: ApiProblemDetails = {
+        type: err.type ?? "",
+        title: err.title ?? `Error ${res.status}`,
+        status: err.status ?? res.status,
+        detail: err.detail ?? null,
+        code: err.code ?? null,
+        errors: err.errors ?? null,
+        traceId: err.traceId ?? null,
+      };
+      throw Object.assign(new Error(problem.detail ?? problem.title), { problem, status: problem.status });
     }
     const location = res.headers.get("location") ?? "";
     return location.split("/").pop() ?? "";
   },
 
-  /** PUT with multipart FormData (e.g. file upload) — no Content-Type header so browser sets boundary. */
   putFormData: async (path: string, formData: FormData): Promise<void> => {
     const res = await fetch(`${BASE_URL}${path}`, {
       method: "PUT",
@@ -104,6 +121,18 @@ export const apiClient = {
       body: formData,
     });
     if (res.status === 401) { redirectToLogin(); throw new Error("Unauthorized"); }
-    if (!res.ok) throw new Error(`Error ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as Partial<ApiProblemDetails>;
+      const problem: ApiProblemDetails = {
+        type: err.type ?? "",
+        title: err.title ?? `Error ${res.status}`,
+        status: err.status ?? res.status,
+        detail: err.detail ?? null,
+        code: err.code ?? null,
+        errors: err.errors ?? null,
+        traceId: err.traceId ?? null,
+      };
+      throw Object.assign(new Error(problem.detail ?? problem.title), { problem, status: problem.status });
+    }
   },
 };

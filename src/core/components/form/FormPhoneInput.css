@@ -1,7 +1,7 @@
 .phone-input-theme {
   --react-international-phone-height: 40px;
   --react-international-phone-border-color: var(--border);
-  --react-international-phone-background-color: var(--surface);
+  --react-international-phone-background-color: var(--surface-secondary);
   --react-international-phone-text-color: var(--foreground);
   --react-international-phone-font-size: 14px;
   --react-international-phone-border-radius: 8px;
