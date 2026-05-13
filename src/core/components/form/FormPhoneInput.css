@@ -1,0 +1,19 @@
+.phone-input-theme {
+  --react-international-phone-height: 40px;
+  --react-international-phone-border-color: var(--border);
+  --react-international-phone-background-color: var(--surface);
+  --react-international-phone-text-color: var(--foreground);
+  --react-international-phone-font-size: 14px;
+  --react-international-phone-border-radius: 8px;
+  --react-international-phone-country-selector-background-color: var(--surface-secondary);
+  --react-international-phone-country-selector-background-color-hover: var(--surface-tertiary);
+  --react-international-phone-dropdown-item-background-color: var(--overlay);
+  --react-international-phone-dropdown-item-text-color: var(--foreground);
+  --react-international-phone-dropdown-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  --react-international-phone-selected-dropdown-item-background-color: var(--surface-secondary);
+  --react-international-phone-selected-dropdown-item-text-color: var(--foreground);
+  --react-international-phone-dropdown-item-dial-code-color: var(--muted);
+  --react-international-phone-country-selector-arrow-color: var(--muted);
+  --react-international-phone-disabled-background-color: var(--surface-tertiary);
+  --react-international-phone-disabled-text-color: var(--muted);
+}
