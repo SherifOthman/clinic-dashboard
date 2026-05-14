@@ -44,7 +44,12 @@ export const createPatientSchema = (t: TFunction) => {
       .array(
         z
           .string()
-          .refine((val) => val === "" || validatePhoneNumber(val) === true, {
+          .refine((val) => {
+            if (val === "") return true;
+            const digits = val.replace(/\D/g, "");
+            if (digits.length <= 3) return true;
+            return validatePhoneNumber(val) === true;
+          }, {
             message: t("validation.phoneInvalid"),
           }),
       )

@@ -47,7 +47,8 @@ export function PhoneNumbersInput<T extends FieldValues>({
   const phoneNumbers: string[] = watch(name as any) || [];
   const fieldErrors = errors[name as any] as any;
 
-  // Ensure at least one empty input on mount — must be in useEffect, not render
+  // Show one empty input on mount so the field is visible, but phone is optional —
+  // users can remove it with the X button.
   useEffect(() => {
     if (fields.length === 0) append("" as any);
   }, []);
@@ -59,6 +60,7 @@ export function PhoneNumbersInput<T extends FieldValues>({
           <Phone className="text-accent h-5 w-5" />
           <span className="font-medium">
             {label || t("common.fields.phoneNumber")}
+            <span className="text-muted ms-1 text-xs font-normal">({t("common.optional")})</span>
           </span>
         </div>
         {fields.length < maxItems && (
@@ -94,7 +96,7 @@ export function PhoneNumbersInput<T extends FieldValues>({
                 error={fieldErrors?.[index]}
               />
             </div>
-            {fields.length > 1 && (
+            {fields.length >= 1 && (
               <Button
                 type="button"
                 size="sm"

@@ -4,13 +4,13 @@ import { PatientDialog } from "@/features/patients/components/PatientDialog";
 import type { PatientListItem } from "@/features/patients/types";
 import { Button } from "@heroui/react";
 import { Plus, Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 
 interface PatientSearchFieldProps {
-  value: string;        // selected patient ID
-  patientName: string;  // display name of selected patient
+  value: string;
+  patientName: string;
   onChange: (id: string, name: string) => void;
   isDisabled?: boolean;
 }
@@ -20,6 +20,17 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  // Refs store the truth synchronously — bypass React's batching timing.
+  // Updated both from props (during render) and from handlers (synchronously).
+  const idRef = useRef(value);
+  const nameRef = useRef(patientName);
+  idRef.current = value || idRef.current;
+  nameRef.current = patientName || nameRef.current;
+
+  const [, forceRender] = useReducer((n: number) => n + 1, 0);
+  const hasSelection = !!(value || idRef.current);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debouncedSearch = useDebounce(search, 300);
@@ -49,27 +60,28 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSelect = (patient: PatientListItem) => {
-    onChange(patient.id, patient.fullName);
+  const selectPatient = (patId: string, patName: string) => {
+    idRef.current = patId;
+    nameRef.current = patName;
+    onChange(patId, patName);
     setSearch("");
     setOpen(false);
+    forceRender();
+  };
+
+  const handleSelect = (patient: PatientListItem) => {
+    selectPatient(patient.id, patient.fullName);
   };
 
   const handleClear = () => {
+    idRef.current = "";
+    nameRef.current = "";
     onChange("", "");
     setSearch("");
+    forceRender();
     inputRef.current?.focus();
   };
 
-  // Called when the PatientDialog closes after creating a patient.
-  // The new patient's ID and name are passed directly — no need to search.
-  const handlePatientCreated = (patientId: string, fullName: string) => {
-    onChange(patientId, fullName);
-    setSearch("");
-    setOpen(false);
-  };
-
-  // Called when the PatientDialog closes without creating (user cancelled).
   const handleCreateDialogClose = () => {
     setShowCreateDialog(false);
   };
@@ -82,15 +94,15 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
           <input
             ref={inputRef}
             type="text"
-            value={value ? patientName : search}
-            readOnly={!!value || isDisabled}
-            onChange={(e) => { if (!isDisabled) { setSearch(e.target.value); setOpen(true); } }}
-            onFocus={() => { if (!value && !isDisabled) setOpen(true); }}
+            value={hasSelection ? nameRef.current : search}
+            readOnly={hasSelection || isDisabled}
+            onChange={(e) => { if (!isDisabled) { const val = e.target.value.replace(/[0-9]/g, ""); setSearch(val); setOpen(true); } }}
+            onFocus={() => { if (!hasSelection && !isDisabled) setOpen(true); }}
             placeholder={t("appointments.searchPatient")}
             disabled={isDisabled}
-            className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${value ? "text-foreground font-medium" : ""} ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`w-full rounded-lg border border-border bg-background py-2 ps-9 pe-9 text-sm outline-none focus:border-accent ${hasSelection ? "text-foreground font-medium" : ""} ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
           />
-          {value && (
+          {hasSelection && (
             <button type="button" onClick={handleClear}
               className="absolute end-3 text-muted hover:text-foreground">
               <X className="h-4 w-4" />
@@ -98,7 +110,7 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
           )}
         </div>
 
-        {open && !value && (
+        {open && !hasSelection && (
           <div
             ref={dropdownRef}
             className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg"
@@ -107,7 +119,7 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
               <div className="px-4 py-3 text-sm text-muted">{t("common.loading")}</div>
             ) : patients.length === 0 && debouncedSearch ? (
               <div className="px-4 py-3 text-sm text-muted">
-                {t("appointments.noPatientFound")} "{debouncedSearch}"
+                {t("appointments.noPatientFound")} &quot;{debouncedSearch}&quot;
               </div>
             ) : (
               <ul className="max-h-52 overflow-y-auto py-1">
@@ -152,7 +164,6 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
               </ul>
             )}
 
-            {/* Add new patient — opens full PatientDialog */}
             <div className="border-t border-border p-2">
               <Button
                 variant="ghost"
@@ -172,12 +183,11 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
         )}
       </div>
 
-      {/* Full patient creation dialog */}
       {showCreateDialog && (
         <PatientDialog
           state={{ mode: "create" }}
           onClose={handleCreateDialogClose}
-          onCreated={handlePatientCreated}
+          initialDraft={debouncedSearch ? { fullName: debouncedSearch } : undefined}
         />
       )}
     </>

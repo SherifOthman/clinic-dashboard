@@ -9,9 +9,7 @@ import {
   CalendarClock,
   FlaskConical,
   LayoutDashboard,
-  Mail,
   MessageSquare,
-  Settings,
   ShieldCheck,
   Star,
   Stethoscope,
@@ -56,13 +54,6 @@ export const siteConfig = {
       requiredPermission: PERMISSIONS.VIEW_STAFF,
     },
     {
-      key: "invitations",
-      label: "Invitations",
-      href: "/invitations",
-      icon: Mail,
-      requiredPermission: PERMISSIONS.INVITE_STAFF,
-    },
-    {
       key: "branches",
       label: "Branches",
       href: "/branches",
@@ -74,13 +65,6 @@ export const siteConfig = {
       label: "Profile",
       href: "/profile",
       icon: User,
-      requiredPermission: null,
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      href: "/settings",
-      icon: Settings,
       requiredPermission: null,
     },
     {

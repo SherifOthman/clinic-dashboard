@@ -9,7 +9,6 @@ import { Loading } from "@/core/components/ui/Loading";
 
 import { BranchDetailsStep } from "./components/BranchDetailsStep";
 import { ClinicInfoStep } from "./components/ClinicInfoStep";
-import { ProgressIndicator } from "./components/ProgressIndicator";
 import { useCompleteOnboarding, useSubscriptionPlans } from "./onboardingHooks";
 import { type CompleteOnboarding, createOnboardingSchemas } from "./schemas";
 
@@ -18,40 +17,18 @@ export default function OnboardingWizard() {
   const { data: plans, isLoading, error } = useSubscriptionPlans();
   const schemas = useValidation(createOnboardingSchemas);
   const completeOnboarding = useCompleteOnboarding();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [showBranch, setShowBranch] = useState(false);
 
   const methods = useForm<CompleteOnboarding>({
     resolver: zodResolver(schemas.completeOnboarding),
     mode: "onChange",
   });
 
-  const onSubmit = (data: CompleteOnboarding) => {
-    completeOnboarding.mutate(data);
-  };
-
   if (isLoading) return <Loading className="h-screen" />;
   if (error) return <ErrorMessage message={error.message} />;
 
-  const steps = [
-    {
-      component: (
-        <ClinicInfoStep plans={plans || []} onNext={() => setCurrentStep(1)} />
-      ),
-    },
-    {
-      component: (
-        <BranchDetailsStep
-          onNext={methods.handleSubmit(onSubmit)}
-          onBack={() => setCurrentStep(0)}
-          isLoading={completeOnboarding.isPending}
-        />
-      ),
-    },
-  ];
-
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="mb-8 text-center">
         <div className="mb-4 flex items-center justify-center gap-2">
           <img src="/logo.svg" alt="ClinicCare" className="h-8 w-8" />
@@ -61,12 +38,16 @@ export default function OnboardingWizard() {
         <p className="mt-2 text-sm text-muted sm:text-base">{t("onboarding.subtitle")}</p>
       </div>
 
-      {/* Progress */}
-      <ProgressIndicator currentStep={currentStep} totalSteps={2} />
-
-      {/* Step content */}
       <FormProvider {...methods}>
-        <form>{steps[currentStep].component}</form>
+        {showBranch ? (
+          <BranchDetailsStep
+            onNext={methods.handleSubmit((data) => completeOnboarding.mutate(data))}
+            onBack={() => setShowBranch(false)}
+            isLoading={completeOnboarding.isPending}
+          />
+        ) : (
+          <ClinicInfoStep plans={plans || []} onNext={() => setShowBranch(true)} />
+        )}
       </FormProvider>
     </div>
   );

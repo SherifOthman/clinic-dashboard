@@ -44,6 +44,7 @@ export interface CreateAppointmentRequest {
   date: string;
   type: AppointmentType;
   discountPercent?: number;
+  markAsPaid?: boolean;
   // scheduledTime, visitDurationMinutes kept for future Time-based support
   scheduledTime?: string;
   visitDurationMinutes?: number;

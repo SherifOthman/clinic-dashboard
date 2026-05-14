@@ -14,6 +14,9 @@ export const appointmentsApi = {
   getDoctors: (branchId: string): Promise<DoctorForBranch[]> =>
     apiClient.get<DoctorForBranch[]>(`${BASE}/doctors?branchId=${branchId}`),
 
+  checkPatientHasAppointment: (patientId: string, date: string): Promise<boolean> =>
+    apiClient.get<boolean>(`${BASE}/check-patient?patientId=${patientId}&date=${encodeURIComponent(date)}`),
+
   create: (data: CreateAppointmentRequest): Promise<string> =>
     apiClient.post<string>(BASE, data),
 

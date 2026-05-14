@@ -17,7 +17,13 @@ export function toPatientApiRequest(data: PatientFormData): PatientApiRequest {
     countryGeonameId: data.countryGeonameId ?? undefined,
     stateGeonameId: data.stateGeonameId ?? undefined,
     cityGeonameId: data.cityGeonameId ?? undefined,
-    phoneNumbers: data.phoneNumbers.filter((p) => p.trim() !== ""),
+    phoneNumbers: data.phoneNumbers.filter((p) => {
+      const trimmed = p.trim();
+      if (!trimmed) return false;
+      const digits = trimmed.replace(/\D/g, "");
+      if (digits.length <= 3) return false;
+      return true;
+    }),
     chronicDiseaseIds: data.chronicDiseaseIds ?? [],
   };
 }

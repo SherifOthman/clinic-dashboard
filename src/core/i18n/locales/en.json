@@ -348,6 +348,9 @@
     "viewAllCount": "View all {{count}} appointments →",
     "slotBooked": "This time slot is already booked",
     "bookedSlots": "Booked slots",
+    "discountMax": "Discount cannot exceed 100%",
+    "total": "Total",
+    "patientAlreadyBooked": "This patient already has an appointment on this day",
     "statuses": {
       "Pending": "Pending",
       "Waiting": "Waiting",
@@ -390,6 +393,7 @@
     "viewPatient": "View Patient",
     "editAppointment": "Edit Appointment",
     "markPaid": "Mark as Paid",
+    "markAsPaid": "Mark as paid",
     "refund": "Refund",
     "unpaid": "Unpaid",
     "visitDuration": "Visit Duration (min)",

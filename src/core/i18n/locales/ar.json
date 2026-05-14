@@ -348,6 +348,9 @@
     "viewAllCount": "عرض جميع {{count}} مواعيد ←",
     "slotBooked": "هذا الوقت محجوز بالفعل",
     "bookedSlots": "الأوقات المحجوزة",
+    "discountMax": "لا يمكن أن يتجاوز الخصم 100%",
+    "total": "الإجمالي",
+    "patientAlreadyBooked": "هذا المريض لديه موعد بالفعل في هذا اليوم",
     "statuses": {
       "Pending": "انتظار",
       "Waiting": "حضر",
@@ -390,6 +393,7 @@
     "viewPatient": "عرض المريض",
     "editAppointment": "تعديل الموعد",
     "markPaid": "تسجيل الدفع",
+    "markAsPaid": "تسجيل الدفع فوراً",
     "refund": "استرداد المبلغ",
     "unpaid": "غير مدفوع",
     "visitDuration": "مدة الاستشارة (دقيقة)",

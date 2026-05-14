@@ -27,6 +27,15 @@ export function useDoctorsForBranch(branchId: string | null) {
   });
 }
 
+export function useCheckPatientAppointment(patientId: string, date: string) {
+  return useQuery({
+    queryKey: ["appointments", "check-patient", patientId, date],
+    queryFn: () => appointmentsApi.checkPatientHasAppointment(patientId, date),
+    enabled: !!patientId && !!date,
+    staleTime: 15_000,
+  });
+}
+
 // ── Appointment mutations ─────────────────────────────────────────────────────
 
 export function useCreateAppointment() {

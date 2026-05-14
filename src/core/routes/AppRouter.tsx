@@ -14,13 +14,13 @@ const OnboardingWizard = lazy(() => import("@/features/onboarding/OnboardingWiza
 const PatientsPage     = lazy(() => import("@/features/patients/PatientsPage"));
 const ProfilePage      = lazy(() => import("@/features/profile/ProfilePage"));
 const StaffPage        = lazy(() => import("@/features/staff/StaffPage"));
-const InvitationsPage  = lazy(() => import("@/features/staff/InvitationsPage"));
+
 const AuditPage        = lazy(() => import("@/features/audit/AuditPage"));
 const BranchesPage     = lazy(() => import("@/features/branches/BranchesPage"));
 const MessagesPage     = lazy(() => import("@/features/dashboard/MessagesPage"));
 const ReviewsPage      = lazy(() => import("@/features/dashboard/ReviewsPage"));
 const AppointmentsPage = lazy(() => import("@/features/appointments/AppointmentsPage"));
-const SettingsPage     = lazy(() => import("@/features/settings/SettingsPage"));
+
 const UsagePage        = lazy(() => import("@/features/usage/UsagePage"));
 const AdminSpecializationsPage = lazy(() => import("@/features/admin/SpecializationsPage"));
 const AdminChronicDiseasesPage = lazy(() => import("@/features/admin/ChronicDiseasesPage"));
@@ -45,13 +45,11 @@ export function AppRouter() {
                 <Route path="/dashboard"    element={<DashboardPage />} />
                 <Route path="/patients"     element={<PatientsPage />} />
                 <Route path="/staff"        element={<StaffPage />} />
-                <Route path="/invitations"  element={<InvitationsPage />} />
                 <Route path="/audit"        element={<AuditPage />} />
                 <Route path="/branches"     element={<BranchesPage />} />
                 <Route path="/profile"      element={<ProfilePage />} />
                 <Route path="/messages"     element={<MessagesPage />} />
                 <Route path="/reviews"      element={<ReviewsPage />} />
-                <Route path="/settings"     element={<SettingsPage />} />
                 <Route path="/usage"        element={<UsagePage />} />
                 <Route path="/admin/specializations"  element={<AdminSpecializationsPage />} />
                 <Route path="/admin/chronic-diseases" element={<AdminChronicDiseasesPage />} />

@@ -20,12 +20,14 @@ interface PatientDialogProps {
   state: DialogState;
   onClose: () => void;
   onCreated?: (patientId: string, fullName: string) => void;
+  initialDraft?: Partial<PatientFormData>;
 }
 
 export function PatientDialog({
   state,
   onClose,
   onCreated,
+  initialDraft,
 }: PatientDialogProps) {
   const { t } = useTranslation();
   const { user } = useMe();
@@ -108,7 +110,7 @@ export function PatientDialog({
         size="xl"
       >
         <PatientForm
-          draft={draftRef.current}
+          draft={draftRef.current ?? initialDraft}
           onDraftChange={(values: Partial<PatientFormData>) => {
             draftRef.current = values;
           }}

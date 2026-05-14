@@ -104,7 +104,7 @@ export function canViewBranches(user: User | null | undefined): boolean {
 }
 
 export function canManageBranches(user: User | null | undefined): boolean {
-  return hasPermission(user, PERMISSIONS.MANAGE_BRANCHES);
+  return hasPermission(user, PERMISSIONS.MANAGE_BRANCHES) || isClinicOwner(user);
 }
 
 // ── Route access (role-based — used by route guards and sidebar) ──────────────

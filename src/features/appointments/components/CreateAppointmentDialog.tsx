@@ -2,14 +2,15 @@ import { Dialog } from "@/core/components/ui/Dialog";
 import { AppDatePicker } from "@/core/components/ui/AppDatePicker";
 import type { DateValue } from "@heroui/react";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import { Button, ListBox, Select } from "@heroui/react";
+import { Button, Checkbox, ListBox, Select } from "@heroui/react";
 import { CalendarClock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useCreateAppointment,
   useUpdateAppointment,
   useDoctorsForBranch,
+  useCheckPatientAppointment,
 } from "../appointmentsHooks";
 import type { DoctorForBranch } from "../types";
 import { PatientSearchField } from "./PatientSearchField";
@@ -33,7 +34,7 @@ export function CreateAppointmentDialog({
   preselectedDoctorInfoId,
   editingAppointment,
 }: CreateAppointmentDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
   const isEditing = !!editingAppointment;
@@ -46,6 +47,8 @@ export function CreateAppointmentDialog({
   const [visitTypeId, setVisitTypeId]           = useState("");
   const [date, setDate]                         = useState<DateValue | null>(today(getLocalTimeZone()));
   const [discountPercent, setDiscountPercent]   = useState("");
+  const [discountError, setDiscountError]       = useState<string | null>(null);
+  const [markAsPaid, setMarkAsPaid]             = useState(false);
 
   const { data: branchDoctors = [] } = useDoctorsForBranch(
     selectedBranchId !== initialBranchId ? selectedBranchId : null,
@@ -53,8 +56,11 @@ export function CreateAppointmentDialog({
   const doctors  = selectedBranchId !== initialBranchId ? branchDoctors : initialDoctors;
   const branchId = selectedBranchId;
 
+  const hasOpenedRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasOpenedRef.current) {
+      hasOpenedRef.current = true;
       setSelectedBranchId(initialBranchId);
       setDoctorInfoId(editingAppointment?.doctorInfoId ?? preselectedDoctorInfoId ?? doctors[0]?.doctorInfoId ?? "");
       setPatientId(editingAppointment?.patientId ?? "");
@@ -62,16 +68,35 @@ export function CreateAppointmentDialog({
       setVisitTypeId("");
       setDate(today(getLocalTimeZone()));
       setDiscountPercent("");
+      setMarkAsPaid(false);
     }
-  }, [isOpen, preselectedDoctorInfoId, initialDoctors, editingAppointment]);
+    if (!isOpen) {
+      hasOpenedRef.current = false;
+    }
+  }, [isOpen, preselectedDoctorInfoId, editingAppointment]);
 
-  const selectedDoctor = doctors.find((d) => d.doctorInfoId === doctorInfoId);
+  const selectedDoctor    = doctors.find((d) => d.doctorInfoId === doctorInfoId);
 
-  // Working days for date blocking
+  const { data: visitTypes = [] } = useVisitTypes(selectedDoctor?.memberId ?? null, branchId);
   const { data: workingDays = [] } = useWorkingDays(selectedDoctor?.memberId ?? null, branchId);
+
+  const selectedVisitType = visitTypes.find((vt) => vt.id === visitTypeId);
+  const basePrice         = selectedVisitType?.price ?? 0;
+  const discountVal       = Math.min(parseFloat(discountPercent) || 0, 100);
+  const finalPrice        = basePrice * (1 - discountVal / 100);
+  const dayLabel = (dayIndex: number) =>
+    new Intl.DateTimeFormat(i18n.language === "ar" ? "ar-EG" : "en-GB", {
+      weekday: "short",
+    }).format(new Date(2024, 0, 7 + dayIndex)); // 2024-01-07 = Sunday
+
+  const todayVal = today(getLocalTimeZone());
   const workingDayNumbers = new Set(workingDays.filter((d) => d.isAvailable).map((d) => d.day));
   const isDateUnavailable = (d: DateValue) => {
-    const dow = d.toDate(getLocalTimeZone()).getDay();
+    const date = d.toDate(getLocalTimeZone());
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayOnly = new Date(todayVal.year, todayVal.month - 1, todayVal.day);
+    if (dateOnly < todayOnly) return true;
+    const dow = date.getDay();
     return workingDays.length > 0 && !workingDayNumbers.has(dow);
   };
 
@@ -79,9 +104,7 @@ export function CreateAppointmentDialog({
   // so the picker never opens with a disabled date pre-selected
   useEffect(() => {
     if (!isOpen || isEditing || workingDays.length === 0) return;
-    const todayVal = today(getLocalTimeZone());
-    if (!isDateUnavailable(todayVal)) return; // today is a working day — keep it
-    // Walk forward up to 7 days to find the next working day
+    if (!isDateUnavailable(todayVal)) return;
     for (let i = 1; i <= 7; i++) {
       const candidate = todayVal.add({ days: i });
       if (!isDateUnavailable(candidate)) {
@@ -95,10 +118,16 @@ export function CreateAppointmentDialog({
     ? `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`
     : "";
 
-  const { data: visitTypes = [] } = useVisitTypes(selectedDoctor?.memberId ?? null, branchId);
+  const dateIsUnavailable = date ? isDateUnavailable(date) : false;
+
+  const { data: patientHasAppointmentToday = false } = useCheckPatientAppointment(
+    patientId,
+    dateStr,
+  );
 
   const handleSubmit = () => {
     if (!doctorInfoId || !patientId || !visitTypeId || !date) return;
+    if (dateIsUnavailable) return;
 
     if (isEditing && editingAppointment) {
       updateAppointment.mutate(
@@ -117,16 +146,32 @@ export function CreateAppointmentDialog({
           doctorInfoId,
           visitTypeId,
           date: dateStr,
-          type: "Queue",   // Queue-only for now; Time support kept in backend for future
+          type: "Queue",
           discountPercent: discountPercent ? parseFloat(discountPercent) : undefined,
+          markAsPaid,
         },
         { onSuccess: onClose },
       );
     }
   };
 
+  const handleDiscountChange = (value: string) => {
+    setDiscountError(null);
+    const num = parseFloat(value);
+    if (value !== "" && (isNaN(num) || num < 0)) {
+      setDiscountPercent("");
+      return;
+    }
+    if (num > 100) {
+      setDiscountPercent("100");
+      setDiscountError(t("appointments.discountMax"));
+      return;
+    }
+    setDiscountPercent(value);
+  };
+
   const isPending  = createAppointment.isPending || updateAppointment.isPending;
-  const canSubmit  = !!doctorInfoId && !!patientId && !!visitTypeId && !!date;
+  const canSubmit  = !!doctorInfoId && !!patientId && !!visitTypeId && !!date && !dateIsUnavailable && !patientHasAppointmentToday;
   const inputCls   = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
 
   return (
@@ -202,6 +247,9 @@ export function CreateAppointmentDialog({
             onChange={(id, name) => { setPatientId(id); setPatientName(name); }}
             isDisabled={isEditing}
           />
+          {patientHasAppointmentToday && (
+            <p className="text-xs text-danger">{t("appointments.patientAlreadyBooked")}</p>
+          )}
         </div>
 
         {/* Visit type */}
@@ -242,7 +290,7 @@ export function CreateAppointmentDialog({
                 {t("appointments.doctorWorksOn")}{" "}
                 {workingDays
                   .filter((d) => d.isAvailable)
-                  .map((d) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.day])
+                  .map((d) => dayLabel(d.day))
                   .join(", ")}
               </p>
             )}
@@ -254,13 +302,55 @@ export function CreateAppointmentDialog({
           <label className="text-sm font-medium">
             {t("appointments.discount")} <span className="text-muted text-xs">({t("common.optional")})</span>
           </label>
-          <input
-            type="number" min={0} max={100} step={1}
-            value={discountPercent}
-            onChange={(e) => setDiscountPercent(e.target.value)}
-            placeholder="0" className={inputCls} dir="ltr"
-          />
+          <div className="relative">
+            <input
+              type="number" min={0} max={100} step={1}
+              value={discountPercent}
+              onChange={(e) => handleDiscountChange(e.target.value)}
+              placeholder="0" className={`${inputCls} pr-7`} dir="ltr"
+            />
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted">
+              %
+            </span>
+          </div>
+          {discountError && <p className="text-xs text-danger">{discountError}</p>}
         </div>
+
+        {/* Price preview */}
+        {selectedVisitType && (
+          <div className="flex flex-col gap-1.5 rounded-lg bg-surface p-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted">{t("appointments.visitType")}</span>
+              <span className="font-medium">${basePrice.toFixed(2)}</span>
+            </div>
+            {discountVal > 0 && (
+              <div className="flex items-center justify-between text-success">
+                <span>{t("appointments.discount")} ({discountVal}%)</span>
+                <span>-${(basePrice * discountVal / 100).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t border-border pt-1.5 font-semibold">
+              <span>{t("appointments.total")}</span>
+              <span>${finalPrice.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Mark as paid */}
+        {!isEditing && (
+          <Checkbox
+            isSelected={markAsPaid}
+            onChange={setMarkAsPaid}
+            variant="secondary"
+          >
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content>
+              <span className="text-sm">{t("appointments.markAsPaid")}</span>
+            </Checkbox.Content>
+          </Checkbox>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-2 pt-2">
