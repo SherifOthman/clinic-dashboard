@@ -4,11 +4,25 @@ import type { AppointmentDto, CreateAppointmentRequest, DoctorForBranch } from "
 const BASE = "/appointments";
 
 export const appointmentsApi = {
-  getAppointments: (date: string, branchId?: string, doctorInfoIds?: string[]): Promise<AppointmentDto[]> => {
-    const params = new URLSearchParams({ date });
-    if (branchId) params.set("branchId", branchId);
-    doctorInfoIds?.forEach((id) => params.append("doctorInfoIds", id));
-    return apiClient.get<AppointmentDto[]>(`${BASE}?${params}`);
+  getAppointments: (params: {
+    date: string;
+    branchId?: string;
+    doctorInfoIds?: string[];
+    search?: string;
+    sortBy?: string;
+    sortDirection?: string;
+    visitType?: string;
+    payment?: string;
+  }): Promise<AppointmentDto[]> => {
+    const query = new URLSearchParams({ date: params.date });
+    if (params.branchId)       query.set("branchId", params.branchId);
+    params.doctorInfoIds?.forEach((id) => query.append("doctorInfoIds", id));
+    if (params.search)         query.set("search", params.search);
+    if (params.sortBy)         query.set("sortBy", params.sortBy);
+    if (params.sortDirection)  query.set("sortDirection", params.sortDirection);
+    if (params.visitType)      query.set("visitType", params.visitType);
+    if (params.payment)        query.set("payment", params.payment);
+    return apiClient.get<AppointmentDto[]>(`${BASE}?${query}`);
   },
 
   getDoctors: (branchId: string): Promise<DoctorForBranch[]> =>

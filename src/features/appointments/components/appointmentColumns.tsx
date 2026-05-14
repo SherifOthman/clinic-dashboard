@@ -1,4 +1,4 @@
-import { Button, Dropdown, Label, Separator, Tooltip } from "@heroui/react";
+import { Button, Chip, Dropdown, Label, Separator, Tooltip } from "@heroui/react";
 import type { TFunction } from "i18next";
 import {
   BanknoteArrowDown,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
+import type { Column } from "@/core/components/ui/DataTable";
 import type { AppointmentDto, AppointmentStatus } from "../types";
 
 // ── Status colour map ─────────────────────────────────────────────────────────
@@ -168,6 +169,75 @@ export function NextStatusButton({
     );
   }
   return null;
+}
+
+// ── Full table columns for the unified appointments page ────────────────────
+
+interface BuildColumnsParams {
+  t: TFunction;
+  isAr: boolean;
+  isPending: boolean;
+  onViewPatient: (id: string) => void;
+  onStatusChange: (id: string, status: string) => void;
+  onMarkPaid: (id: string) => void;
+  onRefund: (id: string) => void;
+  onEdit: (a: AppointmentDto) => void;
+  onReschedule: (a: AppointmentDto) => void;
+}
+
+export function getAppointmentColumns(params: BuildColumnsParams): Column<AppointmentDto>[] {
+  const { t, isAr, isPending, onViewPatient, onStatusChange, onMarkPaid, onRefund, onEdit, onReschedule } = params;
+
+  return [
+    {
+      key: "queueNumber",
+      label: t("appointments.columns.queue"),
+      render: (a) => <SlotCell a={a} isAr={isAr} />,
+    },
+    {
+      key: "patientName",
+      label: t("appointments.columns.patient"),
+      render: (a) => <PatientCell a={a} isAr={isAr} onViewPatient={onViewPatient} t={t} />,
+    },
+    {
+      key: "visitTypeName",
+      label: t("appointments.columns.visitType"),
+      render: (a) => <span className="text-sm text-muted">{a.visitTypeName}</span>,
+    },
+    {
+      key: "finalPrice",
+      label: t("appointments.columns.price"),
+      render: (a) => <span className="text-sm tabular-nums text-muted">${a.finalPrice.toFixed(0)}</span>,
+    },
+    {
+      key: "status",
+      label: t("appointments.columns.status"),
+      render: (a) => (
+        <Chip size="sm" variant="soft" color={STATUS_COLOR[a.status]}>
+          {t(`appointments.statuses.${a.status}`)}
+        </Chip>
+      ),
+    },
+    {
+      key: "actions",
+      label: "",
+      render: (a) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <NextStatusButton a={a} t={t} onStatusChange={onStatusChange} isPending={isPending} />
+          <ActionsDropdown
+            a={a} t={t}
+            onStatusChange={onStatusChange}
+            onMarkPaid={onMarkPaid}
+            onRefund={onRefund}
+            onViewPatient={onViewPatient}
+            onEdit={onEdit}
+            onReschedule={onReschedule}
+            isPending={isPending}
+          />
+        </div>
+      ),
+    },
+  ];
 }
 
 // ── Actions dropdown (⋯) ─────────────────────────────────────────────────────

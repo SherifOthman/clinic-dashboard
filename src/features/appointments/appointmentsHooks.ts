@@ -8,13 +8,22 @@ import type { DoctorCheckInResult } from "./types";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-export function useAppointments(date: string, branchId?: string | null, doctorInfoIds?: string[]) {
+export function useAppointments(filters: {
+  date: string;
+  branchId: string;
+  doctorInfoIds?: string[];
+  search?: string;
+  sortBy?: string;
+  sortDirection?: string;
+  visitType?: string;
+  payment?: string;
+}) {
   return useQuery({
-    queryKey: ["appointments", date, branchId, doctorInfoIds ?? []],
-    queryFn:  () => appointmentsApi.getAppointments(date, branchId ?? undefined, doctorInfoIds),
+    queryKey: ["appointments", filters],
+    queryFn:  () => appointmentsApi.getAppointments(filters),
     staleTime:       30_000,
     refetchInterval: 60_000,
-    enabled: !!branchId,
+    enabled: !!filters.branchId,
   });
 }
 
