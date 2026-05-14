@@ -1,3 +1,4 @@
+// AppointmentType kept for backend compatibility — UI only uses Queue for now
 export type AppointmentType   = "Queue" | "Time";
 export type AppointmentStatus = "Pending" | "Waiting" | "InProgress" | "Completed" | "Cancelled" | "NoShow";
 export type ViewMode          = "single" | "multi";
@@ -10,6 +11,7 @@ export interface AppointmentDto {
   patientName: string;
   patientCode?: string;
   queueNumber?: number;
+  // scheduledTime, endTime, visitDurationMinutes kept for future Time-based support
   scheduledTime?: string;
   endTime?: string;
   visitDurationMinutes?: number;
@@ -29,6 +31,7 @@ export interface DoctorForBranch {
   fullName: string;
   profileImageUrl?: string;
   appointmentType: AppointmentType;
+  // defaultVisitDurationMinutes kept for future Time-based support
   defaultVisitDurationMinutes: number;
   hasSessionToday: boolean;
 }
@@ -42,6 +45,7 @@ export interface CreateAppointmentRequest {
   type: AppointmentType;
   discountPercent?: number;
   markAsPaid?: boolean;
+  // scheduledTime, visitDurationMinutes kept for future Time-based support
   scheduledTime?: string;
   visitDurationMinutes?: number;
 }

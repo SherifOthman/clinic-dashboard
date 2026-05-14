@@ -19,6 +19,7 @@ const AuditPage        = lazy(() => import("@/features/audit/AuditPage"));
 const BranchesPage     = lazy(() => import("@/features/branches/BranchesPage"));
 const MessagesPage     = lazy(() => import("@/features/dashboard/MessagesPage"));
 const ReviewsPage      = lazy(() => import("@/features/dashboard/ReviewsPage"));
+const AppointmentsPage = lazy(() => import("@/features/appointments/AppointmentsPage"));
 
 const UsagePage        = lazy(() => import("@/features/usage/UsagePage"));
 const AdminSpecializationsPage = lazy(() => import("@/features/admin/SpecializationsPage"));
@@ -40,7 +41,7 @@ export function AppRouter() {
 
             <Route element={<RequireRole />}>
               <Route element={<DashboardLayout />}>
-
+                <Route path="/appointments" element={<AppointmentsPage />} />
                 <Route path="/dashboard"    element={<DashboardPage />} />
                 <Route path="/patients"     element={<PatientsPage />} />
                 <Route path="/staff"        element={<StaffPage />} />
