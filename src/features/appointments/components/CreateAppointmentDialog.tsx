@@ -295,7 +295,9 @@ export function CreateAppointmentDialog({
               placeholder="0"
               className={`${inputCls} pr-7`}
               dir="ltr"
-              {...register("discountPercent", { valueAsNumber: true })}
+              {...register("discountPercent", {
+                setValueAs: (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+              })}
             />
             <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted">%</span>
           </div>
