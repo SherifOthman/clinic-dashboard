@@ -7,7 +7,7 @@ export const appointmentSchema = z.object({
   patientName:     z.string(),
   visitTypeId:     z.string().min(1),
   date:            z.string().min(1),   // "YYYY-MM-DD"
-  discountPercent: z.coerce.number().min(0).max(100).optional(),
+  discountPercent: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
   markAsPaid:      z.boolean().default(false),
 });
 

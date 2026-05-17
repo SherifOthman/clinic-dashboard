@@ -3,9 +3,10 @@ import { FilterSelect } from "@/core/components/ui/FilterSelect";
 import { Input } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 import type { DateValue } from "@internationalized/date";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { BranchDto } from "../../branches/branchesApi";
-import type { DoctorForBranch } from "../types";
+import type { AppointmentDto, DoctorForBranch } from "../types";
 import type { useAppointmentsTableState } from "../appointmentsTableState";
 
 type AppointmentsState = ReturnType<typeof useAppointmentsTableState>["state"];
@@ -20,12 +21,14 @@ interface AppointmentsToolbarProps {
   onBranchChange: (branchId: string | undefined) => void;
   doctors: DoctorForBranch[];
   effectiveDoctorId: string | undefined;
+  appointments: AppointmentDto[];
 }
 
 export function AppointmentsToolbar({
   state, onUpdate, isDateUnavailable,
   branches, activeBranchId, onBranchChange,
   doctors, effectiveDoctorId,
+  appointments,
 }: AppointmentsToolbarProps) {
   const { t } = useTranslation();
 
@@ -33,6 +36,14 @@ export function AppointmentsToolbar({
     if (!d) return;
     onUpdate({ dateStr: `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}` });
   };
+
+  // Build unique visit type options from loaded appointments
+  const visitTypeOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return appointments
+      .filter((a) => a.visitTypeName && !seen.has(a.visitTypeName) && seen.add(a.visitTypeName))
+      .map((a) => ({ id: a.visitTypeName, label: a.visitTypeName }));
+  }, [appointments]);
 
   return (
     <div className="mb-5 flex flex-col gap-3">
@@ -67,6 +78,17 @@ export function AppointmentsToolbar({
           />
         )}
 
+        {visitTypeOptions.length > 0 && (
+          <FilterSelect
+            value={state.visitType || undefined}
+            onChange={(v) => onUpdate({ visitType: v ?? "" })}
+            options={visitTypeOptions}
+            placeholder={t("appointments.allVisitTypes")}
+            ariaLabel={t("appointments.filterByVisitType")}
+            className="w-44"
+          />
+        )}
+
         <FilterSelect
           value={state.payment || undefined}
           onChange={(v) => onUpdate({ payment: v ?? "" })}
@@ -80,22 +102,13 @@ export function AppointmentsToolbar({
         />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Input
-          value={state.searchTerm}
-          onChange={(e) => onUpdate({ searchTerm: e.target.value })}
-          placeholder={t("appointments.searchPlaceholder")}
-          aria-label={t("appointments.searchPlaceholder")}
-          className="flex-1"
-        />
-        <Input
-          value={state.visitType}
-          onChange={(e) => onUpdate({ visitType: e.target.value })}
-          placeholder={t("appointments.filterByVisitType")}
-          aria-label={t("appointments.filterByVisitType")}
-          className="w-48"
-        />
-      </div>
+      <Input
+        value={state.searchTerm}
+        onChange={(e) => onUpdate({ searchTerm: e.target.value })}
+        placeholder={t("appointments.searchPlaceholder")}
+        aria-label={t("appointments.searchPlaceholder")}
+        fullWidth
+      />
     </div>
   );
 }

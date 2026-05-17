@@ -90,6 +90,7 @@ export default function AppointmentsPage() {
         onBranchChange={handleBranchChange}
         doctors={doctors}
         effectiveDoctorId={effectiveDoctorId}
+        appointments={appointments}
       />
 
       {visibleDoctors.length === 0 && !isLoading ? (
