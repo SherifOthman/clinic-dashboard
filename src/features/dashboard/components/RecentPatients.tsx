@@ -1,6 +1,6 @@
 import { useDateFormat } from "@/core/hooks/useDateFormat";
 import { calculateDetailedAge, formatDetailedAge } from "@/core/utils/ageUtils";
-import { Card, Text } from "@heroui/react";
+import { Card, Typography } from "@heroui/react";
 import { ArrowRight, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -18,7 +18,7 @@ export function RecentPatients() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="text-accent h-5 w-5" />
-            <Text type="h3" weight="semibold" className="text-base">{t("dashboard.recentPatients")}</Text>
+            <Typography type="h3" weight="semibold" className="text-base">{t("dashboard.recentPatients")}</Typography>
           </div>
           <Link
             to="/patients"

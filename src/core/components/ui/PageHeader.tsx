@@ -1,4 +1,4 @@
-import { Text } from "@heroui/react";
+import { Typography } from "@heroui/react";
 import { ReactNode } from "react";
 
 interface PageHeaderProps {
@@ -14,7 +14,7 @@ export function PageHeader({ title, subtitle, action, children }: PageHeaderProp
   return (
     <div className="mb-6 flex items-start justify-between gap-4">
       <div>
-        <Text type="h1" weight="bold" className="mb-1 text-2xl sm:text-3xl">{title}</Text>
+        <Typography type="h1" weight="bold" className="mb-1 text-2xl sm:text-3xl">{title}</Typography>
         {subtitle && (
           typeof subtitle === "string"
             ? <p className="text-sm text-muted">{subtitle}</p>

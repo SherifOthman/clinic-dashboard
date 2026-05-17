@@ -1,4 +1,4 @@
-import { Button, Card, Text } from "@heroui/react";
+import { Button, Card, Typography } from "@heroui/react";
 import { ArrowLeft, Home, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -21,9 +21,9 @@ export default function NotFoundPage() {
           </div>
 
           <div className="mb-8">
-            <Text type="h2" weight="bold" className="mb-2 text-3xl">
+            <Typography type="h2" weight="bold" className="mb-2 text-3xl">
               {t("errors.pageNotFound")}
-            </Text>
+            </Typography>
             <p className="text-muted mb-2">{t("errors.pageNotFoundMessage")}</p>
             <p className="text-muted text-sm">{t("errors.pageNotFoundHelp")}</p>
           </div>

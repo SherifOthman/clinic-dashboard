@@ -7,8 +7,11 @@ export const appointmentSchema = z.object({
   patientName:     z.string(),
   visitTypeId:     z.string().min(1),
   date:            z.string().min(1),   // "YYYY-MM-DD"
-  discountPercent: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
-  markAsPaid:      z.boolean().default(false),
+  discountPercent: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().min(0).max(100).optional(),
+  ),
+  markAsPaid: z.boolean().default(false),
 });
 
 export type AppointmentFormData = z.infer<typeof appointmentSchema>;

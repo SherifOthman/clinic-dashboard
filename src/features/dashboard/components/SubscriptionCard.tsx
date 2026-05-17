@@ -1,4 +1,4 @@
-import { Card, Chip, Text } from "@heroui/react";
+import { Card, Chip, Typography } from "@heroui/react";
 import { CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
@@ -42,7 +42,7 @@ export function SubscriptionCard({ data, isLoading }: SubscriptionCardProps) {
               <div className="h-7 w-32 animate-pulse rounded bg-default-100" />
             ) : data ? (
               <div className="flex flex-col gap-2">
-                <Text type="h3" weight="bold" className="text-xl">{data.planName}</Text>
+                <Typography type="h3" weight="bold" className="text-xl">{data.planName}</Typography>
                 <div className="flex flex-wrap items-center gap-2">
                   <Chip size="sm" variant="soft" color={statusColor}>
                     {data.isTrial
