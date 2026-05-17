@@ -18,13 +18,14 @@ import {
   rescheduleDoctor,
   updateAppointment,
   updateAppointmentStatus,
+  type AppointmentsFilter,
 } from "./appointmentsApi";
 import type { CreateAppointmentRequest, DoctorCheckInResult } from "./types";
 
-export function useAppointments(date: string, branchId?: string | null, doctorInfoIds?: string[]) {
+export function useAppointments(date: string, branchId?: string | null, doctorInfoIds?: string[], filter?: AppointmentsFilter) {
   return useQuery({
-    queryKey: ["appointments", date, branchId, doctorInfoIds ?? []],
-    queryFn: () => getAppointments(date, branchId ?? undefined, doctorInfoIds),
+    queryKey: ["appointments", date, branchId, doctorInfoIds ?? [], filter],
+    queryFn: () => getAppointments(date, branchId, doctorInfoIds, filter),
     staleTime: 30_000,
     refetchInterval: 60_000,
     enabled: !!branchId,

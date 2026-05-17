@@ -3,10 +3,24 @@ import type { AppointmentDto, CreateAppointmentRequest, DoctorCheckInResult, Doc
 
 const BASE = "/appointments";
 
-export async function getAppointments(date: string, branchId?: string, doctorInfoIds?: string[]): Promise<AppointmentDto[]> {
+export interface AppointmentsFilter {
+  searchTerm?: string;
+  visitTypeName?: string;
+  isPaid?: boolean;
+}
+
+export async function getAppointments(
+  date: string,
+  branchId?: string | null,
+  doctorInfoIds?: string[],
+  filter?: AppointmentsFilter,
+): Promise<AppointmentDto[]> {
   const params = new URLSearchParams({ date });
   if (branchId) params.set("branchId", branchId);
   doctorInfoIds?.forEach((id) => params.append("doctorInfoIds", id));
+  if (filter?.searchTerm)              params.set("searchTerm",    filter.searchTerm);
+  if (filter?.visitTypeName)           params.set("visitTypeName", filter.visitTypeName);
+  if (filter?.isPaid !== undefined)    params.set("isPaid",        String(filter.isPaid));
   const res = await apiClient.get<AppointmentDto[]>(`${BASE}?${params}`);
   return res.data;
 }

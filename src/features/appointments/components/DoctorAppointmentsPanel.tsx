@@ -3,7 +3,7 @@ import { TablePagination } from "@/core/components/ui/TablePagination";
 import { toArabicNumerals } from "@/core/utils/arabicNumerals";
 import { Button, Chip, Tooltip } from "@heroui/react";
 import { Ban, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { buildClientPage } from "@/features/admin/utils/clientPagination";
 import {
@@ -21,9 +21,6 @@ interface DoctorAppointmentsPanelProps {
   doctor: DoctorForBranch;
   appointments: AppointmentDto[];
   isLoading: boolean;
-  searchTerm?: string;
-  visitTypeFilter?: string;
-  paymentFilter?: string;
   dateStr: string;
   branchId?: string;
   onAddAppointment?: () => void;
@@ -33,17 +30,16 @@ interface DoctorAppointmentsPanelProps {
 }
 
 const PAGE_SIZE = 10;
-const TERMINAL  = new Set<AppointmentStatus>(["Completed", "Cancelled", "NoShow"]);
+const ACTIVE_STATUSES = new Set<AppointmentStatus>(["Pending", "Waiting", "InProgress"]);
 
 // ── Panel header ──────────────────────────────────────────────────────────────
 
 function PanelHeader({
-  doctor, count, filteredCount, branchId, hasActiveAppointments,
+  doctor, count, branchId, hasActiveAppointments,
   onAddAppointment, onDoctorLate, onAbsent,
 }: {
   doctor: DoctorForBranch;
   count: number;
-  filteredCount: number;
   branchId?: string;
   hasActiveAppointments: boolean;
   onAddAppointment?: () => void;
@@ -52,7 +48,6 @@ function PanelHeader({
 }) {
   const { t, i18n } = useTranslation();
   const num = (n: number) => i18n.language === "ar" ? toArabicNumerals(String(n)) : String(n);
-  const isFiltered = filteredCount !== count;
 
   return (
     <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/50">
@@ -67,13 +62,7 @@ function PanelHeader({
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        {isFiltered ? (
-          <span className="text-xs font-medium text-accent">
-            {num(filteredCount)}<span className="text-muted">/{num(count)}</span>
-          </span>
-        ) : (
-          <span className="text-xs text-muted">{num(count)}</span>
-        )}
+        <span className="text-xs text-muted">{num(count)}</span>
 
         {branchId && (
           <DoctorCheckInButton
@@ -117,9 +106,7 @@ function PanelHeader({
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export function DoctorAppointmentsPanel({
-  doctor, appointments, isLoading,
-  searchTerm = "", visitTypeFilter = "", paymentFilter = "",
-  dateStr, branchId,
+  doctor, appointments, isLoading, dateStr, branchId,
   onAddAppointment, onEditAppointment, onViewPatient, onDoctorLate,
 }: DoctorAppointmentsPanelProps) {
   const { t, i18n } = useTranslation();
@@ -132,32 +119,11 @@ export function DoctorAppointmentsPanel({
   const refund       = useRefundAppointment();
   const isPending    = updateStatus.isPending || markPaid.isPending || refund.isPending;
 
-  // Active-first sort: pending/waiting before terminal statuses
-  const sorted = useMemo(() => [
-    ...appointments.filter((a) => !TERMINAL.has(a.status)),
-    ...appointments.filter((a) =>  TERMINAL.has(a.status)),
-  ], [appointments]);
-
-  const filtered = useMemo(() => {
-    let result = sorted;
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter((a) =>
-        a.patientName.toLowerCase().includes(q) || (a.patientCode ?? "").toLowerCase().includes(q)
-      );
-    }
-    if (visitTypeFilter) result = result.filter((a) => a.visitTypeName === visitTypeFilter);
-    if (paymentFilter === "unpaid") result = result.filter((a) => !a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow");
-    if (paymentFilter === "paid")   result = result.filter((a) => !!a.invoiceId);
-    return result;
-  }, [sorted, searchTerm, visitTypeFilter, paymentFilter]);
-
-  const activeCount = appointments.filter((a) => a.status === "Pending" || a.status === "Waiting").length;
+  const activeCount = appointments.filter((a) => ACTIVE_STATUSES.has(a.status)).length;
 
   const headerProps = {
     doctor, branchId,
     count: appointments.length,
-    filteredCount: filtered.length,
     hasActiveAppointments: activeCount > 0,
     onAddAppointment, onDoctorLate,
     onAbsent: branchId ? () => setAbsentOpen(true) : undefined,
@@ -218,7 +184,11 @@ export function DoctorAppointmentsPanel({
       label: "",
       render: (a) => (
         <div className="flex items-center justify-end gap-0.5">
-          <NextStatusButton a={a} t={t} onStatusChange={(id, status) => updateStatus.mutate({ id, status })} isPending={isPending} />
+          <NextStatusButton
+            a={a} t={t}
+            onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+            isPending={isPending}
+          />
           <ActionsDropdown
             a={a} t={t}
             onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
@@ -234,20 +204,14 @@ export function DoctorAppointmentsPanel({
     },
   ];
 
-  const { items: paged, meta: pageData } = buildClientPage(filtered, page, PAGE_SIZE);
+  const { items: paged, meta: pageData } = buildClientPage(appointments, page, PAGE_SIZE);
 
   return (
     <>
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
         <PanelHeader {...headerProps} />
-        {filtered.length === 0 ? (
-          <div className="py-8 text-center text-sm text-muted">{t("common.noResults")}</div>
-        ) : (
-          <>
-            <DataTable columns={columns} data={paged} keyExtractor={(a) => a.id} />
-            <TablePagination data={pageData} currentPage={page} onPageChange={setPage} />
-          </>
-        )}
+        <DataTable columns={columns} data={paged} keyExtractor={(a) => a.id} />
+        <TablePagination data={pageData} currentPage={page} onPageChange={setPage} />
       </div>
 
       {branchId && (

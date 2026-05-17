@@ -1,16 +1,15 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
 import { useDialogState } from "@/core/hooks/useDialogState";
-import { todayStr } from "@/core/utils/dateUtils";
 import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
 import type { DateValue } from "@internationalized/date";
 import { getLocalTimeZone } from "@internationalized/date";
+import { useState } from "react";
 import { useBranches } from "../branches/branchesHooks";
 import { useWorkingDays } from "../staff/staffQueries";
 import { PatientDetailDialog } from "@/features/patients/components/PatientDetailDialog";
 import { useAppointments, useDoctorsForBranch } from "./appointmentsHooks";
+import { useAppointmentsTableState } from "./appointmentsTableState";
 import { AppointmentsToolbar } from "./components/AppointmentsToolbar";
 import { CreateAppointmentDialog } from "./components/CreateAppointmentDialog";
 import { DelayHandlingDialog } from "./components/DelayHandlingDialog";
@@ -19,30 +18,8 @@ import type { AppointmentDto, DoctorCheckInResult } from "./types";
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { state, update } = useAppointmentsTableState();
 
-  // ── URL-synced filters ─────────────────────────────────────────────────────
-  const dateStr          = searchParams.get("date")      ?? todayStr();
-  const selectedDoctorId = searchParams.get("doctor")    ?? undefined;
-  const searchTerm       = searchParams.get("q")         ?? "";
-  const visitTypeFilter  = searchParams.get("visitType") ?? "";
-  const paymentFilter    = searchParams.get("payment")   ?? "";
-
-  const setParam = (key: string, value: string | null) =>
-    setSearchParams((prev) => {
-      const p = new URLSearchParams(prev);
-      if (!value) p.delete(key); else p.set(key, value);
-      return p;
-    }, { replace: true });
-
-  const setDateStr          = (v: string)             => setParam("date",      v === todayStr() ? null : v);
-  const setSelectedDoctorId = (v: string | undefined) => setParam("doctor",    v ?? null);
-  const setSearchTerm       = (v: string)             => setParam("q",         v || null);
-  const setVisitTypeFilter  = (v: string)             => setParam("visitType", v || null);
-  const setPaymentFilter    = (v: string)             => setParam("payment",   v || null);
-
-  // ── Local state ────────────────────────────────────────────────────────────
-  const [branchId, setBranchId]                   = useState<string | undefined>();
   const [preselectedDoctor, setPreselectedDoctor] = useState<string | undefined>();
   const [editingAppt, setEditingAppt]             = useState<AppointmentDto | null>(null);
   const [viewPatientId, setViewPatientId]         = useState<string | null>(null);
@@ -52,12 +29,12 @@ export default function AppointmentsPage() {
 
   // ── Data ───────────────────────────────────────────────────────────────────
   const { data: branches = [] } = useBranches();
-  const activeBranchId = branchId ?? branches[0]?.id ?? null;
+  const activeBranchId = state.branchId ?? branches[0]?.id ?? null;
 
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctorsForBranch(activeBranchId);
 
-  // Single-doctor mode: show only the selected doctor (or the first one)
-  const effectiveDoctorId = selectedDoctorId ?? doctors[0]?.doctorInfoId;
+  // Show only the selected doctor (or the first one when there's only one)
+  const effectiveDoctorId = state.doctorId ?? doctors[0]?.doctorInfoId;
   const visibleDoctors = doctors.length > 1
     ? doctors.filter((d) => d.doctorInfoId === effectiveDoctorId)
     : doctors;
@@ -70,9 +47,14 @@ export default function AppointmentsPage() {
     workingDays.length > 0 && !workingDayNumbers.has(d.toDate(getLocalTimeZone()).getDay());
 
   const { data: appointments = [], isLoading: apptLoading } = useAppointments(
-    dateStr,
+    state.dateStr,
     activeBranchId,
     visibleDoctors.length > 0 ? visibleDoctors.map((d) => d.doctorInfoId) : undefined,
+    {
+      searchTerm:    state.searchTerm  || undefined,
+      visitTypeName: state.visitType   || undefined,
+      isPaid:        state.payment === "paid" ? true : state.payment === "unpaid" ? false : undefined,
+    },
   );
 
   const isLoading = doctorsLoading || apptLoading;
@@ -83,9 +65,8 @@ export default function AppointmentsPage() {
     createDialog.openCreate();
   };
 
-  const handleBranchChange = (id: string | undefined) => {
-    setBranchId(id);
-    setSelectedDoctorId(undefined);
+  const handleBranchChange = (branchId: string | undefined) => {
+    update({ branchId, doctorId: undefined });
   };
 
   return (
@@ -101,22 +82,14 @@ export default function AppointmentsPage() {
       />
 
       <AppointmentsToolbar
-        dateStr={dateStr}
-        onDateChange={setDateStr}
+        state={state}
+        onUpdate={update}
         isDateUnavailable={isDateUnavailable}
         branches={branches}
         activeBranchId={activeBranchId}
         onBranchChange={handleBranchChange}
         doctors={doctors}
         effectiveDoctorId={effectiveDoctorId}
-        onDoctorChange={setSelectedDoctorId}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        visitTypeFilter={visitTypeFilter}
-        onVisitTypeFilterChange={setVisitTypeFilter}
-        paymentFilter={paymentFilter}
-        onPaymentFilterChange={setPaymentFilter}
-        appointments={appointments}
       />
 
       {visibleDoctors.length === 0 && !isLoading ? (
@@ -131,10 +104,7 @@ export default function AppointmentsPage() {
               doctor={doctor}
               appointments={appointments.filter((a) => a.doctorInfoId === doctor.doctorInfoId)}
               isLoading={isLoading}
-              searchTerm={searchTerm}
-              visitTypeFilter={visitTypeFilter}
-              paymentFilter={paymentFilter}
-              dateStr={dateStr}
+              dateStr={state.dateStr}
               branchId={activeBranchId ?? undefined}
               onAddAppointment={() => openCreate(doctor.doctorInfoId)}
               onEditAppointment={setEditingAppt}
