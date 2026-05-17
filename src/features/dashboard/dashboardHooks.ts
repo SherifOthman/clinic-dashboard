@@ -1,14 +1,30 @@
 import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { dashboardApi } from "./dashboardApi";
-import type { SubmitTestimonialRequest } from "./dashboardApi";
 import { useMe } from "@/features/auth/hooks";
 import { isSuperAdmin } from "@/core/utils/permissions";
+import {
+  getAllTestimonials,
+  getBranchTodayAppointments,
+  getContactMessages,
+  getContactMessagesUnreadCount,
+  getDashboardStats,
+  getDoctorTodayAppointments,
+  getMyTestimonial,
+  getRecentPatients,
+  getSuperAdminStats,
+  getUsageMetrics,
+  markContactMessageRead,
+  submitTestimonial,
+  toggleTestimonial,
+  type SubmitTestimonialRequest,
+} from "./dashboardApi";
+
+export { markContactMessageRead };
 
 export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard", "stats"],
-    queryFn: () => dashboardApi.getStats(),
+    queryFn: getDashboardStats,
     staleTime: 60 * 1000,
   });
 }
@@ -16,7 +32,7 @@ export function useDashboardStats() {
 export function useSuperAdminStats() {
   return useQuery({
     queryKey: ["dashboard", "stats", "superadmin"],
-    queryFn: () => dashboardApi.getSuperAdminStats(),
+    queryFn: getSuperAdminStats,
     staleTime: 60 * 1000,
   });
 }
@@ -24,7 +40,7 @@ export function useSuperAdminStats() {
 export function useDoctorTodayAppointments(doctorInfoId: string | undefined, branchId: string | undefined) {
   return useQuery({
     queryKey: ["dashboard", "doctor-today", doctorInfoId, branchId],
-    queryFn: () => dashboardApi.getDoctorTodayAppointments(doctorInfoId!, branchId!),
+    queryFn: () => getDoctorTodayAppointments(doctorInfoId!, branchId!),
     enabled: !!doctorInfoId && !!branchId,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,
@@ -34,7 +50,7 @@ export function useDoctorTodayAppointments(doctorInfoId: string | undefined, bra
 export function useBranchTodayAppointments(branchId: string | undefined) {
   return useQuery({
     queryKey: ["dashboard", "branch-today", branchId],
-    queryFn: () => dashboardApi.getBranchTodayAppointments(branchId!),
+    queryFn: () => getBranchTodayAppointments(branchId!),
     enabled: !!branchId,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,
@@ -44,9 +60,9 @@ export function useBranchTodayAppointments(branchId: string | undefined) {
 export function useContactMessages(page = 1) {
   return useQuery({
     queryKey: ["contact", "messages", page],
-    queryFn: () => dashboardApi.getContactMessages(page),
+    queryFn: () => getContactMessages(page),
     staleTime: 30 * 1000,
-    placeholderData: (prev) => prev, // keep previous page data while loading next
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -55,9 +71,9 @@ export function useContactMessagesUnreadCount() {
   const enabled = isSuperAdmin(user);
   return useQuery({
     queryKey: ["contact", "unread-count"],
-    queryFn:  dashboardApi.getContactMessagesUnreadCount,
+    queryFn: getContactMessagesUnreadCount,
     enabled,
-    staleTime:       30 * 1000,
+    staleTime: 30 * 1000,
     refetchInterval: enabled ? 60 * 1000 : false,
   });
 }
@@ -65,7 +81,7 @@ export function useContactMessagesUnreadCount() {
 export function useAllTestimonials(page = 1) {
   return useQuery({
     queryKey: ["testimonials", "all", "paged", page],
-    queryFn: () => dashboardApi.getAllTestimonials(page),
+    queryFn: () => getAllTestimonials(page),
     staleTime: 30 * 1000,
     placeholderData: (prev) => prev,
   });
@@ -73,18 +89,15 @@ export function useAllTestimonials(page = 1) {
 
 export function useToggleTestimonial() {
   return useMutationWithToast<void, string>({
-    mutationFn: (id) => dashboardApi.toggleTestimonial(id),
-    successMessage: "toast.testimonialToggled",
+    mutationFn: toggleTestimonial,
     invalidateKeys: [["testimonials", "all", "paged"]],
   });
 }
 
-// ── Owner testimonial ─────────────────────────────────────────────────────────
-
 export function useMyTestimonial(enabled = true) {
   return useQuery({
     queryKey: ["testimonial", "mine"],
-    queryFn: dashboardApi.getMyTestimonial,
+    queryFn: getMyTestimonial,
     enabled,
     staleTime: 60 * 1000,
   });
@@ -93,20 +106,17 @@ export function useMyTestimonial(enabled = true) {
 export function useSubmitTestimonial() {
   const queryClient = useQueryClient();
   return useMutationWithToast<void, SubmitTestimonialRequest>({
-    mutationFn: (data) => dashboardApi.submitTestimonial(data),
-    successMessage: "toast.testimonialSubmitted",
+    mutationFn: submitTestimonial,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["testimonial", "mine"] });
     },
   });
 }
 
-// ── Recent patients ───────────────────────────────────────────────────────────
-
 export function useRecentPatients() {
   return useQuery({
     queryKey: ["dashboard", "recent-patients"],
-    queryFn: dashboardApi.getRecentPatients,
+    queryFn: getRecentPatients,
     staleTime: 60 * 1000,
   });
 }
@@ -114,7 +124,7 @@ export function useRecentPatients() {
 export function useUsageMetrics() {
   return useQuery({
     queryKey: ["dashboard", "usage-metrics"],
-    queryFn: dashboardApi.getUsageMetrics,
-    staleTime: 5 * 60 * 1000, // 5 min — data is aggregated daily, no need to refetch often
+    queryFn: getUsageMetrics,
+    staleTime: 5 * 60 * 1000,
   });
 }

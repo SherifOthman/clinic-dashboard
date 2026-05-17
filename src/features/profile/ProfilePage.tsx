@@ -1,16 +1,16 @@
 import { PageHeader } from "@/core/components/ui/PageHeader";
+import { isClinicOwner, isDoctor } from "@/core/utils/permissions";
 import { useMe } from "@/features/auth/hooks";
-import { isClinicOwner } from "@/core/utils/permissions";
+import { TestimonialForm } from "@/features/dashboard/components/TestimonialForm";
+import { WeekStartDayCard } from "@/features/settings/components/WeekStartDayCard";
 import { ScheduleTab } from "@/features/staff/components/ScheduleTab";
 import { useStaffDetail } from "@/features/staff/staffHooks";
 import { Tabs } from "@heroui/react";
 import { useTranslation } from "react-i18next";
-import { ProfileForm } from "./components/ProfileForm";
-import { ProfileImageCard } from "./components/ProfileImageCard";
 import { AccountInfoCard } from "./components/AccountInfoCard";
 import { ChangePasswordForm } from "./components/ChangePasswordForm";
-import { WeekStartDayCard } from "@/features/settings/components/WeekStartDayCard";
-import { TestimonialForm } from "@/features/dashboard/components/TestimonialForm";
+import { ProfileForm } from "./components/ProfileForm";
+import { ProfileImageCard } from "./components/ProfileImageCard";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -18,8 +18,8 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const isDoctor = user.roles.includes("Doctor");
-  const isOwner = isClinicOwner(user);
+  const doctor = isDoctor(user);
+  const owner = isClinicOwner(user);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -32,7 +32,7 @@ export default function ProfilePage() {
               {t("profile.tabProfile")}
               <Tabs.Indicator />
             </Tabs.Tab>
-            {isDoctor && (
+            {doctor && (
               <Tabs.Tab id="schedule">
                 {t("profile.tabSchedule")}
                 <Tabs.Indicator />
@@ -42,7 +42,7 @@ export default function ProfilePage() {
               {t("navigation.settings")}
               <Tabs.Indicator />
             </Tabs.Tab>
-            {isOwner && (
+            {owner && (
               <Tabs.Tab id="reviews">
                 {t("navigation.reviews")}
                 <Tabs.Indicator />
@@ -55,7 +55,7 @@ export default function ProfilePage() {
           <ProfileContent user={user} />
         </Tabs.Panel>
 
-        {isDoctor && user.staffId && (
+        {doctor && user.staffId && (
           <Tabs.Panel id="schedule" className="pt-6">
             <ScheduleTabWithData user={user} staffId={user.staffId} />
           </Tabs.Panel>
@@ -64,7 +64,7 @@ export default function ProfilePage() {
         <Tabs.Panel id="settings" className="pt-6">
           <div className="flex flex-col gap-6">
             <section>
-              <h2 className="mb-3 text-base font-semibold text-foreground">
+              <h2 className="text-foreground mb-3 text-base font-semibold">
                 {t("settings.sections.account")}
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -72,9 +72,9 @@ export default function ProfilePage() {
                 {user.hasPassword && <ChangePasswordForm />}
               </div>
             </section>
-            {isOwner && (
+            {owner && (
               <section>
-                <h2 className="mb-3 text-base font-semibold text-foreground">
+                <h2 className="text-foreground mb-3 text-base font-semibold">
                   {t("settings.sections.clinic")}
                 </h2>
                 <WeekStartDayCard />
@@ -83,7 +83,7 @@ export default function ProfilePage() {
           </div>
         </Tabs.Panel>
 
-        {isOwner && (
+        {owner && (
           <Tabs.Panel id="reviews" className="pt-6">
             <div className="mx-auto max-w-lg">
               <TestimonialForm />

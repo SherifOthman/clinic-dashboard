@@ -1,10 +1,10 @@
 import { useMutationWithToast } from "@/core/hooks/useMutationWithToast";
-import { settingsApi } from "./settingsApi";
+import { updateClinicSettings } from "./settingsApi";
 
 export function useUpdateClinicSettings() {
   return useMutationWithToast<void, { weekStartDay: number }>({
-    mutationFn: ({ weekStartDay }) => settingsApi.updateClinicSettings(weekStartDay),
+    mutationFn: ({ weekStartDay }) => updateClinicSettings(weekStartDay),
     successMessage: "toast.settingsSaved",
-    invalidateKeys: [["auth", "me"]], // re-fetch /me so weekStartDay updates everywhere
+    invalidateKeys: [["auth", "me"]],
   });
 }

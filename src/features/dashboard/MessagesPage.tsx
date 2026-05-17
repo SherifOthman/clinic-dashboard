@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Circle, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { dashboardApi } from "./dashboardApi";
+import { markContactMessageRead } from "./dashboardHooks";
 import type { ContactMessageDto } from "./dashboardApi";
 import { useContactMessages, useContactMessagesUnreadCount } from "./dashboardHooks";
 import { MessageDetail } from "./components/MessageDetail";
@@ -39,7 +39,7 @@ export default function MessagesPage() {
           : old,
       );
 
-      dashboardApi.markContactMessageRead(msg.id).then(() => {
+      markContactMessageRead(msg.id).then(() => {
         qc.invalidateQueries({ queryKey: ["contact", "unread-count"] });
       }).catch(() => {
         // Revert optimistic update on failure

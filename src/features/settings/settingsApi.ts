@@ -1,6 +1,5 @@
 import { apiClient } from "@/core/api";
 
-export const settingsApi = {
-  updateClinicSettings: (weekStartDay: number): Promise<void> =>
-    apiClient.patch("/clinic/settings", { weekStartDay }),
-};
+export async function updateClinicSettings(weekStartDay: number): Promise<void> {
+  await apiClient.patch("/clinic/settings", { weekStartDay });
+}

@@ -1,30 +1,22 @@
 import type { Permission } from "@/core/constants";
-import { useToast } from "@/core/hooks/useToast";
-import { createErrorHandler } from "@/core/utils/apiErrorHandler";
+import { getErrorMessage } from "@/core/utils/apiErrorHandler";
+import { toast } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-
-import { authApi } from "../api/authApi";
+import {
+  changePassword,
+  deleteProfileImage,
+  getMe,
+  logout,
+  updateProfile,
+  updateProfileImage,
+} from "../api/authApi";
 import type { ChangePassword, UpdateProfile } from "../schemas";
-
-/**
- * Auth hooks for the dashboard.
- *
- * Login, Register, ForgotPassword, ResetPassword, EmailVerification
- * are all handled by the Next.js website.
- *
- * The dashboard only needs to:
- *   - Read the current user via /me (cookie sent automatically)
- *   - Logout (clears cookies on the backend)
- *   - Change password and manage profile
- */
-
-// ── Queries ───────────────────────────────────────────────────────────────────
 
 export function useMe() {
   const query = useQuery({
     queryKey: ["auth", "me"],
-    queryFn: authApi.getMe,
+    queryFn: getMe,
     retry: false,
     staleTime: 5 * 60 * 1000,
     gcTime: Infinity,
@@ -42,14 +34,12 @@ export function useMe() {
   };
 }
 
-// ── Auth mutations ────────────────────────────────────────────────────────────
-
 export function useLogout() {
   const queryClient = useQueryClient();
   const authUrl = import.meta.env.VITE_AUTH_URL ?? "https://clinic-website-lime.vercel.app/en/login";
 
   return useMutation({
-    mutationFn: authApi.logout,
+    mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
       window.location.href = authUrl;
@@ -58,61 +48,51 @@ export function useLogout() {
 }
 
 export function useChangePassword() {
-  const { showSuccess, showError } = useToast();
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: (data: ChangePassword) => authApi.changePassword(data),
-    onSuccess: () => showSuccess("toast.passwordChangedSuccessfully"),
-    onError: createErrorHandler(showError, t),
+    mutationFn: (data: ChangePassword) => changePassword(data),
+    onSuccess: () => toast.success(t("toast.passwordChangedSuccessfully")),
+    onError: (error) => toast.danger(getErrorMessage(error, t)),
   });
 }
 
-// ── Profile mutations ─────────────────────────────────────────────────────────
-
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useToast();
   const { t } = useTranslation();
 
   return useMutation({
     mutationFn: (data: UpdateProfile) =>
-      authApi.updateProfile({ ...data, phoneNumber: data.phoneNumber || undefined }),
+      updateProfile({ ...data, phoneNumber: data.phoneNumber || undefined }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      showSuccess("toast.profileUpdatedSuccessfully");
     },
-    onError: createErrorHandler(showError, t),
+    onError: (error) => toast.danger(getErrorMessage(error, t)),
   });
 }
 
 export function useUpdateProfileImage() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useToast();
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: authApi.updateProfileImage,
+    mutationFn: updateProfileImage,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      showSuccess("toast.profileImageUpdatedSuccessfully");
     },
-    onError: createErrorHandler(showError, t),
+    onError: (error) => toast.danger(getErrorMessage(error, t)),
   });
 }
 
 export function useDeleteProfileImage() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useToast();
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: authApi.deleteProfileImage,
+    mutationFn: deleteProfileImage,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      showSuccess("toast.profileImageDeletedSuccessfully");
     },
-    onError: createErrorHandler(showError, t),
+    onError: (error) => toast.danger(getErrorMessage(error, t)),
   });
 }
-

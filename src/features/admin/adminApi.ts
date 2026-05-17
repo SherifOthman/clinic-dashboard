@@ -1,6 +1,5 @@
 import { apiClient } from "@/core/api";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import type { PagedResult } from "@/core/types";
 
 export interface SpecializationDto {
   id: string;
@@ -23,34 +22,42 @@ export interface ChronicDiseaseDto {
 export type UpsertSpecializationRequest = Omit<SpecializationDto, "id" | "isActive"> & { isActive?: boolean };
 export type UpsertChronicDiseaseRequest = Omit<ChronicDiseaseDto, "id" | "isActive"> & { isActive?: boolean };
 
-// ── API ───────────────────────────────────────────────────────────────────────
+// ── Specializations ───────────────────────────────────────────────────────────
 
-export const adminApi = {
-  // ── Specializations ─────────────────────────────────────────────────────────
+export async function getSpecializationsPaginated(pageNumber = 1, pageSize = 10): Promise<PagedResult<SpecializationDto>> {
+  const res = await apiClient.get<PagedResult<SpecializationDto>>(`/admin/specializations?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  return res.data;
+}
 
-  getSpecializationsPaginated: (pageNumber = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<SpecializationDto>> =>
-    apiClient.get(`/admin/specializations?pageNumber=${pageNumber}&pageSize=${pageSize}`),
+export async function createSpecialization(data: UpsertSpecializationRequest): Promise<string> {
+  const res = await apiClient.post<string>("/admin/specializations", data);
+  return res.data;
+}
 
-  createSpecialization: (data: UpsertSpecializationRequest): Promise<string> =>
-    apiClient.post("/admin/specializations", data),
+export async function updateSpecialization(id: string, data: UpsertSpecializationRequest & { isActive: boolean }): Promise<void> {
+  await apiClient.put(`/admin/specializations/${id}`, data);
+}
 
-  updateSpecialization: (id: string, data: UpsertSpecializationRequest & { isActive: boolean }): Promise<void> =>
-    apiClient.put(`/admin/specializations/${id}`, data),
+export async function deleteSpecialization(id: string): Promise<void> {
+  await apiClient.delete(`/admin/specializations/${id}`);
+}
 
-  deleteSpecialization: (id: string): Promise<void> =>
-    apiClient.delete(`/admin/specializations/${id}`),
+// ── Chronic Diseases ──────────────────────────────────────────────────────────
 
-  // ── Chronic Diseases ─────────────────────────────────────────────────────────
+export async function getChronicDiseasesPaginated(pageNumber = 1, pageSize = 10): Promise<PagedResult<ChronicDiseaseDto>> {
+  const res = await apiClient.get<PagedResult<ChronicDiseaseDto>>(`/admin/chronic-diseases?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  return res.data;
+}
 
-  getChronicDiseasesPaginated: (pageNumber = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<ChronicDiseaseDto>> =>
-    apiClient.get(`/admin/chronic-diseases?pageNumber=${pageNumber}&pageSize=${pageSize}`),
+export async function createChronicDisease(data: UpsertChronicDiseaseRequest): Promise<string> {
+  const res = await apiClient.post<string>("/admin/chronic-diseases", data);
+  return res.data;
+}
 
-  createChronicDisease: (data: UpsertChronicDiseaseRequest): Promise<string> =>
-    apiClient.post("/admin/chronic-diseases", data),
+export async function updateChronicDisease(id: string, data: UpsertChronicDiseaseRequest & { isActive: boolean }): Promise<void> {
+  await apiClient.put(`/admin/chronic-diseases/${id}`, data);
+}
 
-  updateChronicDisease: (id: string, data: UpsertChronicDiseaseRequest & { isActive: boolean }): Promise<void> =>
-    apiClient.put(`/admin/chronic-diseases/${id}`, data),
-
-  deleteChronicDisease: (id: string): Promise<void> =>
-    apiClient.delete(`/admin/chronic-diseases/${id}`),
-};
+export async function deleteChronicDisease(id: string): Promise<void> {
+  await apiClient.delete(`/admin/chronic-diseases/${id}`);
+}

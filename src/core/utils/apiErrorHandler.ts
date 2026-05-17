@@ -1,9 +1,5 @@
 import type { TFunction } from "i18next";
 
-/**
- * Extracts a human-readable error message from a fetch API error.
- * The backend returns RFC 7807 ProblemDetails with an optional `code` field.
- */
 export function getErrorMessage(error: unknown, t: TFunction): string {
   if (error instanceof Error) {
     const e = error as any;
@@ -19,8 +15,4 @@ export function getErrorMessage(error: unknown, t: TFunction): string {
       return error.message;
   }
   return t("common.unexpectedError");
-}
-
-export function createErrorHandler(showError: (message: string) => void, t: TFunction) {
-  return (error: unknown) => showError(getErrorMessage(error, t));
 }

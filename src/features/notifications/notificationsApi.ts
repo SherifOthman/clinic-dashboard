@@ -13,16 +13,20 @@ export interface NotificationDto {
   createdAt: string;
 }
 
-export const notificationsApi = {
-  getAll: (pageNumber = 1, pageSize = 10): Promise<PagedResult<NotificationDto>> =>
-    apiClient.get(`/notifications?pageNumber=${pageNumber}&pageSize=${pageSize}`),
+export async function getNotifications(pageNumber = 1, pageSize = 10): Promise<PagedResult<NotificationDto>> {
+  const res = await apiClient.get<PagedResult<NotificationDto>>(`/notifications?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  return res.data;
+}
 
-  getUnreadCount: (): Promise<number> =>
-    apiClient.get("/notifications/unread-count"),
+export async function getUnreadNotificationsCount(): Promise<number> {
+  const res = await apiClient.get<number>("/notifications/unread-count");
+  return res.data;
+}
 
-  markRead: (id: string): Promise<void> =>
-    apiClient.patch(`/notifications/${id}/read`),
+export async function markNotificationRead(id: string): Promise<void> {
+  await apiClient.patch(`/notifications/${id}/read`);
+}
 
-  markAllRead: (): Promise<void> =>
-    apiClient.patch("/notifications/read-all"),
-};
+export async function markAllNotificationsRead(): Promise<void> {
+  await apiClient.patch("/notifications/read-all");
+}

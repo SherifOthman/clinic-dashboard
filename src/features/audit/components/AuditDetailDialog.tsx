@@ -1,7 +1,6 @@
 import { Dialog } from "@/core/components/ui/Dialog";
 import { useDateFormat } from "@/core/hooks/useDateFormat";
-import { useToast } from "@/core/hooks/useToast";
-import { Button, Chip } from "@heroui/react";
+import { toast, Button, Chip } from "@heroui/react";
 import { Globe, RotateCcw, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ACTION_COLORS } from "../auditConstants";
@@ -55,10 +54,9 @@ export function AuditDetailDialog({
 }: AuditDetailDialogProps) {
   const { t } = useTranslation();
   const { formatDateOnly, formatTimeOnly } = useDateFormat();
-  const { showSuccess, showError } = useToast();
 
   const restorePatient = useRestorePatient(() => {
-    showSuccess("toast.patientRestoredSuccessfully");
+    toast.success(t("toast.patientRestoredSuccessfully"));
     onClose();
   });
 
@@ -85,7 +83,7 @@ export function AuditDetailDialog({
       isPending={restorePatient.isPending}
       onPress={() =>
         restorePatient.mutate(item!.entityId, {
-          onError: () => showError("toast.patientRestoreFailed"),
+          onError: () => toast.danger(t("toast.patientRestoreFailed")),
         })
       }
     >

@@ -1,4 +1,4 @@
-import { apiClient, apiFetch, unwrap } from "@/core/api";
+import { apiClient } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
 import { buildQuery } from "@/core/utils/buildQuery";
 import type { PagedResult } from "@/core/types";
@@ -44,73 +44,92 @@ export interface UpsertDoctorVisitTypeRequest {
   isActive: boolean;
 }
 
-export const staffApi = {
-  getStaffList: (params: StaffSearchParams = {}): Promise<PagedResult<StaffDto>> => {
-    const { role, isActive, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
-    const q = buildQuery({ pageNumber, pageSize, role, isActive, sortBy, sortDirection });
-    return apiClient.get<PagedResult<StaffDto>>(`${API_ENDPOINTS.staff}${q}`);
-  },
+export async function getStaffList(params: StaffSearchParams = {}): Promise<PagedResult<StaffDto>> {
+  const { role, isActive, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
+  const q = buildQuery({ pageNumber, pageSize, role, isActive, sortBy, sortDirection });
+  const res = await apiClient.get<PagedResult<StaffDto>>(`${API_ENDPOINTS.staff}${q}`);
+  return res.data;
+}
 
-  getInvitations: (params: InvitationsSearchParams = {}): Promise<PagedResult<InvitationDto>> => {
-    const { status, role, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
-    const q = buildQuery({ pageNumber, pageSize, status, role, sortBy, sortDirection });
-    return apiClient.get<PagedResult<InvitationDto>>(`${API_ENDPOINTS.staff}/invitations${q}`);
-  },
+export async function getInvitations(params: InvitationsSearchParams = {}): Promise<PagedResult<InvitationDto>> {
+  const { status, role, sortBy, sortDirection, pageNumber = 1, pageSize = 10 } = params;
+  const q = buildQuery({ pageNumber, pageSize, status, role, sortBy, sortDirection });
+  const res = await apiClient.get<PagedResult<InvitationDto>>(`${API_ENDPOINTS.staff}/invitations${q}`);
+  return res.data;
+}
 
-  inviteStaff: (data: InviteStaffRequest): Promise<InviteStaffResponse> =>
-    apiClient.post<InviteStaffResponse>(`${API_ENDPOINTS.staff}/invite`, data),
+export async function inviteStaff(data: InviteStaffRequest): Promise<InviteStaffResponse> {
+  const res = await apiClient.post<InviteStaffResponse>(`${API_ENDPOINTS.staff}/invite`, data);
+  return res.data;
+}
 
-  // Public endpoint — no auth cookie needed
-  acceptInvitationWithRegistration: (token: string, data: AcceptInvitationWithRegistration): Promise<void> =>
-    apiFetch<void>(`${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }).then(unwrap),
+export async function acceptInvitationWithRegistration(token: string, data: AcceptInvitationWithRegistration): Promise<void> {
+  await apiClient.post(`${API_ENDPOINTS.staff}/invitations/${token}/accept-with-registration`, data);
+}
 
-  cancelInvitation: (id: string): Promise<void> =>
-    apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/cancel`),
+export async function cancelInvitation(id: string): Promise<void> {
+  await apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/cancel`);
+}
 
-  resendInvitation: (id: string): Promise<void> =>
-    apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`),
+export async function resendInvitation(id: string): Promise<void> {
+  await apiClient.patch(`${API_ENDPOINTS.staff}/invitations/${id}/resend`);
+}
 
-  setOwnerAsDoctor: (data: SetOwnerAsDoctorRequest): Promise<void> =>
-    apiClient.patch(`${API_ENDPOINTS.staff}/me/doctor-profile`, data),
+export async function setOwnerAsDoctor(data: SetOwnerAsDoctorRequest): Promise<void> {
+  await apiClient.patch(`${API_ENDPOINTS.staff}/me/doctor-profile`, data);
+}
 
-  setActiveStatus: (id: string, isActive: boolean): Promise<void> =>
-    apiClient.patch(`${API_ENDPOINTS.staff}/${id}/active-status`, { isActive }),
+export async function setStaffActiveStatus(id: string, isActive: boolean): Promise<void> {
+  await apiClient.patch(`${API_ENDPOINTS.staff}/${id}/active-status`, { isActive });
+}
 
-  getStaffDetail: (id: string): Promise<StaffDetailDto> =>
-    apiClient.get<StaffDetailDto>(`${API_ENDPOINTS.staff}/${id}`),
+export async function getStaffDetail(id: string): Promise<StaffDetailDto> {
+  const res = await apiClient.get<StaffDetailDto>(`${API_ENDPOINTS.staff}/${id}`);
+  return res.data;
+}
 
-  getInvitationDetail: (id: string): Promise<InvitationDetailDto> =>
-    apiClient.get<InvitationDetailDto>(`${API_ENDPOINTS.staff}/invitations/${id}`),
+export async function getInvitationDetail(id: string): Promise<InvitationDetailDto> {
+  const res = await apiClient.get<InvitationDetailDto>(`${API_ENDPOINTS.staff}/invitations/${id}`);
+  return res.data;
+}
 
-  getWorkingDays: (staffId: string, branchId?: string): Promise<WorkingDayDto[]> => {
-    const q = branchId ? `?branchId=${branchId}` : "";
-    return apiClient.get<WorkingDayDto[]>(`${API_ENDPOINTS.staff}/${staffId}/working-days${q}`);
-  },
+export async function getWorkingDays(staffId: string, branchId?: string): Promise<WorkingDayDto[]> {
+  const q = branchId ? `?branchId=${branchId}` : "";
+  const res = await apiClient.get<WorkingDayDto[]>(`${API_ENDPOINTS.staff}/${staffId}/working-days${q}`);
+  return res.data;
+}
 
-  saveWorkingDays: (staffId: string, branchId: string, days: WorkingDayInput[]): Promise<void> =>
-    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/working-days`, { branchId, staffId, days }),
+export async function saveWorkingDays(staffId: string, branchId: string, days: WorkingDayInput[]): Promise<void> {
+  await apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/working-days`, { branchId, staffId, days });
+}
 
-  getVisitTypes: (staffId: string, branchId: string): Promise<DoctorVisitTypeDto[]> =>
-    apiClient.get<DoctorVisitTypeDto[]>(`${API_ENDPOINTS.staff}/${staffId}/visit-types?branchId=${branchId}`),
+export async function getVisitTypes(staffId: string, branchId: string): Promise<DoctorVisitTypeDto[]> {
+  const res = await apiClient.get<DoctorVisitTypeDto[]>(`${API_ENDPOINTS.staff}/${staffId}/visit-types?branchId=${branchId}`);
+  return res.data;
+}
 
-  createVisitType: (staffId: string, data: UpsertDoctorVisitTypeRequest): Promise<string> =>
-    apiClient.post<string>(`${API_ENDPOINTS.staff}/${staffId}/visit-types`, data),
+export async function createVisitType(staffId: string, data: UpsertDoctorVisitTypeRequest): Promise<string> {
+  const res = await apiClient.post<string>(`${API_ENDPOINTS.staff}/${staffId}/visit-types`, data);
+  return res.data;
+}
 
-  updateVisitType: (staffId: string, visitTypeId: string, data: UpsertDoctorVisitTypeRequest): Promise<void> =>
-    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`, data),
+export async function updateVisitType(staffId: string, visitTypeId: string, data: UpsertDoctorVisitTypeRequest): Promise<void> {
+  await apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`, data);
+}
 
-  removeVisitType: (staffId: string, visitTypeId: string): Promise<void> =>
-    apiClient.delete(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`),
+export async function removeVisitType(staffId: string, visitTypeId: string): Promise<void> {
+  await apiClient.delete(`${API_ENDPOINTS.staff}/${staffId}/visit-types/${visitTypeId}`);
+}
 
-  setScheduleLock: (staffId: string, canSelfManage: boolean): Promise<void> =>
-    apiClient.patch(`${API_ENDPOINTS.staff}/${staffId}/schedule-lock`, { canSelfManage }),
+export async function setScheduleLock(staffId: string, canSelfManage: boolean): Promise<void> {
+  await apiClient.patch(`${API_ENDPOINTS.staff}/${staffId}/schedule-lock`, { canSelfManage });
+}
 
-  getPermissions: (staffId: string): Promise<string[]> =>
-    apiClient.get<string[]>(`${API_ENDPOINTS.staff}/${staffId}/permissions`),
+export async function getPermissions(staffId: string): Promise<string[]> {
+  const res = await apiClient.get<string[]>(`${API_ENDPOINTS.staff}/${staffId}/permissions`);
+  return res.data;
+}
 
-  setPermissions: (staffId: string, permissions: string[]): Promise<void> =>
-    apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/permissions`, permissions),
-};
+export async function setPermissions(staffId: string, permissions: string[]): Promise<void> {
+  await apiClient.put(`${API_ENDPOINTS.staff}/${staffId}/permissions`, permissions);
+}

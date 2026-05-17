@@ -1,9 +1,10 @@
 import { apiClient } from "@/core/api";
 import { API_ENDPOINTS } from "@/core/constants";
 import { todayStr } from "@/core/utils/dateUtils";
+import type { PagedResult } from "@/core/types";
 import type { AppointmentDto } from "../appointments/types";
 
-// ── Testimonial types (owned by dashboard feature) ────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface MyTestimonial {
   authorName: string;
@@ -18,8 +19,6 @@ export interface SubmitTestimonialRequest {
   text: string;
   rating: number;
 }
-
-// ── Recent patients ───────────────────────────────────────────────────────────
 
 export interface RecentPatientDto {
   id: string;
@@ -93,56 +92,73 @@ export interface AdminTestimonialDto {
   createdAt: string;
 }
 
-export const dashboardApi = {
-  getStats: (): Promise<DashboardStatsDto> =>
-    apiClient.get<DashboardStatsDto>(`${API_ENDPOINTS.dashboard}/stats`),
+// ── API functions ─────────────────────────────────────────────────────────────
 
-  getSuperAdminStats: (): Promise<SuperAdminStatsDto> =>
-    apiClient.get<SuperAdminStatsDto>(`${API_ENDPOINTS.dashboard}/stats/superadmin`),
+export async function getDashboardStats(): Promise<DashboardStatsDto> {
+  const res = await apiClient.get<DashboardStatsDto>(`${API_ENDPOINTS.dashboard}/stats`);
+  return res.data;
+}
 
-  /** Appointments for a specific doctor today (used by DoctorDashboard) */
-  getDoctorTodayAppointments: (doctorInfoId: string, branchId: string): Promise<AppointmentDto[]> => {
-    const params = new URLSearchParams({ date: todayStr(), branchId });
-    params.append("doctorInfoIds", doctorInfoId);
-    return apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
-  },
+export async function getSuperAdminStats(): Promise<SuperAdminStatsDto> {
+  const res = await apiClient.get<SuperAdminStatsDto>(`${API_ENDPOINTS.dashboard}/stats/superadmin`);
+  return res.data;
+}
 
-  /** All appointments for a branch today (used by ReceptionistDashboard) */
-  getBranchTodayAppointments: (branchId: string): Promise<AppointmentDto[]> => {
-    const params = new URLSearchParams({ date: todayStr(), branchId });
-    return apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
-  },
+export async function getDoctorTodayAppointments(doctorInfoId: string, branchId: string): Promise<AppointmentDto[]> {
+  const params = new URLSearchParams({ date: todayStr(), branchId });
+  params.append("doctorInfoIds", doctorInfoId);
+  const res = await apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
+  return res.data;
+}
 
-  getContactMessages: (page = 1, pageSize = 10): Promise<import("@/core/types").PagedResult<ContactMessageDto>> =>
-    apiClient.get(`/contact?pageNumber=${page}&pageSize=${pageSize}`),
+export async function getBranchTodayAppointments(branchId: string): Promise<AppointmentDto[]> {
+  const params = new URLSearchParams({ date: todayStr(), branchId });
+  const res = await apiClient.get<AppointmentDto[]>(`${API_ENDPOINTS.appointments}?${params}`);
+  return res.data;
+}
 
-  getContactMessagesUnreadCount: (): Promise<number> =>
-    apiClient.get("/contact/unread-count"),
+export async function getContactMessages(page = 1, pageSize = 10): Promise<PagedResult<ContactMessageDto>> {
+  const res = await apiClient.get<PagedResult<ContactMessageDto>>(`/contact?pageNumber=${page}&pageSize=${pageSize}`);
+  return res.data;
+}
 
-  markContactMessageRead: (id: string): Promise<void> =>
-    apiClient.patch(`/contact/${id}/read`),
+export async function getContactMessagesUnreadCount(): Promise<number> {
+  const res = await apiClient.get<number>("/contact/unread-count");
+  return res.data;
+}
 
-  getAllTestimonials: (page = 1, pageSize = 12): Promise<import("@/core/types").PagedResult<AdminTestimonialDto>> =>
-    apiClient.get(`/testimonials/all?pageNumber=${page}&pageSize=${pageSize}`),
+export async function markContactMessageRead(id: string): Promise<void> {
+  await apiClient.patch(`/contact/${id}/read`);
+}
 
-  toggleTestimonial: (id: string): Promise<void> =>
-    apiClient.patch(`/testimonials/${id}/toggle`),
+export async function getAllTestimonials(page = 1, pageSize = 12): Promise<PagedResult<AdminTestimonialDto>> {
+  const res = await apiClient.get<PagedResult<AdminTestimonialDto>>(`/testimonials/all?pageNumber=${page}&pageSize=${pageSize}`);
+  return res.data;
+}
 
-  // ── Owner testimonial ───────────────────────────────────────────────────────
+export async function toggleTestimonial(id: string): Promise<void> {
+  await apiClient.patch(`/testimonials/${id}/toggle`);
+}
 
-  getMyTestimonial: (): Promise<MyTestimonial | null> =>
-    apiClient.get<MyTestimonial>("/testimonials/mine").catch(() => null),
+export async function getMyTestimonial(): Promise<MyTestimonial | null> {
+  try {
+    const res = await apiClient.get<MyTestimonial>("/testimonials/mine");
+    return res.data;
+  } catch {
+    return null;
+  }
+}
 
-  submitTestimonial: (data: SubmitTestimonialRequest): Promise<void> =>
-    apiClient.post("/testimonials", data),
+export async function submitTestimonial(data: SubmitTestimonialRequest): Promise<void> {
+  await apiClient.post("/testimonials", data);
+}
 
-  // ── Recent patients ─────────────────────────────────────────────────────────
+export async function getRecentPatients(): Promise<RecentPatientDto[]> {
+  const res = await apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`);
+  return res.data;
+}
 
-  getRecentPatients: (): Promise<RecentPatientDto[]> =>
-    apiClient.get<RecentPatientDto[]>(`${API_ENDPOINTS.dashboard}/recent-patients`),
-
-  // ── Usage metrics ────────────────────────────────────────────────────────────
-
-  getUsageMetrics: (): Promise<UsageMetricsDto> =>
-    apiClient.get<UsageMetricsDto>(`${API_ENDPOINTS.dashboard}/usage-metrics`),
-};
+export async function getUsageMetrics(): Promise<UsageMetricsDto> {
+  const res = await apiClient.get<UsageMetricsDto>(`${API_ENDPOINTS.dashboard}/usage-metrics`);
+  return res.data;
+}

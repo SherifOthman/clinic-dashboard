@@ -1,5 +1,5 @@
 import { useDebounce } from "@/core/hooks/useDebounce";
-import { patientsApi } from "@/features/patients/patientsApi";
+import { getPatients } from "@/features/patients/patientsApi";
 import { PatientDialog } from "@/features/patients/components/PatientDialog";
 import type { PatientListItem } from "@/features/patients/types";
 import { Button } from "@heroui/react";
@@ -37,7 +37,7 @@ export function PatientSearchField({ value, patientName, onChange, isDisabled }:
 
   const { data, isLoading } = useQuery({
     queryKey: ["patients", "search", debouncedSearch],
-    queryFn: () => patientsApi.getPaginated({ searchTerm: debouncedSearch || undefined, pageSize: 10 }),
+    queryFn: () => getPatients({ searchTerm: debouncedSearch || undefined, pageSize: 10 }),
     enabled: open,
     staleTime: 30_000,
   });
