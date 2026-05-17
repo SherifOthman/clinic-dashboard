@@ -1,21 +1,20 @@
 import { DataTable, type Column } from "@/core/components/ui/DataTable";
 import { TablePagination } from "@/core/components/ui/TablePagination";
-import { Chip, Tooltip } from "@heroui/react";
-import { Button } from "@heroui/react";
+import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import { Button, Chip, Tooltip } from "@heroui/react";
 import { Ban, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toArabicNumerals } from "@/core/utils/arabicNumerals";
+import { buildClientPage } from "@/features/admin/utils/clientPagination";
 import {
   useMarkAppointmentPaid,
   useRefundAppointment,
   useUpdateAppointmentStatus,
 } from "../appointmentsHooks";
 import type { AppointmentDto, AppointmentStatus, DoctorCheckInResult, DoctorForBranch } from "../types";
-import { buildClientPage } from "@/features/admin/utils/clientPagination";
 import { ActionsDropdown, NextStatusButton, PatientCell, SlotCell, STATUS_COLOR } from "./appointmentColumns";
-import { DoctorCheckInButton } from "./DoctorCheckInButton";
 import { DoctorAbsentDialog } from "./DoctorAbsentDialog";
+import { DoctorCheckInButton } from "./DoctorCheckInButton";
 import { RescheduleAppointmentDialog } from "./RescheduleAppointmentDialog";
 
 interface DoctorAppointmentsPanelProps {
@@ -26,15 +25,15 @@ interface DoctorAppointmentsPanelProps {
   visitTypeFilter?: string;
   paymentFilter?: string;
   dateStr: string;
+  branchId?: string;
   onAddAppointment?: () => void;
   onEditAppointment?: (a: AppointmentDto) => void;
   onViewPatient?: (patientId: string) => void;
   onDoctorLate?: (result: DoctorCheckInResult, doctorName: string) => void;
-  branchId?: string;
 }
 
-const SINGLE_PAGE   = 10;
-const TERMINAL = new Set<AppointmentStatus>(["Completed", "Cancelled", "NoShow"]);
+const PAGE_SIZE = 10;
+const TERMINAL  = new Set<AppointmentStatus>(["Completed", "Cancelled", "NoShow"]);
 
 // ── Panel header ──────────────────────────────────────────────────────────────
 
@@ -52,8 +51,7 @@ function PanelHeader({
   onAbsent?: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
-  const num  = (n: number) => isAr ? toArabicNumerals(String(n)) : String(n);
+  const num = (n: number) => i18n.language === "ar" ? toArabicNumerals(String(n)) : String(n);
   const isFiltered = filteredCount !== count;
 
   return (
@@ -67,8 +65,8 @@ function PanelHeader({
           <p className="text-xs text-muted">{t("appointments.queueBased")}</p>
         </div>
       </div>
+
       <div className="flex items-center gap-1 shrink-0">
-        {/* Count — shows filtered/total when a filter is active */}
         {isFiltered ? (
           <span className="text-xs font-medium text-accent">
             {num(filteredCount)}<span className="text-muted">/{num(count)}</span>
@@ -76,6 +74,7 @@ function PanelHeader({
         ) : (
           <span className="text-xs text-muted">{num(count)}</span>
         )}
+
         {branchId && (
           <DoctorCheckInButton
             doctorInfoId={doctor.doctorInfoId}
@@ -85,6 +84,7 @@ function PanelHeader({
             onLate={(result) => onDoctorLate?.(result, doctor.fullName)}
           />
         )}
+
         {branchId && hasActiveAppointments && onAbsent && (
           <Tooltip delay={300}>
             <Tooltip.Trigger>
@@ -97,6 +97,7 @@ function PanelHeader({
             <Tooltip.Content><p>{t("appointments.doctorAbsent")}</p></Tooltip.Content>
           </Tooltip>
         )}
+
         {onAddAppointment && (
           <Tooltip delay={300}>
             <Tooltip.Trigger>
@@ -116,79 +117,52 @@ function PanelHeader({
 // ── Main panel ────────────────────────────────────────────────────────────────
 
 export function DoctorAppointmentsPanel({
-  doctor, appointments, isLoading, searchTerm = "",
-  visitTypeFilter = "", paymentFilter = "",
-  dateStr,
-  onAddAppointment, onEditAppointment, onViewPatient, onDoctorLate, branchId,
+  doctor, appointments, isLoading,
+  searchTerm = "", visitTypeFilter = "", paymentFilter = "",
+  dateStr, branchId,
+  onAddAppointment, onEditAppointment, onViewPatient, onDoctorLate,
 }: DoctorAppointmentsPanelProps) {
   const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
-  const [page, setPage] = useState(1);
-  const [absentOpen, setAbsentOpen]                         = useState(false);
-  const [reschedulingAppt, setReschedulingAppt]             = useState<AppointmentDto | null>(null);
+  const [page, setPage]                         = useState(1);
+  const [absentOpen, setAbsentOpen]             = useState(false);
+  const [reschedulingAppt, setReschedulingAppt] = useState<AppointmentDto | null>(null);
 
   const updateStatus = useUpdateAppointmentStatus();
   const markPaid     = useMarkAppointmentPaid();
   const refund       = useRefundAppointment();
   const isPending    = updateStatus.isPending || markPaid.isPending || refund.isPending;
 
-  const onStatusChange = (id: string, status: string) => updateStatus.mutate({ id, status });
-
-  const sorted = useMemo(() => {
-    const active   = appointments.filter((a) => !TERMINAL.has(a.status));
-    const terminal = appointments.filter((a) => TERMINAL.has(a.status));
-    return [...active, ...terminal];
-  }, [appointments]);
+  // Active-first sort: pending/waiting before terminal statuses
+  const sorted = useMemo(() => [
+    ...appointments.filter((a) => !TERMINAL.has(a.status)),
+    ...appointments.filter((a) =>  TERMINAL.has(a.status)),
+  ], [appointments]);
 
   const filtered = useMemo(() => {
     let result = sorted;
-
-    // Text search — patient name or code
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       result = result.filter((a) =>
-        a.patientName.toLowerCase().includes(q) ||
-        (a.patientCode ?? "").toLowerCase().includes(q)
+        a.patientName.toLowerCase().includes(q) || (a.patientCode ?? "").toLowerCase().includes(q)
       );
     }
-
-    // Visit type filter
-    if (visitTypeFilter) {
-      result = result.filter((a) => a.visitTypeName === visitTypeFilter);
-    }
-
-    // Payment status filter
-    if (paymentFilter === "unpaid") {
-      result = result.filter((a) =>
-        !a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow"
-      );
-    } else if (paymentFilter === "paid") {
-      result = result.filter((a) => !!a.invoiceId);
-    }
-
+    if (visitTypeFilter) result = result.filter((a) => a.visitTypeName === visitTypeFilter);
+    if (paymentFilter === "unpaid") result = result.filter((a) => !a.invoiceId && a.status !== "Cancelled" && a.status !== "NoShow");
+    if (paymentFilter === "paid")   result = result.filter((a) => !!a.invoiceId);
     return result;
   }, [sorted, searchTerm, visitTypeFilter, paymentFilter]);
 
-  const hasActiveAppointments = appointments.some(
-    (a) => a.status === "Pending" || a.status === "Waiting"
-  );
-
-  const activeCount = appointments.filter(
-    (a) => a.status === "Pending" || a.status === "Waiting"
-  ).length;
+  const activeCount = appointments.filter((a) => a.status === "Pending" || a.status === "Waiting").length;
 
   const headerProps = {
-    doctor,
-    branchId,
+    doctor, branchId,
     count: appointments.length,
     filteredCount: filtered.length,
-    hasActiveAppointments,
-    onAddAppointment,
-    onDoctorLate,
+    hasActiveAppointments: activeCount > 0,
+    onAddAppointment, onDoctorLate,
     onAbsent: branchId ? () => setAbsentOpen(true) : undefined,
   };
 
-  // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
@@ -200,7 +174,6 @@ export function DoctorAppointmentsPanel({
     );
   }
 
-  // ── Empty ──────────────────────────────────────────────────────────────────
   if (appointments.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
@@ -210,44 +183,24 @@ export function DoctorAppointmentsPanel({
     );
   }
 
-  // ── Shared action handlers ─────────────────────────────────────────────────
-  const renderActions = (a: AppointmentDto) => (
-    <div className="flex items-center justify-end gap-0.5">
-      <NextStatusButton a={a} t={t} onStatusChange={onStatusChange} isPending={isPending} />
-      <ActionsDropdown
-        a={a} t={t}
-        onStatusChange={onStatusChange}
-        onMarkPaid={(id) => markPaid.mutate(id)}
-        onRefund={(id) => refund.mutate(id)}
-        onViewPatient={onViewPatient}
-        onEdit={onEditAppointment}
-        onReschedule={(appt) => setReschedulingAppt(appt)}
-        isPending={isPending}
-      />
-    </div>
-  );
-
-  // ── Single mode (always) ───────────────────────────────────────────────────
-  const { items: paged, meta: pageData } = buildClientPage(filtered, page, SINGLE_PAGE);
-
   const columns: Column<AppointmentDto>[] = [
     {
       key: "slot",
       label: t("appointments.columns.queue"),
-      render: (a) => <SlotCell a={a} isAr={isAr} />,
+      render: (a) => <SlotCell a={a} isAr={i18n.language === "ar"} />,
     },
     {
       key: "patient",
       label: t("appointments.columns.patient"),
-      render: (a) => <PatientCell a={a} isAr={isAr} onViewPatient={onViewPatient} t={t} />,
+      render: (a) => <PatientCell a={a} isAr={i18n.language === "ar"} onViewPatient={onViewPatient} t={t} />,
     },
     {
-      key: "visitTypeName",
+      key: "visitType",
       label: t("appointments.columns.visitType"),
       render: (a) => <span className="text-sm text-muted">{a.visitTypeName}</span>,
     },
     {
-      key: "finalPrice",
+      key: "price",
       label: t("appointments.columns.price"),
       render: (a) => <span className="text-sm tabular-nums text-muted">${a.finalPrice.toFixed(0)}</span>,
     },
@@ -263,9 +216,25 @@ export function DoctorAppointmentsPanel({
     {
       key: "actions",
       label: "",
-      render: renderActions,
+      render: (a) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <NextStatusButton a={a} t={t} onStatusChange={(id, status) => updateStatus.mutate({ id, status })} isPending={isPending} />
+          <ActionsDropdown
+            a={a} t={t}
+            onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+            onMarkPaid={(id) => markPaid.mutate(id)}
+            onRefund={(id) => refund.mutate(id)}
+            onViewPatient={onViewPatient}
+            onEdit={onEditAppointment}
+            onReschedule={setReschedulingAppt}
+            isPending={isPending}
+          />
+        </div>
+      ),
     },
   ];
+
+  const { items: paged, meta: pageData } = buildClientPage(filtered, page, PAGE_SIZE);
 
   return (
     <>
@@ -275,12 +244,7 @@ export function DoctorAppointmentsPanel({
           <div className="py-8 text-center text-sm text-muted">{t("common.noResults")}</div>
         ) : (
           <>
-            <DataTable
-              columns={columns}
-              data={paged}
-              keyExtractor={(a) => a.id}
-              emptyMessage={t("appointments.noAppointments")}
-            />
+            <DataTable columns={columns} data={paged} keyExtractor={(a) => a.id} />
             <TablePagination data={pageData} currentPage={page} onPageChange={setPage} />
           </>
         )}
@@ -297,6 +261,7 @@ export function DoctorAppointmentsPanel({
           onClose={() => setAbsentOpen(false)}
         />
       )}
+
       <RescheduleAppointmentDialog
         appointment={reschedulingAppt}
         doctorMemberId={doctor.memberId}

@@ -29,7 +29,7 @@ export function RescheduleAppointmentDialog({
   branchId,
   onClose,
 }: RescheduleAppointmentDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const reschedule = useRescheduleAppointment();
   const { data: branches = [] } = useBranches();
 
@@ -120,7 +120,10 @@ export function RescheduleAppointmentDialog({
             {t("appointments.doctorWorksOn")}{" "}
             {workingDays
               .filter((d) => d.isAvailable)
-              .map((d) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.day])
+              .map((d) =>
+                new Intl.DateTimeFormat(i18n.language === "ar" ? "ar-EG" : "en-GB", { weekday: "short" })
+                  .format(new Date(2024, 0, 7 + d.day))
+              )
               .join(", ")}
           </p>
         )}
